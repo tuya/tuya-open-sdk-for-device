@@ -1,10 +1,10 @@
 # tuya-open-sdk-for-device
 
 ## Overview
-tuya-open-sdk-embeded-c is an open source IoT development framework that supports cross-chip platforms and operating systems. It is designed based on a universal southbound interface and supports communication protocols such as Bluetooth, Wi-Fi, and Ethernet. It provides core functionalities for IoT development, including pairing, activation, control, and upgrading.
+tuya-open-sdk-for-device is an open source IoT development framework that supports cross-chip platforms and operating systems. It is designed based on a universal southbound interface and supports communication protocols such as Bluetooth, Wi-Fi, and Ethernet. It provides core functionalities for IoT development, including pairing, activation, control, and upgrading.
 The sdk has robust security and compliance capabilities, including device authentication, data encryption, and communication encryption, meeting data compliance requirements in various countries and regions worldwide.
 
-IoT products developed using the tuya-open-sdk-embeded-c, if utilizing the functionality of the tuya_cloud_service component, can make use of the powerful ecosystem provided by the Tuya APP and cloud services, and achieve interoperability with Power By Tuya devices.
+IoT products developed using the tuya-open-sdk-for-device, if utilizing the functionality of the tuya_cloud_service component, can make use of the powerful ecosystem provided by the Tuya APP and cloud services, and achieve interoperability with Power By Tuya devices.
 
 ## Getting Start
 
@@ -12,13 +12,13 @@ IoT products developed using the tuya-open-sdk-embeded-c, if utilizing the funct
 Ubuntu and Debian
 
 ```sh
-sudo apt-get install lcov cmake-curses-gui
+sudo apt-get install lcov cmake-curses-gui build-essential wget git python3 libc6-i386 libsystemd-dev
 ```
 
 ### Clone the repository
 
 ```sh
-git clone https://registry.code.tuya-inc.top/embtuyaoscategory/wifi/open-iot-development-kit.git
+git clone https://github.com/tuya/tuya-open-sdk-for-device.git
 ```
 
 ### update the project
@@ -45,7 +45,7 @@ make example
 ### run the demo
 
 ```sh
-./bin/switch_demo
+./bin/switch_demo_1.0.0/switch_demo_1.0.0
 ```
 
 ## License

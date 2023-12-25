@@ -1,9 +1,9 @@
 # tuya-open-sdk-for-device
 
 ## 简介
-tuya-open-sdk-embeded-c 是一款跨芯片平台、操作系统的IoT开发框架。它基于通用南向接口设计，支持Bluetooth、Wi-Fi、Ethernet等通信协议，提供了物联网开发的核心功能，包括配网，激活，控制，升级等；它具备强大的安全合规能力，包括设备认证、数据加密、通信加密等，满足全球各个国家和地区的数据合规需求。
+tuya-open-sdk-for-device 是一款跨芯片平台、操作系统的 IoT 开发框架。它基于通用南向接口设计，支持 Bluetooth、Wi-Fi、Ethernet 等通信协议，提供了物联网开发的核心功能，包括配网，激活，控制，升级等；它具备强大的安全合规能力，包括设备认证、数据加密、通信加密等，满足全球各个国家和地区的数据合规需求。
 
-基于tuya-open-sdk-embeded-c开发的IoT产品，如果使用tuya_cloud_service组件的功能，就可以使用涂鸦APP、云服务提供的强大生态能力，并与Power By Tuya设备互联互通。
+基于 tuya-open-sdk-for-device 开发的 IoT 产品，如果使用 tuya_cloud_service 组件的功能，就可以使用涂鸦APP、云服务提供的强大生态能力，并与 Power By Tuya 设备互联互通。
 
 
 ## 开始体验
@@ -12,13 +12,13 @@ tuya-open-sdk-embeded-c 是一款跨芯片平台、操作系统的IoT开发框�
 Ubuntu and Debian
 
 ```sh
-sudo apt-get install lcov cmake-curses-gui
+sudo apt-get install lcov cmake-curses-gui build-essential wget git python3 libc6-i386 libsystemd-dev
 ```
 
 ### 克隆仓库
 
 ```sh
-git clone https://registry.code.tuya-inc.top/embtuyaoscategory/wifi/open-iot-development-kit.git
+git clone https://github.com/tuya/tuya-open-sdk-for-device.git
 ```
 
 ### 更新工程
@@ -44,7 +44,7 @@ make example
 ### 运行示例程序
 
 ```sh
-./bin/switch_demo
+./bin/switch_demo_1.0.0/switch_demo_1.0.0
 ```
 
 ## License
