@@ -1,0 +1,248 @@
+menu "configure enable/disable liblwip"
+	menuconfig ENABLE_LIBLWIP
+		bool "ENABLE_LIBLWIP: enable liblwip instead of lwip in board"
+		default n
+		if (ENABLE_LIBLWIP)
+			# 涂鸦定制性能优化
+			config LWIP_TCP_HEAD_ALLOC_REUSE_POLL
+				int "LWIP_TCP_HEAD_ALLOC_REUSE_POLL: TCP头申请不到PBUF_RAM空间后，使用PBUF_POOL空间。打开该宏可能导致数据包丢包（一般驱动适配层用POOL）"
+				range 0 1
+				default 0
+				
+			config LWIP_TUYA_APP_TCPIP_THREAD_SWITCH
+				int "LWIP_TUYA_APP_TCPIP_THREAD_SWITCH: tuya 线程的优先级功能，在应用发送消息后，会把当前应用的优先级升到最高，收到消息后再恢复到正常，用于加快应用速度。"
+				range 0 1
+				default 1
+		
+			config IPEF_TEST_OPTIMIZE
+				int "IPEF_TEST_OPTIMIZE: 使能IPEF测试优化"
+				range 0 1
+				default 0
+				
+			config MEM_SIZE
+				int "MEM_SIZE: 数据包缓存大小，如果发送的数据较多，且发送速度较大，需要修改此值，IPEF_TEST_OPTIMIZE=0，默认值48*512， IPEF_TEST_OPTIMIZE=1，建议64*512"
+				range 0 65535
+				default 24576		
+			
+			# 连接资源
+			config MEMP_NUM_UDP_PCB
+				int "MEMP_NUM_UDP_PCB: LWIP内核UDP个数"
+				range 0 100
+				default 6
+				
+			config MEMP_NUM_TCP_PCB
+				int "MEMP_NUM_TCP_PCB: LWIP内核已完成连接的活跃TCP个数"
+				range 0 100
+				default 10
+				
+			config MEMP_NUM_TCP_PCB_LISTEN
+				int "MEMP_NUM_TCP_PCB_LISTEN: LWIP内核处于listen状态的TCP个数"
+				range 0 100
+				default 5
+
+			config MEMP_NUM_NETCONN
+				int "MEMP_NUM_NETCONN: NETCONN的个数，位于socket下一层"
+				range 0 100
+				default 21
+			
+			#缓存资源
+			config MEMP_NUM_PBUF
+				int "MEMP_NUM_PBUF: PBUF数据的缓存个数，所有数据包共用，如果发送的数据较多，且发送速度较大，需要修改此值"
+				range 0 1024
+				default 100
+				
+			config MEMP_NUM_TCP_SEG
+				int "MEMP_NUM_TCP_SEG: TCP发送缓存队列中TCP分配的个数"
+				range 0 512
+				default 20
+			
+			config IP_REASS_MAX_PBUFS
+				int "IP_REASS_MAX_PBUFS: 数据包分片重组缓存个数"
+				range 0 512
+				default 10
+				
+			config PBUF_POOL_SIZE
+				int "PBUF_POOL_SIZE: POOL资源的个数，一般用在底层驱动收包，默认值2*IP_REASS_MAX_PBUFS"
+				range 0 512
+				default 20
+			
+			config PBUF_LINK_ENCAPSULATION_HLEN
+				int "PBUF_LINK_ENCAPSULATION_HLEN: 单个POOL池子的大小"
+				range 0 1024
+				default 400
+			
+			config TCP_SND_BUF
+				int "TCP_SND_BUF: TCP发送缓存，单位字节，默认值5*（1500-40）"
+				range 0 32768
+				default 7300
+			
+			config TCP_SND_QUEUELEN
+				int "TCP_SND_QUEUELEN: TCP发送缓存，单位个，默认值4*TCP_SND_BUF/TCP_MSS"
+				range 0 512
+				default 20
+			
+			config MEMP_NUM_NETBUF
+				int "MEMP_NUM_NETBUF: NETCON层接收数据包的缓存个数（UDP使用中，如果对端发送快于本地接收，这个缓存小会丢掉）"
+				range 0 512
+				default 8
+				
+			#系统调度资源
+			config TCPIP_MBOX_SIZE
+				int "TCPIP_MBOX_SIZE: TCPIP邮箱的深度"
+				range 0 100
+				default 6
+				
+			config DEFAULT_UDP_RECVMBOX_SIZE
+				int "DEFAULT_UDP_RECVMBOX_SIZE: UDP接收邮箱深度"
+				range 0 100
+				default 6
+				
+			config DEFAULT_TCP_RECVMBOX_SIZE
+				int "DEFAULT_TCP_RECVMBOX_SIZE: TCP接收邮箱深度"
+				range 0 100
+				default 6
+				
+			config DEFAULT_RAW_RECVMBOX_SIZE
+				int "DEFAULT_RAW_RECVMBOX_SIZE: RAW接收邮箱深度"
+				range 0 100
+				default 6
+				
+			config DEFAULT_ACCEPTMBOX_SIZE
+				int "DEFAULT_ACCEPTMBOX_SIZE: TCP accept邮箱深度"
+				range 0 100
+				default 6
+				
+			config MEMP_NUM_SYS_TIMEOUT
+				int "MEMP_NUM_SYS_TIMEOUT: LWIP定时器超时资源个数"
+				range 0 100
+				default 10
+				
+			#tuya固定业务--不需要修改		
+			config LWIP_SO_SNDTIMEO
+				int "LWIP_SO_SNDTIMEO: 是否支持发送超时"
+				range 0 1
+				default 1
+			
+			config LWIP_SO_RCVTIMEO
+				int "LWIP_SO_RCVTIMEO: 是否支持接收超时"
+				range 0 1
+				default 1	
+
+			config LWIP_SO_LINGER
+				int "LWIP_SO_LINGER: 立即发送RST断开连接"
+				range 0 1
+				default 1	
+				
+			config LWIP_TUYA_SO_LINGER_RST
+				int "LWIP_TUYA_SO_LINGER_RST: 是否不等待unsend和unacked，直接发送RST关闭连接，需要配合socket so_linger机制"
+				range 0 1
+				default 1	
+				
+			config LWIP_PROVIDE_ERRNO
+				int "LWIP_PROVIDE_ERRNO: 使用LWIP提供的errno值"
+				range 0 1
+				default 1
+			
+			config LWIP_IPV6
+				int "LWIP_IPV6: 是否支持ipv6"
+				range 0 1
+				default 0
+			
+			config LWIP_NETIF_HOSTNAME
+				int "LWIP_NETIF_HOSTNAME: 是否支持使用DHCP_OPTION_HOSTNAME"
+				range 0 1
+				default 0
+			
+			config LWIP_TCPIP_CORE_LOCKING
+				int "LWIP_TCPIP_CORE_LOCKING: 是否给TCPIP线程加锁"
+				range 0 1
+				default 0	
+				
+			config LWIP_EAPOL_SUPPORT
+				int "LWIP_EAPOL_SUPPORT: 是否支持EAPOL"
+				range 0 1
+				default 1	
+				
+			#调试
+				
+			#原厂适配
+			config TCPIP_THREAD_STACKSIZE
+				int "TCPIP_THREAD_STACKSIZE: TCPIP线程的大小"
+				range 0 10240
+				default 4096
+			
+			config TCPIP_THREAD_PRIO
+				int "TCPIP_THREAD_PRIO: TCPIP线程的优先级，此处的“11”来源于freertos的configMAX_PRIORITIES，由于SDK不能包含操作系统，此处用数值代替"
+				range 0 11
+				default 9
+			
+			config DHCPC_THREAD_STACKSIZE
+				int "DHCPC_THREAD_STACKSIZE: DHCP CLIENT线程的大小"
+				range 0 10240
+				default 2048
+			
+			config DHCPC_THREAD_PRIO
+				int "DHCPC_THREAD_PRIO: DHCP CLIENT线程优先级，此处的“11”来源于freertos的configMAX_PRIORITIES，由于SDK不能包含操作系统，此处用数值代替"
+				range 0 11
+				default 5
+			
+			config LWIP_TX_PBUF_ZERO_COPY
+				int "LWIP_TX_PBUF_ZERO_COPY: 使能tx pbuf zero copy"
+				range 0 1
+				default 1
+			
+			config CONFIG_TUYA_SOCK_SHIM
+				int "CONFIG_TUYA_SOCK_SHIM: 使能socket shim"
+				range 0 1
+				default 1
+			
+			config SOCK_API_SYNC
+				int "SOCK_API_SYNC: 使能socket api sync"
+				range 0 1
+				default 0
+			
+			config LWIP_DHCPC_STATIC_IPADDR_ENABLE
+				int "LWIP_DHCPC_STATIC_IPADDR_ENABLE: 关闭静态dhcp地址"
+				range 0 1
+				default 0
+			
+			config LWIP_NETCONN_SEM_PER_THREAD
+				int "LWIP_NETCONN_SEM_PER_THREAD: 是否支持SEM_PER_THREAD"
+				range 0 1
+				default 1	
+			
+			config ETHARP_SUPPORT_STATIC_ENTRIES 
+				int "ETHARP_SUPPORT_STATIC_ENTRIES: 是否支持静态ARP表"
+				range 0 1
+				default 0	
+			
+			config LWIP_NETIF_STATUS_CALLBACK 
+				int "LWIP_NETIF_STATUS_CALLBACK: 是否支持netif状态变化时回调"
+				range 0 1
+				default 0	
+
+			config LWIP_COMPAT_MUTEX_ALLOWED
+				int "LWIP_COMPAT_MUTEX_ALLOWED: 是否支持SEM_PER_THREAD"
+				range 0 1
+				default 1			
+
+			config LWIP_TIMEVAL_PRIVATE
+				int "LWIP_TIMEVAL_PRIVATE: 是否使用私有的timeval结构定义，如果不使用，则需要#include <sys/time.h>"
+				range 0 1
+				default 1			
+			
+			config IN_ADDR_T_DEFINED
+				bool "IN_ADDR_T_DEFINED: 是否已经定义了in_addr_t"
+				default n
+			
+			config LWIP_NETCONN_FULLDUPLEX
+				int "LWIP_NETCONN_FULLDUPLEX: 网络连接全双工收发，支持多线程收发"
+				range 0 1
+				default 1	
+
+			config MEM_LIBC_MALLOC
+				bool "LWIP use LIBC MALLOC MEM"
+				default n
+
+		endif    
+endmenu

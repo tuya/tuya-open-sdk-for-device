@@ -1,0 +1,32 @@
+# Ktuyaconf
+menu "configure open iot development kit"
+	# 设置sw timer任务栈
+	config STACK_SIZE_TIMERQ
+	    int "STACK_SIZE_TIMERQ: set stack size for sw timer queue"
+	    default 4096
+	    range 2048 16384
+
+	# 设置work queue任务栈
+	config STACK_SIZE_WORK_QUEUE
+	    int "STACK_SIZE_WORK_QUEUE: set stack size for work queue"
+	    default 5120
+	    range 2048 16384
+	    
+	# 设置最大work queue node个数
+	config MAX_NODE_NUM_WORK_QUEUE
+	    int "MAX_NODE_NUM_WORK_QUEUE: set max node in work queue"
+	    default 100
+	    range 10 1000
+
+	# 设置msg queue任务栈
+	config STACK_SIZE_MSG_QUEUE
+	    int "STACK_SIZE_MSG_QUEUE: set stack size for msg queue"
+	    default 4096
+	    range 2048 16384
+
+	# 设置最大msg queue node个数
+	config MAX_NODE_NUM_MSG_QUEUE
+	    int "MAX_NODE_NUM_MSG_QUEUE: set max node in msg queue"
+	    default 100
+	    range 10 1000	    
+endmenu

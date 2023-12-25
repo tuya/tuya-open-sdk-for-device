@@ -1,0 +1,5 @@
+boards:
+- name: t2
+  locater: t2
+  repo: https://github.com/tuya/T2
+  commit: master
