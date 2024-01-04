@@ -28,6 +28,15 @@ if(${TOP_SOURCE_DIR} STREQUAL ${TOP_BINARY_DIR})
     ")
 endif()
 
+MESSAGE(STSTUS "###################################")
+IF (WIN32)
+	MESSAGE(STATUS "Now is windows")
+ELSEIF (APPLE)
+	MESSAGE(STATUS "Now is Apple systens.")
+ELSEIF (UNIX)
+	MESSAGE(STATUS "Now is UNIX-like OS's.")
+ENDIF ()
+
 include(${TOP_SOURCE_DIR}/tools/cmake/colors.cmake)
 include(${TOP_SOURCE_DIR}/tools/cmake/util.cmake)
 set(CONFIG_CMAKE "${TOP_SOURCE_DIR}/cache/config.cmake")
@@ -109,7 +118,7 @@ add_custom_command(
     ${CMAKE_COMMAND} -E echo "        ${Cyan}[make menuconfig]${ColourReset}"
 
     COMMAND
-    ${CMAKE_COMMAND} -E echo "        ${Cyan}[ccmake ..]${ColourReset}"
+    ${CMAKE_COMMAND} -E echo "        ${Cyan}[${CCMAKE} ..]${ColourReset}"
 
     COMMAND
     ${CMAKE_COMMAND} -E echo ""
@@ -125,7 +134,7 @@ add_custom_command(
     ${BOARD_PATH}
 
     COMMAND
-    sh build_example.sh "${EXAMPLE_NAME}" "${EXAMPLE_VER}" "${BOARD_NEED_HDIR}"
+    ./build_example.sh "${EXAMPLE_NAME}" "${EXAMPLE_VER}" "${BOARD_NEED_HDIR}"
     "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" "${BOARD_NEED_LIBS}"
     "${EXECUTABLE_OUTPUT_PATH}" "build"
 
@@ -139,7 +148,7 @@ add_custom_target(board_clean
     ${BOARD_PATH}
 
     COMMAND
-    sh build_example.sh "${EXAMPLE_NAME}" "${EXAMPLE_VER}" "${BOARD_NEED_HDIR}"
+    ./build_example.sh "${EXAMPLE_NAME}" "${EXAMPLE_VER}" "${BOARD_NEED_HDIR}"
     "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" "${BOARD_NEED_LIBS}"
     "${EXECUTABLE_OUTPUT_PATH}" "clean"
 

@@ -16,7 +16,7 @@ add_custom_command(
     ${CMAKE_COMMAND} -E echo "        ${Cyan}[make menuconfig]${ColourReset} - Modify the configuration."
 
     COMMAND
-    ${CMAKE_COMMAND} -E echo "        ${Cyan}[make pre_cofnig]${ColourReset} - Copy pre-config to default dot-config."
+    ${CMAKE_COMMAND} -E echo "        ${Cyan}[make pre_config]${ColourReset} - Copy pre-config to default dot-config."
 
     COMMAND
     ${CMAKE_COMMAND} -E echo "        ${Cyan}[make save_config]${ColourReset} - Save dot-config to directory pre-config."

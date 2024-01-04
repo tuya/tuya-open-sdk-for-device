@@ -15,7 +15,7 @@ cd `dirname $0`
 
 LISTMENU="../listmenu.sh"
 
-PRE_CONFIG_NAME=`ls $1 | bash $LISTMENU "Pre-config" 20 60 13`
+PRE_CONFIG_NAME=$(ls -p $1 | grep -E "^[^/]*\.config$" | bash $LISTMENU "Pre-config" 20 60 13)
 cp ${1}/${PRE_CONFIG_NAME} ${2}
 
 echo "[KCONFIG] Choice pre-config [${PRE_CONFIG_NAME}]"

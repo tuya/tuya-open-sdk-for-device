@@ -1,6 +1,29 @@
 #!/usr/bin/env bash
 
-ROOT_DIR=`pwd`
+case "$(uname -s)" in
+Linux*)
+	SYSTEM_NAME="Linux"
+	CMAKE_G=""
+	CCMAKE="ccmake"
+	;;
+Darwin*)
+	SYSTEM_NAME="Apple"
+	CMAKE_G=""
+	CCMAKE="ccmake"
+	;;
+MINGW* | CYGWIN* | MSYS*)
+	SYSTEM_NAME="Windows"
+	CMAKE_G=""
+	CCMAKE="cmake-gui"
+	;;
+*)
+	SYSTEM_NAME="Unknown"
+	CMAKE_G=""
+	;;
+esac
+echo "Running on [$SYSTEM_NAME]"
+
+ROOT_DIR=$(pwd)
 CACHE_DIR=$ROOT_DIR/cache
 LISTMENU=$ROOT_DIR/tools/listmenu.sh
 . $ROOT_DIR/tools/util_tools.sh
@@ -13,11 +36,12 @@ show "" "Check command and version ..."
 check_command_version "python3" "3.6.0" "python3 --version"
 check_command_version "git" "2.0.0" "git --version"
 check_command_version "cmake" "3.16.0" "cmake --version"
-check_command_version "ccmake" "3.16.0" "ccmake --version"
+if [ x"$SYSTEM_NAME" = x"Linux" ]; then
+	check_command_version "ccmake" "3.16.0" "ccmake --version"
+fi
 check_command_version "lcov" "1.14" "lcov --version"
 show "${fore[write]};${back[green]}" "[DONE] Check command and version"
 show "" ""
-
 
 ########################################
 # Choice board
@@ -39,11 +63,10 @@ assert_non_null "$BOARD_COMMIT" "Can't find the [board commit]."
 BOARD_STR="board: $BOARD_NAME
 locater: $BOARD_LOCATER
 repo: $BOARD_REPO
-commit: $BOARD_COMMIT"  # end BOARD_STR
+commit: $BOARD_COMMIT" # end BOARD_STR
 show "" "$BOARD_STR"
 show "${fore[write]};${back[green]}" "[DONE] Choice board: $BOARD_NAME"
 show "" ""
-
 
 ########################################
 # Choice Pre-config
@@ -59,7 +82,6 @@ python3 $KCONFIG_TOOLS/set_catalog_config.py -b $BOARD_PATH -s $ROOT_DIR/src -o 
 show "${fore[write]};${back[green]}" "[DONE] Choice Pre-config: $PRE_CONFIG_NAME"
 show "" ""
 
-
 ########################################
 # Choice example
 ########################################
@@ -70,13 +92,14 @@ assert_non_null "$EXAMPLE_NAME" "Have no [example]."
 show "${fore[write]};${back[green]}" "[DONE] Choice example: $EXAMPLE_NAME"
 show "" ""
 
-
 ########################################
 # Generate cmake file
 ########################################
 show "" "Genreate cmake file ..."
 CONFIG_CMAKE=$CACHE_DIR/config.cmake
 FILE_INFO="
+set(SYSTEM_NAME \"${SYSTEM_NAME}\")
+set(CCMAKE \"${CCMAKE}\")
 set(BOARD_NAME \"${BOARD_NAME}\")
 set(BOARD_PATH \"${BOARD_PATH}\")
 set(EXAMPLE_NAME \"${EXAMPLE_NAME}\")
@@ -84,40 +107,51 @@ set(EXAMPLE_DIR \"${EXAMPLE_DIR}\")
 set(PRE_CONFIG_NAME \"${PRE_CONFIG_NAME}\")
 set(PRE_CONFIG_DIR \"${PRE_CONFIG_DIR}\")
 set(KCONFIG_CATALOG \"${KCONFIG_CATALOG}\")
-"  # end FILE_INFO
-echo "$FILE_INFO" > $CONFIG_CMAKE
+" # end FILE_INFO
+echo "$FILE_INFO" >$CONFIG_CMAKE
 show "${fore[write]};${back[green]}" "[DONE] Genreate cmake file: $CONFIG_CMAKE"
 show "" ""
 
+########################################
+# Check submodule
+########################################
+submodules=($(grep "path" .gitmodules | sed 's/^[ \t]*path = //'))
+
+for submodule in "${submodules[@]}"
+do
+    if [ -z "$(ls -A $submodule)" ]; then
+        echo "$submodule is empty, initializing submodule..."
+        git submodule update --init $submodule
+    fi
+done
 
 ########################################
 # Download board
 ########################################
 show "" "Download board ..."
 if [ -d "$BOARD_PATH" ]; then
-    show "" "Skip download, exist [$BOARD_PATH]."
-    show "${fore[yellow]}" "If you want to download it again, please remove it."
+	show "" "Skip download, exist [$BOARD_PATH]."
+	show "${fore[yellow]}" "If you want to download it again, please remove it."
 else
-    git clone "$BOARD_REPO" "$BOARD_PATH"
-    cd "$BOARD_PATH"; git checkout -q "$BOARD_COMMIT"
+	git clone "$BOARD_REPO" "$BOARD_PATH"
+	cd "$BOARD_PATH"
+	git checkout -q "$BOARD_COMMIT"
 fi
 if [ -f "$BOARD_PATH/board_prepare.sh" ]; then
-    show "" "Run [$BOARD_PATH/board_prepare.sh]."
-    cd "$BOARD_PATH"; sh "board_prepare.sh"
+	show "" "Run [$BOARD_PATH/board_prepare.sh]."
+	cd "$BOARD_PATH"
+	sh "board_prepare.sh"
 fi
 show "${fore[write]};${back[green]}" "[DONE] Download board: $BOARD_PATH"
 show "" ""
-
 
 ########################################
 # Next prompt
 ########################################
 HELP_STR="If something goes well, So congratulations.
 You can execute the following command:
-\033[36m[mkdir build; cd build; cmake ..]\033[0m"
+\033[36m[mkdir build; cd build; cmake .. $CMAKE_G]\033[0m"
 show "${fore[green]}" "$HELP_STR"
 show "" ""
 
 show "" "DONE."
-
-

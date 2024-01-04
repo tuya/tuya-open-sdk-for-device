@@ -58,7 +58,7 @@ if __name__ == "__main__":
             print("can't find file: ", f)
 
     if not conf_file_list:
-        print("No files !", config)
+        print("No files !", conf_file)
         exit(1)
 
     conf2cmake(conf_file_list, cmake_file)
