@@ -19,8 +19,9 @@
  * 
  */
 #define TUYA_PRODUCT_KEY      "qhivvyqawogv04e4" 
-#define TUYA_DEVICE_UUID      "uuidxxxxxxxxxxxxxxxx"                    // "Please Change the correct uuid" 
-#define TUYA_DEVICE_AUTHKEY   "keyxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"        // "Please Change the correct authkey"
+#error "Please change the correct uuid && authkey, then delete the line"
+#define TUYA_DEVICE_UUID      "uuidxxxxxxxxxxxxxxxx"                    // "Please change the correct uuid" 
+#define TUYA_DEVICE_AUTHKEY   "keyxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"        // "Please change the correct authkey"
 
 /**
  * @brief PINCODE for AP provisioning
