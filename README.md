@@ -31,13 +31,17 @@ git submodule update --init
 ### Modifying the Example Project
 The `switch_demo` demonstrates a simple, cross-platform, cross-system example of a switch that supports multiple connections. Through the Tuya app and Tuya cloud service, this switch can be remotely controlled.
 
-1. Obtain the correct UUID and authkey:
+1. Create a product and obtain the product's PID:
 
-Refer to the document [https://developer.tuya.com/en/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc#title-4-Step%205%3A%20Get%20license](https://developer.tuya.com/en/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc#title-4-Step%205%3A%20Get%20license) to obtain the list of authorization codes, which contains the UUID and authkey for connecting to the Tuya cloud service.
+Refer to the document [https://developer.tuya.com/en/docs/iot-device-development/application-creation?id=Kbxw7ket3aujc](https://developer.tuya.com/en/docs/iot-device-development/application-creation?id=Kbxw7ket3aujc) to create a product on [https://iot.tuya.com](https://iot.tuya.com) and obtain the PID for the created product.
 
-2. Modify the example:
+2. Obtain the correct UUID and authkey:
 
-In the `examples/switch_demo/src/tuya_config.h` file, the `TUYA_DEVICE_UUID` and `TUYA_DEVICE_AUTHKEY` macros correspond to the UUID and authkey, please update them correctly according to the UUID and authkey obtained above, and delete the `#error` prompt statement after modification.
+Refer to the document [https://developer.tuya.com/en/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc#title-4-Step%205%3A%20Get%20license](https://developer.tuya.com/en/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc#title-4-Step%205%3A%20Get%20license) to obtain the authorization code list, which includes the UUID and authkey for connecting to the Tuya Cloud service.
+
+3. Modify the example:
+
+In the file `examples/switch_demo/src/tuya_config.h`, the macros `TUYA_PRODUCT_KEY` and `TUYA_DEVICE_UUID`, `TUYA_DEVICE_AUTHKEY` respectively correspond to the PID, uuid, and authkey obtained in steps 1 and 2. After modifying, delete the `#error` prompt statement.
 
 ### Config the project
 configure board and demo
