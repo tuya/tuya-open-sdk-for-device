@@ -32,9 +32,11 @@ git submodule update --init
 The `switch_demo` demonstrates a simple, cross-platform, cross-system example of a switch that supports multiple connections. Through the Tuya app and Tuya cloud service, this switch can be remotely controlled.
 
 1. Obtain the correct UUID and authkey:
+
 Refer to the document [https://developer.tuya.com/en/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc#title-4-Step%205%3A%20Get%20license](https://developer.tuya.com/en/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc#title-4-Step%205%3A%20Get%20license) to obtain the list of authorization codes, which contains the UUID and authkey for connecting to the Tuya cloud service.
 
 2. Modify the example:
+
 In the `examples/switch_demo/src/tuya_config.h` file, the `TUYA_DEVICE_UUID` and `TUYA_DEVICE_AUTHKEY` macros correspond to the UUID and authkey, please update them correctly according to the UUID and authkey obtained above, and delete the `#error` prompt statement after modification.
 
 ### Config the project

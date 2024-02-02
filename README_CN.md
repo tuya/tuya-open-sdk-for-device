@@ -32,9 +32,11 @@ git submodule update --init
 `switch_demo` 演示一个简单的，跨平台、跨系统、支持多种连接的开关示例，通过涂鸦APP、涂鸦云服务，可以对这个开关进行远程控制。
 
 1. 获取正确的 uuid 和 authkey：
+
 参考文档 [https://developer.tuya.com/cn/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc#title-4-%E7%AC%AC%E4%BA%94%E6%AD%A5%EF%BC%9A%E9%A2%86%E5%8F%96%E6%8E%88%E6%9D%83%E7%A0%81](https://developer.tuya.com/cn/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc#title-4-%E7%AC%AC%E4%BA%94%E6%AD%A5%EF%BC%9A%E9%A2%86%E5%8F%96%E6%8E%88%E6%9D%83%E7%A0%81) 获取授权码清单，该清单中包含连接涂鸦云服务的 uuid 和 authkey。
 
 2. 修改示例：
+
 `examples/switch_demo/src/tuya_config.h` 文件中 `TUYA_DEVICE_UUID` 和 `TUYA_DEVICE_AUTHKEY` 宏分别对应 uuid 和 authkey，请根据上面获取到的 uuid 和 authkey 正确修改，修改后删除 `#error` 提示语句。 
 
 ### 配置工程

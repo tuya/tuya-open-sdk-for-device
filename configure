@@ -14,7 +14,7 @@ Darwin*)
 MINGW* | CYGWIN* | MSYS*)
 	SYSTEM_NAME="Windows"
 	CMAKE_G=""
-	CCMAKE="cmake-gui"
+	CCMAKE="ccmake"
 	;;
 *)
 	SYSTEM_NAME="Unknown"
@@ -36,9 +36,7 @@ show "" "Check command and version ..."
 check_command_version "python3" "3.6.0" "python3 --version"
 check_command_version "git" "2.0.0" "git --version"
 check_command_version "cmake" "3.16.0" "cmake --version"
-if [ x"$SYSTEM_NAME" = x"Linux" ]; then
-	check_command_version "ccmake" "3.16.0" "ccmake --version"
-fi
+check_command_version "ccmake" "3.16.0" "ccmake --version"
 check_command_version "lcov" "1.14" "lcov --version"
 show "${fore[write]};${back[green]}" "[DONE] Check command and version"
 show "" ""

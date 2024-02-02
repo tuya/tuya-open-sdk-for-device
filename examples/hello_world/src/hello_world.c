@@ -4,26 +4,52 @@
 
 
 
-int main(int argc, char *argv[])
+static void user_main(void)
 {
     tal_log_init(TAL_LOG_LEVEL_DEBUG,  1024, (TAL_LOG_OUTPUT_CB)tkl_log_output);
     PR_DEBUG ("hello world\r\n");
 
     int cnt = 0;
-    for (cnt = 0; cnt < 10; cnt++) {
-        switch (cnt)
-        {
-        case 1:
-            PR_DEBUG("cnt is %d", cnt);
-            break;
-        default:
-            continue;;
-        }
-
-    }
-
-    PR_DEBUG("cnt is %d", cnt);
     while (1) {
-        tal_system_sleep(10);
+        PR_DEBUG("cnt is %d", cnt ++);
+        tal_system_sleep(1000);
     }
 }
+
+/**
+ * @brief main
+ * 
+ * @param argc 
+ * @param argv 
+ * @return VOID 
+ */
+#if OPERATING_SYSTEM == SYSTEM_LINUX
+VOID main(int argc, char *argv[])
+{
+    user_main();
+}
+#else
+
+/* Tuya thread handle */
+STATIC THREAD_HANDLE ty_app_thread = NULL;
+
+/**
+* @brief  task thread
+*
+* @param[in] arg:Parameters when creating a task
+* @return none
+*/
+STATIC VOID_T tuya_app_thread(VOID_T *arg)
+{
+    user_main();
+    
+    tal_thread_delete(ty_app_thread);
+    ty_app_thread = NULL;
+}
+
+VOID tuya_app_main(VOID)
+{
+    THREAD_CFG_T thrd_param = {4096, 4, "tuya_app_main"};
+    tal_thread_create_and_start(&ty_app_thread, NULL, NULL, tuya_app_thread, NULL, &thrd_param);
+}
+#endif

@@ -102,6 +102,11 @@ target_include_directories(${EXAMPLE_LIB}
     )
 target_link_libraries(${EXAMPLE_LIB} ${COMPONENTS_ALL_LIB})
 add_custom_target(example
+    COMMAND
+    ../tools/build_example.sh "${TOP_BINARY_DIR}" "${DEL_DEPEND}"
+    )
+
+add_custom_target(example_all
     DEPENDS
     show_menuconfig
     ${EXAMPLE_LIB}

@@ -13,15 +13,15 @@
  * TUYA_DEVICE_UUID: UUID, the unique ID of the device, you can get 2 free from Tuya IoT platform
  * TUYA_DEVICE_AUTHKEY: AUTHKEY, the private key of the device, you can get 2 free from Tuya IoT platform
  * 
- * detail please refer to: https://developer.tuya.com/cn/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc
+ * detail please refer to: https://developer.tuya.com/en/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc
  * 
  * warning: please replace these production information with your product key and license, otherwise the demo cannot work.
  * 
  */
-#define TUYA_PRODUCT_KEY      "qhivvyqawogv04e4" 
-#error "Please change the correct uuid && authkey, then delete the line"
-#define TUYA_DEVICE_UUID      "uuidxxxxxxxxxxxxxxxx"                    // "Please change the correct uuid" 
-#define TUYA_DEVICE_AUTHKEY   "keyxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"        // "Please change the correct authkey"
+#error "Please replace these production information with PRODUCT_KEY && DEVICE_UUID && DEVICE_AUTHKEY, then delete this line"
+#define TUYA_PRODUCT_KEY      "qhivvyqawogv04e4"                        //Please change your product key
+#define TUYA_DEVICE_UUID      "uuidxxxxxxxxxxxxxxxx"                    // Please change the correct uuid
+#define TUYA_DEVICE_AUTHKEY   "keyxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"        // Please change the correct authkey
 
 /**
  * @brief PINCODE for AP provisioning
