@@ -370,28 +370,7 @@ int atop_base_request(const atop_base_request_t* request, atop_base_response_t* 
     };
     uint8_t headers_count = sizeof(headers)/sizeof(http_client_header_t);
 
-    /* Response buffer length preview */
-    uint8_t* response_buffer = NULL;
-    size_t response_buffer_length = DEFAULT_RESPONSE_BUFFER_LEN;
-
-    /* if custom set the response length, set buffer custom length */
-    if (request->buflen_custom > 0) {
-        response_buffer_length = request->buflen_custom;
-    }
-
-    /* response buffer make */
-    response_buffer = tal_malloc(response_buffer_length);
-    if (NULL == response_buffer) {
-        PR_ERR("response_buffer malloc fail");
-        tal_free(path_buffer);
-        tal_free(body_buffer);
-        return OPRT_MALLOC_FAILED;
-    }
-    memset(response_buffer, 0, response_buffer_length);
-    http_client_response_t http_response = {
-        .buffer = response_buffer,
-        .buffer_length = response_buffer_length
-    };
+    http_client_response_t http_response = {0};
 
     /* HTTP Request send */
     PR_DEBUG("http request send!");
@@ -418,7 +397,6 @@ int atop_base_request(const atop_base_request_t* request, atop_base_response_t* 
 
     if (HTTP_CLIENT_SUCCESS != http_status) {
         PR_ERR("http_request_send error:%d", http_status);
-		tal_free(response_buffer);
         return OPRT_LINK_CORE_HTTP_CLIENT_SEND_ERROR;
     }
 
@@ -426,7 +404,7 @@ int atop_base_request(const atop_base_request_t* request, atop_base_response_t* 
     uint8_t* result_buffer = tal_calloc(1, http_response.body_length);
     if (NULL == result_buffer) {
         PR_ERR("result_buffer malloc fail");
-        tal_free(response_buffer);
+        http_client_free(&http_response);
         return OPRT_MALLOC_FAILED;
     }
 
@@ -437,14 +415,14 @@ int atop_base_request(const atop_base_request_t* request, atop_base_response_t* 
 
     if (OPRT_OK == rt) {
         rt = atop_response_result_parse_cjson(result_buffer, result_buffer_length, response);
-        tal_free(response_buffer);
-        tal_free(result_buffer);
-        return rt;
+    } else {
+        PR_NOTICE("atop_response_decode error:%d, try parse the plaintext data.", rt);
+        rt = atop_response_result_parse_cjson(http_response.body, http_response.body_length, response);
     }
 
-    PR_NOTICE("atop_response_decode error:%d, try parse the plaintext data.", rt);
-    rt = atop_response_result_parse_cjson(http_response.body, http_response.body_length, response);
-    tal_free(response_buffer);
+    http_client_free(&http_response);
+    tal_free(result_buffer);
+
     return rt;
 }
 

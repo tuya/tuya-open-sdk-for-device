@@ -24,7 +24,15 @@
  * <b>Possible values:</b> Any positive 32 bit integer. <br>
  * <b>Default value:</b> `2048`
  */
-#define HTTP_MAX_RESPONSE_HEADERS_SIZE_BYTES    2048U
+#define HTTP_MAX_RESPONSE_HEADERS_SIZE_BYTES        1024U
+
+#define HTTP_MAX_RESPONSE_CHUNK_SIZE_BYTES          (1024U * 16)
+
+#define HTTP_MAX_RESPONSE_CHUNK_ONCE_BYTES          (2048U)
+
+
+#define HTTP_MALLOC                                 tal_malloc
+#define HTTP_FREE                                   tal_free
 
 /**
  * @brief The HTTP header "User-Agent" value.
@@ -38,5 +46,6 @@
  */
 #define HTTP_USER_AGENT_VALUE    "TUYA_IOT_SDK"
 
+#include "tal_api.h"
 
 #endif /* ifndef CORE_HTTP_CONFIG_DEFAULTS_ */

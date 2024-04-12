@@ -358,6 +358,7 @@ STATIC OPERATE_RET mbedtls_cert_pkey_parse(tuya_tls_hander p_tls_handler)
 STATIC int tuya_tls_ciphersuite_list[] = {
     MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+    MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
     0
 };
 

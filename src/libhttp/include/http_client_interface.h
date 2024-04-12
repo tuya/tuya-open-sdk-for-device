@@ -1,9 +1,6 @@
 #ifndef HTTP_CLIENT_INTERFACE_H
 #define HTTP_CLIENT_INTERFACE_H
 
-/* Standard library includes. */
-// #include <stddef.h>
-// #include <stdint.h>
 #include "tuya_cloud_types.h"
 #include "tal_memory.h"
 /**
@@ -67,5 +64,6 @@ typedef struct http_client_response {
 http_client_status_t http_client_request( const http_client_request_t* request, 
                                           http_client_response_t* response);
 
+int http_client_free(http_client_response_t *response);
 
 #endif /* ifndef HTTP_CLIENT_INTERFACE_H */

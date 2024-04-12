@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "tuya_cloud_types.h"
+#include "http_client_interface.h"
 
 typedef enum {
     DL_EVENT_CONNECTED,
@@ -21,7 +22,7 @@ typedef struct {
     size_t offset;
     size_t data_len;
     size_t file_size;
-    size_t remain_len;
+    uint32_t remain_len;
     void* user_data;
 } http_download_event_t;
 

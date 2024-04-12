@@ -692,7 +692,8 @@ static uint8_t ble_dev_info_make(tuya_ble_mgr_t *ble, uint8_t *pbuf, UINT8_T buf
     }
     pbuf[payload_len++] = 1;
     //sl_value
-    pbuf[payload_len++] = TUYA_SECURITY_LEVEL;
+    // pbuf[payload_len++] = TUYA_SECURITY_LEVEL;
+    pbuf[payload_len++] = 0;    
     pbuf[payload_len++] = 1;
     //CombosFlag Length
     //bit3：1 – 支持查询设备AP名称；0 – 不支持。
@@ -780,13 +781,15 @@ void ble_session_system_process(ble_packet_t *packet, void *priv_data)
 }
 
 
-static void tal_ble_event_callback(TAL_BLE_EVT_PARAMS_T *msg)
+static void tal_ble_event_callback(VOID_T *data)
 {
     tuya_ble_mgr_t *ble = s_ble_mgr;
 
     if (NULL == ble) {
         return;
     }
+
+    TAL_BLE_EVT_PARAMS_T *msg = data;
 
     PR_TRACE("rev ble event %d", msg->type);
 
@@ -886,6 +889,17 @@ int tuya_ble_deinit(void)
     return OPRT_OK;
 }
 
+static void tal_ble_event_on_worq(TAL_BLE_EVT_PARAMS_T *msg)
+{
+    TAL_BLE_EVT_PARAMS_T *data;
+
+    data = tal_malloc(sizeof(TAL_BLE_EVT_PARAMS_T));
+    if (data) {
+        memcpy(data, (TAL_BLE_EVT_PARAMS_T *)msg, sizeof(TAL_BLE_EVT_PARAMS_T));
+        tal_workq_schedule(WORKQ_HIGHTPRI,  tal_ble_event_callback, data);
+    }
+}
+
 int tuya_ble_init(tuya_ble_cfg_t *cfg)
 {
     int rt = OPRT_OK;
@@ -931,7 +945,7 @@ int tuya_ble_init(tuya_ble_cfg_t *cfg)
     tuya_ble_session_add(BLE_SESSION_CHANNEL, ble_session_channel_process, ble);
     tuya_ble_session_add(BLE_SESSION_DP,      ble_session_dp_process, ble->cfg.client);
     ble->role = TAL_BLE_ROLE_PERIPERAL | TAL_BLE_ROLE_CENTRAL;
-    TUYA_CALL_ERR_GOTO(tal_ble_bt_init(ble->role, tal_ble_event_callback), __exit);
+    TUYA_CALL_ERR_GOTO(tal_ble_bt_init(ble->role, tal_ble_event_on_worq), __exit);
     PR_NOTICE("tuya ble init success finish");
 
     return OPRT_OK;

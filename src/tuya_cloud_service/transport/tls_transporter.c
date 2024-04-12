@@ -67,7 +67,7 @@ OPERATE_RET tuya_tls_transporter_connect(tuya_transporter_t t, const char* host,
     }
 
     op_ret = tuya_tls_connect(tls_transporter->tls_handler, (char*)host, port,
-                              tls_transporter->socket_fd, timeout_ms / 1000);
+                              tls_transporter->socket_fd, timeout_ms);
     if (OPRT_OK != op_ret) {
         PR_ERR("tls transporter connect err:%d", op_ret);
         tuya_tls_transporter_close(t);

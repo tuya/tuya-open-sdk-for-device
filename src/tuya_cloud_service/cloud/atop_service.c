@@ -121,7 +121,6 @@ int atop_service_activate_request(const tuya_activite_request_t* request,
         .version = "4.4",
         .data = buffer,
         .datalen = offset,
-        .buflen_custom = request->buflen_custom,
         .user_data = request->user_data
     };
 
@@ -280,7 +279,6 @@ int atop_service_upgrade_info_get_v44(const char* id, const char* key, int chann
         .data = buffer,
         .datalen = buffer_len,
         .user_data = NULL,
-        .buflen_custom = 1024 * 2
     };
 
     /* ATOP service request send */
@@ -324,7 +322,6 @@ int atop_service_auto_upgrade_info_get_v44(const char* id, const char* key, atop
         .data = buffer,
         .datalen = buffer_len,
         .user_data = NULL,
-        .buflen_custom = 1024 * 2
     };
 
     /* ATOP service request send */

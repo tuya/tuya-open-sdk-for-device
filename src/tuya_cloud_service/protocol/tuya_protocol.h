@@ -23,7 +23,8 @@ extern "C" {
 #define TUYA_BSV                            "40.07"
 #define APP_KEY_LEN                          16
 
-#define FR_TYPE_ENCRYPTION                  (0x13)
+#define FRM_TYPE_AP_ENCRYPTION              (0x11)
+#define FRM_TYPE_ENCRYPTION                 (0x13)
 #define FRM_AP_CFG_WF_V40                   (0x14)
 #define FRM_AP_CFG_GET_DEV_INFO             (0x16)
 #define FRM_AP_CFG_SET_DEV_SCHEMA           (0x17)

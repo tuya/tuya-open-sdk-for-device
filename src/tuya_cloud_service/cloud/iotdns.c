@@ -140,21 +140,7 @@ int iotdns_cloud_endpoint_get(const char* region, const char* env, tuya_endpoint
     };
     uint8_t headers_count = sizeof(headers)/sizeof(http_client_header_t);
 
-    /* Response buffer length preview */
-    uint8_t* response_buffer = NULL;
-    size_t response_buffer_length = 1024 * 6;
-
-    /* response buffer make */
-    response_buffer = tal_calloc(1, response_buffer_length);
-    if (NULL == response_buffer) {
-        PR_ERR("response_buffer malloc fail");
-        tal_free(body_buffer);
-        return OPRT_MALLOC_FAILED;
-    }
-    http_client_response_t http_response = {
-        .buffer = response_buffer,
-        .buffer_length = response_buffer_length
-    };
+    http_client_response_t http_response = {0};
 
     register_center_t rcs;
     tuya_register_center_get(&rcs);
@@ -182,7 +168,6 @@ int iotdns_cloud_endpoint_get(const char* region, const char* env, tuya_endpoint
 
     if (HTTP_CLIENT_SUCCESS != http_status) {
         PR_ERR("http_request_send error:%d", http_status);
-		tal_free(response_buffer);
         return OPRT_LINK_CORE_HTTP_CLIENT_SEND_ERROR;
     }
 
@@ -191,7 +176,8 @@ int iotdns_cloud_endpoint_get(const char* region, const char* env, tuya_endpoint
     if (region) {
         strcpy(endpoint->region, region);
     }
-    tal_free(response_buffer);
+    http_client_free(&http_response);
+
     return rt;
 }
 
@@ -275,27 +261,13 @@ int tuya_iotdns_query_domain_certs(char *url, uint8_t **cacert, uint16_t *cacert
     tal_free(p_tmp_url);
 
     http_client_response_t http_response;
-    
-    /* Response buffer length preview */
-    uint8_t* response_buffer = NULL;
-    size_t response_buffer_length = 1024 * 6;
-
-    /* response buffer make */
-    response_buffer = tal_calloc(1, response_buffer_length);
-    if (NULL == response_buffer) {
-        tal_free(body_buffer);
-        PR_ERR("response_buffer malloc fail");
-        return OPRT_MALLOC_FAILED;
-    }
-    http_response.buffer = response_buffer;
-    http_response.buffer_length = response_buffer_length;
 
     int rt = iotdns_base_request(body_buffer, "/device/dns_query", &http_response);
     tal_free(body_buffer);
     if (OPRT_OK == rt) {
         rt = iotdns_query_domain_certs_parser(http_response.body, cacert, cacert_len);
+        http_client_free(&http_response);
     }
-    tal_free(response_buffer);
 
     return rt;
 }

@@ -35,7 +35,7 @@ static void file_download_event_cb(http_download_event_id_t id, http_download_ev
     uint8_t file_hmac[32];
     uint8_t self_hmac[32];
     uint8_t file_sha256[32 * 2 + 1] = {0};
-
+        
     switch(id) {
     case DL_EVENT_START:
         PR_DEBUG("DL_EVENT_START");
@@ -58,7 +58,7 @@ static void file_download_event_cb(http_download_event_id_t id, http_download_ev
 
     case DL_EVENT_ON_DATA:{
         PR_DEBUG("DL_EVENT_ON_DATA:%d", event->data_len);
-        PR_DEBUG("event->file_size %d, offset:%d", event->file_size, event->offset);
+        PR_DEBUG("event->file_size %d, offset:%d, last remain %d", event->file_size, event->offset, event->remain_len);
         if (0 == ota->channel) {
             TUYA_OTA_DATA_T ota_pack;
 
@@ -67,8 +67,12 @@ static void file_download_event_cb(http_download_event_id_t id, http_download_ev
             ota_pack.data      = event->data; 
             ota_pack.len       = event->data_len;
             ota_pack.pri_data  = NULL;
-            tal_ota_data_process(&ota_pack, (UINT_T*)&event->remain_len);
-            tal_sha256_update_ret(ota->sha256, event->data, event->data_len - event->remain_len);
+            tal_ota_data_process(&ota_pack, (UINT32_T *)&event->remain_len);
+            if (event->remain_len) {
+                tal_sha256_update_ret(ota->sha256, event->data, event->data_len - event->remain_len);
+            } else {
+                tal_sha256_update_ret(ota->sha256, event->data, event->data_len);
+            }
         } else if (event_cb) {
             ota->event.id = TUYA_OTA_EVENT_ON_DATA;
             ota->event.data = event->data;

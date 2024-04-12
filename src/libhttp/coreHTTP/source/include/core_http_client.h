@@ -83,6 +83,10 @@
  */
 #define HTTP_SEND_DISABLE_CONTENT_LENGTH_FLAG    0x1U
 
+//! Set this flag to disable automatically receive body
+//! When http status ok, need call HTTPClient_Recv
+#define HTTP_SEND_DISABLE_RECV_BODY_FLAG     0x2U
+
 /**
  * @defgroup http_request_flags HTTPRequestInfo_t Flags
  * @brief Flags for #HTTPRequestInfo_t.reqFlags.
@@ -404,7 +408,6 @@ typedef struct HTTPClient_ResponseHeaderParsingCallback
                                  const char * valueLoc,
                                  size_t valueLen,
                                  uint16_t statusCode );
-
     /**
      * @brief Private context for the application.
      */
@@ -472,7 +475,7 @@ typedef struct HTTPResponse
      *
      * This is updated by #HTTPClient_Send.
      */
-    const uint8_t * pHeaders;
+    uint8_t * pHeaders;
 
     /**
      * @brief Byte length of the response headers in pBuffer.
@@ -892,5 +895,19 @@ HTTPStatus_t HTTPClient_ReadHeader( const HTTPResponse_t * pResponse,
 /* @[declare_httpclient_strerror] */
 const char * HTTPClient_strerror( HTTPStatus_t status );
 /* @[declare_httpclient_strerror] */
+
+
+HTTPStatus_t HTTPClient_Request( const TransportInterface_t * pTransport,
+                                HTTPRequestHeaders_t * pRequestHeaders,
+                                const uint8_t * pRequestBodyBuf,
+                                size_t reqBodyBufLen,
+                                HTTPResponse_t * pResponse,
+                                uint32_t sendFlags );
+
+int32_t HTTPClient_Recv(const TransportInterface_t *pTransport,
+                        HTTPResponse_t *pResponse,
+                        uint8_t *data,
+                        size_t   dataLen);
+
 
 #endif /* ifndef CORE_HTTP_CLIENT_H_ */

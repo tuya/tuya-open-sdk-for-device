@@ -44,6 +44,7 @@ typedef enum {
     NETCONN_CMD_NETCFG,         // netconn_wifi_netcfg_t
     NETCONN_CMD_SET_STATUS_CB,  // user define status callback instead of the default
     NETCONN_CMD_CLOSE,          // close network connection
+    NETCONN_CMD_RESET,          // close network connection
 } netmgr_conn_config_type_e;
 
 /**

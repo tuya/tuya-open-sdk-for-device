@@ -9,24 +9,7 @@
 #define log_debug   PR_DEBUG
 #define log_error   PR_ERR
 
-
 #define HEADER_BUFFER_LENGTH (255)
-
-
-static int network_tls_write(NetworkContext_t *pNetwork, const unsigned char *pMsg, size_t len)
-{
-    tuya_transporter_t transporter = *pNetwork;
-
-    return tuya_transporter_write(transporter, (uint8_t *)pMsg, len, 0);
-}
-
-static int network_tls_read(NetworkContext_t *pNetwork, unsigned char *pMsg, size_t len)
-{
-    tuya_transporter_t transporter = *pNetwork;
-
-    return tuya_transporter_read(transporter, (uint8_t *)pMsg, len, 0);
-}
-
 
 static http_client_status_t core_http_request_send( 
                                 const TransportInterface_t * pTransportInterface,
@@ -43,18 +26,13 @@ static http_client_status_t core_http_request_send(
     /* Return value of all methods from the HTTP Client library API. */
     HTTPStatus_t httpStatus = HTTPSuccess;
 
-    // assert( requestInfo != NULL );
-    // assert( response != NULL );
-
     if (NULL == requestInfo || NULL == response) {
         return HTTP_CLIENT_SERIALIZE_FAULT;
     }
-
     /* Initialize all HTTP Client library API structs to 0. */
     ( void ) memset( &requestHeaders, 0, sizeof( requestHeaders ) );
-
     /* Set the buffer used for storing request headers. */
-    requestHeaders.bufferLen = HEADER_BUFFER_LENGTH + headers_count * 64;
+    requestHeaders.bufferLen = HEADER_BUFFER_LENGTH + headers_count * 32;
     requestHeaders.pBuffer = tal_malloc(requestHeaders.bufferLen);
     if (requestHeaders.pBuffer == NULL) {
         return HTTP_CLIENT_MALLOC_FAULT;
@@ -78,20 +56,13 @@ static http_client_status_t core_http_request_send(
         return HTTP_CLIENT_SERIALIZE_FAULT;
     }
 
-    /* Initialize the response object. The same buffer used for storing
-        * request headers is reused here. */
-    if (NULL == response->pBuffer || response->bufferLen <= 0) {
-        tal_free(requestHeaders.pBuffer);
-        return HTTP_CLIENT_MALLOC_FAULT;
-    }
-
     log_debug( "Sending HTTP %.*s request to %.*s%.*s",
                 ( int32_t ) requestInfo->methodLen, requestInfo->pMethod,
                 ( int32_t ) requestInfo->hostLen, requestInfo->pHost,
                 ( int32_t ) requestInfo->pathLen, requestInfo->pPath ) ;
 
     /* Send the request and receive the response. */
-    httpStatus = HTTPClient_Send( pTransportInterface,
+    httpStatus = HTTPClient_Request( pTransportInterface,
                                   &requestHeaders,
                                   (uint8_t*)pRequestBodyBuf,
                                   reqBodyBufLen,
@@ -121,7 +92,7 @@ static http_client_status_t core_http_request_send(
 }
 
 http_client_status_t http_client_request( const http_client_request_t* request, 
-                                          http_client_response_t* response)
+                                    http_client_response_t* response)
 {
     http_client_status_t rt = HTTP_CLIENT_SUCCESS;
 
@@ -153,15 +124,14 @@ http_client_status_t http_client_request( const http_client_request_t* request,
         tuya_transporter_close(network);
         tuya_transporter_destroy(network);
         return HTTP_CLIENT_SEND_FAULT;
-    } 
+    }
 
     log_debug("tls connencted!");
-
     /* http client TransportInterface */
     TransportInterface_t pTransportInterface = {
         .pNetworkContext = (NetworkContext_t*)&network,
-        .recv = (TransportRecv_t)network_tls_read,
-        .send = (TransportSend_t)network_tls_write
+        .recv = (TransportRecv_t)NetworkTransportRecv,
+        .send = (TransportSend_t)NetworkTransportSend
     };
 
     /* http client request object make */
@@ -174,10 +144,7 @@ http_client_status_t http_client_request( const http_client_request_t* request,
         .pathLen = strlen(request->path),
     };
 
-    HTTPResponse_t http_response = {
-        .pBuffer = response->buffer,
-        .bufferLen = response->buffer_length
-    };
+    HTTPResponse_t http_response = {0};
 
     /* HTTP request send */
     log_debug("http request send!");
@@ -188,10 +155,10 @@ http_client_status_t http_client_request( const http_client_request_t* request,
                                  (const uint8_t*)request->body,
                                  request->body_length,
                                  &http_response );
+
     /* tls disconnect */
     tuya_transporter_close(network);
     tuya_transporter_destroy(network);
-
 
     if (OPRT_OK != rt) {
         log_error("http_request_send error:%d", rt);
@@ -204,6 +171,26 @@ http_client_status_t http_client_request( const http_client_request_t* request,
     response->body_length = http_response.bodyLen;
     response->headers = http_response.pHeaders;
     response->headers_length = http_response.headersLen;
+    response->buffer  = http_response.pBuffer;
+    response->buffer_length = http_response.bufferLen;
 
     return HTTP_CLIENT_SUCCESS;
+}
+
+
+int http_client_free(http_client_response_t *response)
+{
+    if (NULL == response) {
+        return OPRT_INVALID_PARM;
+    }
+
+    if (response->buffer) {
+        tal_free(response->buffer);
+    }
+
+    if (response->body) {
+        tal_free(response->body);
+    }
+
+    return OPRT_OK;
 }

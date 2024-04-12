@@ -341,10 +341,16 @@ OPERATE_RET netconn_wifi_set(netmgr_conn_config_type_e cmd, VOID *param)
         }
         break;
     case NETCONN_CMD_CLOSE:
-        tal_kv_del("netinfo");
-        __netconn_wifi_disconnect();      
-
+        __netconn_wifi_disconnect();
         break;
+
+    case NETCONN_CMD_RESET:
+        tal_kv_del("netinfo");
+        netmgr_wifi->conn.stat = NETCONN_WIFI_CONN_STOP;
+        memset(&netmgr_wifi->conn.wifi_conn_info, 0, sizeof(netmgr_wifi->conn.wifi_conn_info));
+        tal_wifi_station_disconnect();
+        break;
+
     default:
         return OPRT_NOT_SUPPORTED;
     }

@@ -19,7 +19,6 @@ typedef struct {
     uint32_t timestamp;
     void* data;
     size_t datalen;
-    size_t buflen_custom;
     const void* user_data;
 } atop_base_request_t;
 

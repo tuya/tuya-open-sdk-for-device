@@ -20,7 +20,6 @@ typedef struct {
     const char* modules;
     const char* feature;
     const char* skill_param;
-    size_t buflen_custom;
     const void* user_data;
 } tuya_activite_request_t;
 

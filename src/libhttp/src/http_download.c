@@ -12,6 +12,7 @@ typedef enum {
     DL_STATE_NETWORK_CONNECT,
     DL_STATE_NETWORK_RECONNECT,
     DL_STATE_FILESIZE_GET,
+    DL_STATE_RANGE_REQUEST,
     DL_STATE_DATE_GET,
     DL_STATE_COMPLETE,
 } http_download_state_t;
@@ -28,7 +29,10 @@ typedef struct  {
     uint16_t port;
     size_t file_size;
     size_t received_size;
+    size_t  remain_len;
+    size_t  offset;
     uint8_t state;
+    uint8_t *buffer;
 } http_download_t;
 
 
@@ -80,7 +84,7 @@ static int http_download_filesize_get(http_download_t* ctx)
     PR_DEBUG( "Getting file object size from host..." );
     TUYA_CALL_ERR_GOTO(HTTPClient_InitializeRequestHeaders(&ctx->requestHeaders, &ctx->requestInfo), __exit);
     TUYA_CALL_ERR_GOTO(HTTPClient_AddRangeHeader( &ctx->requestHeaders, 0, 0 ), __exit);
-    TUYA_CALL_ERR_GOTO(HTTPClient_Send(&ctx->transport, &ctx->requestHeaders, NULL, 0, &ctx->response, 0), __exit);
+    TUYA_CALL_ERR_GOTO(HTTPClient_Request(&ctx->transport, &ctx->requestHeaders, NULL, 0, &ctx->response, 0), __exit);
     PR_DEBUG( "Received HTTP response from %s%s...", ctx->host, ctx->path);
     PR_DEBUG( "Response Headers:\n%.*s",( int32_t ) ctx->response.headersLen, ctx->response.pHeaders );
     PR_DEBUG( "Response Body:\n%.*s\n", ( int32_t ) ctx->response.bodyLen, ctx->response.pBody );
@@ -109,9 +113,7 @@ __exit:
     return rt;
 }
 
-static int http_download_range_get(http_download_t* ctx,  uint32_t range_start, uint32_t range_end, 
-                                   void (*on_data)(const uint8_t* data, size_t len, void* user_ctx),
-                                   void* user_ctx)
+static int http_download_range_request(http_download_t* ctx,  uint32_t range_start, uint32_t range_end)
 {
     int rt = OPRT_OK;
 
@@ -120,22 +122,10 @@ static int http_download_range_get(http_download_t* ctx,  uint32_t range_start, 
                                         ( char * ) ctx->requestHeaders.pBuffer );
     TUYA_CALL_ERR_GOTO(HTTPClient_InitializeRequestHeaders(&ctx->requestHeaders, &ctx->requestInfo), __exit);
     TUYA_CALL_ERR_GOTO(HTTPClient_AddRangeHeader( &ctx->requestHeaders, range_start, range_end), __exit);
-    TUYA_CALL_ERR_GOTO(HTTPClient_Send(&ctx->transport, &ctx->requestHeaders, NULL, 0, &ctx->response, 0), __exit);
+    TUYA_CALL_ERR_GOTO(HTTPClient_Request(&ctx->transport, &ctx->requestHeaders, NULL, 0, &ctx->response, HTTP_SEND_DISABLE_RECV_BODY_FLAG), __exit);
     PR_TRACE( "Received HTTP response from %s%s...", ctx->host, ctx->path);
     PR_TRACE( "Response Headers:\n%.*s",( int32_t ) ctx->response.headersLen, ctx->response.pHeaders );
-    PR_TRACE( "Response Body:\n%.*s\n", ( int32_t ) ctx->response.bodyLen, ctx->response.pBody );
-    if (ctx->response.statusCode != HTTP_STATUS_CODE_PARTIAL_CONTENT) {
-        PR_ERR( "Received an invalid response from the server " "(Status Code: %u).", ctx->response.statusCode );
-        rt = OPRT_NOT_SUPPORTED;
-        goto __exit;
-    }
-    /* output the data buffer */
-    if (on_data) {
-        on_data(ctx->response.pBody, ctx->response.bodyLen, user_ctx);
-    }
-
 __exit:
-
     return rt;
 }
 
@@ -149,7 +139,7 @@ static int http_file_download_init(http_download_t *ctx, http_download_config_t 
     }
     memset(ctx, 0, sizeof(http_download_t));
     memcpy(&ctx->config, config, sizeof(http_download_config_t));
-
+    ctx->file_size = ctx->config.file_size;
     if (ctx->config.range_length == 0) {
         ctx->config.range_length = RANGE_REQUEST_LENGTH_DEFAULT;
     }
@@ -185,6 +175,9 @@ static int http_file_download_init(http_download_t *ctx, http_download_config_t 
     memcpy(ctx->path, p_path, path_len);
     ctx->path[path_len] = 0;
 
+    ctx->buffer = tal_malloc(config->range_length + 1);
+    TUYA_CHECK_NULL_RETURN(ctx->buffer, OPRT_MALLOC_FAILED);
+
     HTTPRequestInfo_t *requestInfo = &ctx->requestInfo;
     requestInfo->pHost     = ctx->host;
     requestInfo->hostLen   = strlen(ctx->host);
@@ -200,28 +193,10 @@ static int http_file_download_init(http_download_t *ctx, http_download_config_t 
     requestHeaders->pBuffer   = tal_malloc(requestHeaders->bufferLen);
     TUYA_CHECK_NULL_RETURN(requestHeaders->pBuffer, OPRT_MALLOC_FAILED);
 
-    /* Set the buffer used for storing response. */
-    HTTPResponse_t *response = &ctx->response;
-    response->bufferLen = ctx->config.range_length + 512;
-    response->pBuffer = tal_malloc(response->bufferLen);
-    TUYA_CHECK_NULL_RETURN(response->pBuffer, OPRT_MALLOC_FAILED);
-
     return rt;
 }
 
-static void http_download_data_on(const uint8_t* data, size_t len, void* user_ctx)
-{
-    http_download_t *ctx = (http_download_t *)user_ctx;
 
-    if (ctx->config.event_handler) {
-        ctx->event.data = (uint8_t *)data;
-        ctx->event.data_len = len;
-        ctx->event.offset = ctx->received_size;
-        ctx->event.remain_len = 0;
-        ctx->config.event_handler(DL_EVENT_ON_DATA, &ctx->event);
-        ctx->received_size = ctx->event.offset + len - ctx->event.remain_len;
-    }
-}
 
 int http_file_download(http_download_config_t* config)
 {
@@ -254,6 +229,8 @@ int http_file_download(http_download_config_t* config)
 
     bool is_completed = false;
 
+    int32_t read_size = 0;
+
     if (ctx->config.event_handler) {
         ctx->config.event_handler(DL_EVENT_START, &ctx->event);
     }
@@ -283,20 +260,40 @@ int http_file_download(http_download_config_t* config)
                 ctx->event.file_size = ctx->file_size;
                 ctx->config.event_handler(DL_EVENT_ON_FILESIZE, &ctx->event);
             }
-            ctx->state = DL_STATE_DATE_GET; 
+            ctx->state = DL_STATE_RANGE_REQUEST; 
             break;
 
+        case DL_STATE_RANGE_REQUEST:
+            rt = http_download_range_request(ctx, ctx->received_size, ctx->file_size);
+            if (OPRT_OK != rt) {
+                ctx->state = DL_STATE_NETWORK_RECONNECT;
+                break;
+            }
+            ctx->state = DL_STATE_DATE_GET;
+
         case DL_STATE_DATE_GET: {
-            size_t request_size = (ctx->file_size - ctx->received_size) > ctx->config.range_length ?
-                                   ctx->config.range_length : ctx->file_size - ctx->received_size;
-            rt = http_download_range_get(ctx,
-                                        ctx->received_size, 
-                                        ctx->received_size + request_size - 1,
-                                        http_download_data_on, ctx);
-            if (rt != OPRT_OK) {
+            read_size = HTTPClient_Recv(&ctx->transport,
+                                        &ctx->response,
+                                        ctx->buffer + ctx->remain_len,
+                                        ctx->config.range_length -  ctx->remain_len);
+
+
+            if (read_size <= 0) {
                 PR_WARN("file download range get error:%d, goto retry", rt);
                 ctx->state = DL_STATE_NETWORK_RECONNECT;
                 break;
+            }
+            if (ctx->config.event_handler) {
+                ctx->event.data = (uint8_t *)ctx->buffer;
+                ctx->event.data_len = read_size + ctx->remain_len;
+                ctx->event.offset = ctx->received_size - ctx->remain_len;
+                ctx->event.remain_len = ctx->remain_len;
+                ctx->config.event_handler(DL_EVENT_ON_DATA, &ctx->event);
+                if (ctx->event.remain_len) {
+                    memmove(ctx->buffer, ctx->buffer + (ctx->event.data_len - ctx->event.remain_len), ctx->event.remain_len);
+                } 
+                ctx->remain_len = ctx->event.remain_len;
+                ctx->received_size += read_size;
             }
             //! 重置时间
             download_time = tal_time_get_posix();
@@ -321,7 +318,7 @@ int http_file_download(http_download_config_t* config)
             }
             break;
         }
-    } while (((tal_time_get_posix() - download_time) < HTTP_DOWNLOAD_TIMEOUT) || is_completed);
+    } while (((tal_time_get_posix() - download_time) < HTTP_DOWNLOAD_TIMEOUT) && !is_completed);
 
     tuya_transporter_close(network);
     tuya_transporter_destroy(network);

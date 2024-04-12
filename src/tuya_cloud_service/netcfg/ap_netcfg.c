@@ -8,7 +8,9 @@
 #include "tuya_iot.h"
 #include "tuya_register_center.h"
 
-#define AP_TCP_SERV_PORT        7001 // AP psk with pin
+#define AP_BROADCAST_PORT          6667
+#define AP_TLS_PSK_PORT            6668 // AP tls + psk
+#define AP_TLS_PSK_PINCODE_PORT    7001 // AP tls + psk(pincode)
 
 #ifndef WIFI_AP_BUF_SIZE
 #define AP_MAX_BUFSIZE          4096
@@ -34,12 +36,16 @@ typedef struct {
 
     TUYA_IP_ADDR_T          serv_ip;
     
-    int                     tcp_serv_fd;
-    int                     tcp_client_fd;
+    int                     psk_fd;
+    int                     client_fd;
+    int                     broadcast_fd;
+    bool                    is_psk_pincode;
 
     tuya_tls_hander         tls_hander;
     uint8_t                 app_key[APP_KEY_LEN];
     uint8_t                 tls_psk[AP_TLS_PSK_LEN + 1];
+
+    TIMER_ID                broadcast_timer;
 } ap_netcfg_t;
 
 static ap_netcfg_t *s_ap_netcfg = NULL;
@@ -108,6 +114,62 @@ static int ap_dev_config_make(ap_netcfg_t *ap, char **buf)
     return OPRT_OK;
 }
 
+
+static void ap_broadcast_timeout(UINT_T timerID, PVOID_T pTimerArg)
+{
+    OPERATE_RET op_ret = OPRT_OK;
+
+    char *json_buf  = NULL;
+    ap_netcfg_t *ap = (ap_netcfg_t *)pTimerArg;
+
+    op_ret = ap_dev_config_make(ap, &json_buf);
+    if (OPRT_OK != op_ret) {
+        PR_ERR("ap_broadcast_data_make fail");
+        return;
+    }
+
+    size_t plaintext_len = sizeof(lpv35_plaintext_data_t) + strlen(json_buf);
+    lpv35_plaintext_data_t* plaintext_data = tal_malloc(plaintext_len);
+    if (plaintext_data == NULL) {
+        PR_ERR("plaintext_data fail");
+        tal_free(json_buf);
+        return;
+    }
+    plaintext_data->ret_code = 0;
+    memcpy(plaintext_data->data, json_buf, strlen(json_buf));
+    tal_free(json_buf);
+    // lpv3.5 test arch
+    lpv35_frame_object_t frame = {
+        .sequence = 0,
+        .type = FRM_TYPE_AP_ENCRYPTION,
+        .data = (uint8_t*)plaintext_data,
+        .data_len = plaintext_len,
+    };
+    size_t olen = 0;
+    uint8_t* send_buf = (uint8_t*)tal_malloc(lpv35_frame_buffer_size_get(&frame));
+    if (send_buf == NULL) {
+        PR_ERR("send_buf malloc fail");
+        tal_free(plaintext_data);
+        return;
+    }
+    op_ret = lpv35_frame_serialize(ap->app_key, APP_KEY_LEN, &frame, send_buf, (INT_T*)&olen);
+    tal_free(plaintext_data);
+    if (op_ret != OPRT_OK) {
+        PR_ERR("lpv35_frame_serialize fail:%d", op_ret);
+        tal_free(send_buf);
+        return;
+    }
+
+    op_ret = tal_net_send_to(ap->broadcast_fd, send_buf, olen, TY_IPADDR_BROADCAST, AP_BROADCAST_PORT);
+    if (op_ret < 0) {
+        PR_ERR("sendto broadcast Failed,len:%d ret:%d,errno:%d", olen, op_ret, tal_net_get_errno());
+    }
+
+    tal_free(send_buf);
+}
+
+
+
 static int ap_cfg_cmd_patse(ap_netcfg_t *ap, char *data)
 {
     cJSON *root = NULL;
@@ -173,60 +235,70 @@ static int ap_cfg_cmd_patse(ap_netcfg_t *ap, char *data)
 }
 
 
-static int ap_setup_tcp_serv(ap_netcfg_t *ap, int port)
+static int ap_setup_tls_serv(ap_netcfg_t *ap)
 {
+    int fd;
     int ret = OPRT_OK;
 
     /* create listening TCP socket */
-    ap->tcp_serv_fd = tal_net_socket_create(PROTOCOL_TCP);
-    if (ap->tcp_serv_fd < 0) {
-        PR_ERR("Socket create fail:%d, Port:%d", tal_net_get_errno(), port);
-        ret = ap->tcp_serv_fd;
+    fd = tal_net_socket_create(PROTOCOL_TCP);
+    if (fd < 0) {
+        PR_ERR("ap socket create fail:%d", tal_net_get_errno());
+        ret = fd;
         goto __exit;
     }
-    ret  = tal_net_set_reuse(ap->tcp_serv_fd);
-    ret |= tal_net_bind(ap->tcp_serv_fd, ap->serv_ip, port);
-    ret |= tal_net_listen(ap->tcp_serv_fd, 5);
+    ret  = tal_net_set_reuse(fd);
+    ret |= tal_net_bind(fd, ap->serv_ip, ap->is_psk_pincode ? AP_TLS_PSK_PINCODE_PORT : AP_TLS_PSK_PORT);
+    ret |= tal_net_listen(fd, 1);
     if (OPRT_OK != ret) {
         ret = OPRT_SOCK_ERR;
         goto __exit;
     }
     ap->tls_hander = tuya_tls_connect_create();
     if (NULL == ap->tls_hander) {
-        PR_ERR("tls create fail:%d, Port:%d", tal_net_get_errno(), port);
+        PR_ERR("ap tls create fail:%d", tal_net_get_errno());
         ret = OPRT_MALLOC_FAILED;
         goto __exit;
     }
 
+    ap->psk_fd = fd;
+
     return OPRT_OK;
 
 __exit:
-    if (ap->tcp_serv_fd > 0) {
-        tal_net_close(ap->tcp_serv_fd);
-        ap->tcp_serv_fd = -1;
+    if (fd > 0) {
+        tal_net_close(fd);
     }
 
     return ret;
 }
 
 
-static int ap_tls_psk_set(tuya_tls_hander *tls, uint8_t *psk, uint8_t psklen, char *pin, char *uuid)
+static int ap_tls_psk_set(ap_netcfg_t *ap)
 {
-    if (NULL == tls) {
-        return OPRT_MALLOC_FAILED;
+    if (ap->is_psk_pincode) {
+        if (OPRT_OK != ap_pbkdf2_cacl(ap->netcfg_args.pincode, ap->netcfg_args.uuid, ap->tls_psk, AP_TLS_PSK_LEN)) {
+            PR_ERR("psk cacl error");
+            return OPRT_COM_ERROR;
+        }
+        PR_DEBUG("ap->netcfg_args.pincode %s", ap->netcfg_args.pincode);
+        PR_HEXDUMP_NOTICE("psk", ap->tls_psk, AP_TLS_PSK_LEN);
+        tuya_tls_config_set(ap->tls_hander, &(tuya_tls_config_t) {
+            .mode         = TUYA_TLS_PSK_MODE,
+            .psk_key      = (char *)ap->tls_psk,
+            .psk_key_size = AP_TLS_PSK_LEN,
+            .psk_id       = ap->netcfg_args.uuid,
+            .psk_id_size  = strlen(ap->netcfg_args.uuid)
+        });
+    } else {
+        tuya_tls_config_set(ap->tls_hander, &(tuya_tls_config_t) {
+            .mode         = TUYA_TLS_PSK_MODE,
+            .psk_key      = "123456",
+            .psk_key_size = strlen("123456"),
+            .psk_id       = "psk_identity",
+            .psk_id_size  = strlen("psk_identity")
+        });
     }
-
-    if (OPRT_OK != ap_pbkdf2_cacl(pin, uuid, psk, psklen)) {
-        PR_ERR("psk cacl error");
-        return OPRT_COM_ERROR;
-    }
-    tuya_tls_config_set(tls, &(tuya_tls_config_t) {
-        .mode = TUYA_TLS_PSK_MODE,
-        .psk_key      = (char *)psk,
-        .psk_key_size = psklen,
-        .psk_id       = uuid,
-        .psk_id_size  = strlen(uuid)
-    });
 
     return OPRT_OK;
 }
@@ -455,8 +527,8 @@ int ap_frame_recv(ap_netcfg_t *ap, lpv35_frame_object_t *out)
     return ret;
 
 __err_exit:
-    tal_net_close(ap->tcp_client_fd);
-    ap->tcp_client_fd = -1;
+    tal_net_close(ap->client_fd);
+    ap->client_fd = -1;
     tuya_tls_disconnect(ap->tls_hander);
 
     return ret;
@@ -466,14 +538,24 @@ void ap_task_exit(ap_netcfg_t *ap)
 {
     int rt = OPRT_OK;
 
-    if (ap->tcp_client_fd >= 0) {
-        tal_net_close(ap->tcp_client_fd);
-        ap->tcp_client_fd = -1;
+    if (ap->broadcast_timer) {
+        tal_sw_timer_delete(ap->broadcast_timer);
+        ap->broadcast_timer = NULL;
     }
 
-    if (ap->tcp_serv_fd >= 0) {
-        tal_net_close(ap->tcp_serv_fd);
-        ap->tcp_serv_fd = -1;
+    if (ap->broadcast_fd) {
+        tal_net_close(ap->broadcast_fd);
+        ap->broadcast_fd = -1;
+    }
+
+    if (ap->client_fd >= 0) {
+        tal_net_close(ap->client_fd);
+        ap->client_fd = -1;
+    }
+
+    if (ap->psk_fd >= 0) {
+        tal_net_close(ap->psk_fd);
+        ap->psk_fd = -1;
     }
 
     if (ap->tls_hander) {
@@ -511,7 +593,7 @@ static void ap_netcfg_thread(void * args)
         switch (status) {
 
         case TSS_START: {
-            if (OPRT_OK != ap_setup_tcp_serv(ap, AP_TCP_SERV_PORT)) {
+            if (OPRT_OK != ap_setup_tls_serv(ap)) {
                 PR_ERR("create server socket err");
                 tal_system_sleep(1500);
                 continue;
@@ -525,13 +607,12 @@ static void ap_netcfg_thread(void * args)
             // set readfd
             tal_net_fd_zero(&readfds);
             tal_net_fd_zero(&errfds);
-            tal_net_fd_set(ap->tcp_serv_fd,  &readfds);
-            max_fd = ap->tcp_serv_fd;
-            if (-1 != ap->tcp_client_fd) {
-                tal_net_fd_set(ap->tcp_client_fd, &readfds);
-                max_fd = max_fd > ap->tcp_client_fd ? max_fd : ap->tcp_client_fd;
+            tal_net_fd_set(ap->psk_fd,  &readfds);
+            max_fd = ap->psk_fd;
+            if (-1 != ap->client_fd) {
+                tal_net_fd_set(ap->client_fd, &readfds);
+                max_fd = max_fd > ap->client_fd ? max_fd : ap->client_fd;
             }
-
             actv_cnt = tal_net_select(max_fd + 1, &readfds, NULL, &errfds, 1000);
             if (actv_cnt < 0) {
                 PR_ERR("Select failed:errno:%d", tal_net_get_errno());
@@ -541,52 +622,51 @@ static void ap_netcfg_thread(void * args)
                 continue;
             } else {
                 PR_TRACE("active socket num:%d", actv_cnt);
-                if (tal_net_fd_isset(ap->tcp_serv_fd, &errfds)) {
+                if (tal_net_fd_isset(ap->psk_fd, &errfds)) {
                     PR_DEBUG("recv socket err event");
                     continue;
                 }
             }
-
-            if (tal_net_fd_isset(ap->tcp_serv_fd, &readfds)) {
+            if (tal_net_fd_isset(ap->psk_fd, &readfds)) {
                 PR_TRACE("recv tcp packets,tls+gcm mode");
                 TUYA_IP_ADDR_T addr = 0;
-                if (-1 != ap->tcp_client_fd) {
-                    tal_net_close(ap->tcp_client_fd);
-                    ap->tcp_client_fd = -1;
+                if (-1 != ap->client_fd) {
+                    tal_net_close(ap->client_fd);
+                    ap->client_fd = -1;
                     tuya_tls_disconnect(ap->tls_hander);
                 }
-                ap->tcp_client_fd = tal_net_accept(ap->tcp_serv_fd, &addr, NULL);
-                if (ap->tcp_client_fd < 0) {
+                ap->client_fd = tal_net_accept(ap->psk_fd, &addr, NULL);
+                if (ap->client_fd < 0) {
                     ret = OPRT_SET_SOCK_ERR;
                     tal_system_sleep(1500);
-                    PR_ERR("accept failed %d (errno: %d)", ap->tcp_client_fd, tal_net_get_errno());
+                    PR_ERR("accept failed %d (errno: %d)", ap->client_fd, tal_net_get_errno());
                     continue;
                 }
                 // set reuse
-                ret = tal_net_set_reuse(ap->tcp_client_fd);
+                ret = tal_net_set_reuse(ap->client_fd);
                 // set no block
-                ret += tal_net_set_block(ap->tcp_client_fd, FALSE);
+                ret += tal_net_set_block(ap->client_fd, FALSE);
                 if (0 > ret) {
                     PR_ERR("tcp listen select fail");
                     tal_system_sleep(1500);
                     continue;
                 }
-                PR_DEBUG("new client connect. fd:%d ip:%d.%d.%d.%d", ap->tcp_client_fd, 
+                PR_DEBUG("new client connect. fd:%d ip:%d.%d.%d.%d", ap->client_fd, 
                     (uint8_t)(addr >> 24), (uint8_t)(addr >> 16), (uint8_t)(addr >> 8), (uint8_t)addr);
-                ret = ap_tls_psk_set(ap->tls_hander, ap->tls_psk, AP_TLS_PSK_LEN, ap->netcfg_args.pincode, ap->netcfg_args.uuid);
+                ret = ap_tls_psk_set(ap);
                 if (OPRT_OK != ret) {
                     PR_ERR("tls psk set fail");
                     continue;
                 }
-                ret = tuya_tls_connect(ap->tls_hander, NULL, 0, ap->tcp_client_fd, 10);
+                ret = tuya_tls_connect(ap->tls_hander, NULL, 0, ap->client_fd, 10 * 1000);
                 if (ret != OPRT_OK) {
-                    tal_net_close(ap->tcp_client_fd);
-                    ap->tcp_client_fd = -1;
+                    tal_net_close(ap->client_fd);
+                    ap->client_fd = -1;
                     tuya_tls_disconnect(ap->tls_hander);
                     PR_ERR("tls connect Fail. %d", ret);
                     continue;
                 }
-            }  else if (tal_net_fd_isset(ap->tcp_client_fd, &readfds)) {
+            }  else if (tal_net_fd_isset(ap->client_fd, &readfds)) {
                 lpv35_frame_object_t frame_object;
 
                 ret = ap_frame_recv(ap, &frame_object);
@@ -696,8 +776,29 @@ static int ap_netcfg_start(int type, netcfg_finish_cb_t  cb, void *args)
     PR_DEBUG("ap netcfg server ip:%s", ip.ip);
     ap->serv_ip           = tal_net_str2addr(ip.ip);
     ap->netcfg_finish_cb  = cb;
-    ap->tcp_client_fd     = -1;
-    ap->tcp_serv_fd       = -1;
+    ap->client_fd         = -1;
+    ap->psk_fd            = -1;
+
+    if (NULL == ap->netcfg_args.pincode ||
+        0 == strlen(ap->netcfg_args.pincode)) {
+        PR_NOTICE("tuya ap using tls + psk", op_ret);
+        ap->broadcast_fd = tal_net_socket_create(PROTOCOL_UDP);
+        if (ap->broadcast_fd < 0) {
+            PR_ERR("net_socket_create fail:%d", tal_net_get_errno());
+            op_ret = OPRT_COM_ERROR;
+            goto __exit;
+        }
+        tal_net_set_broadcast(ap->broadcast_fd);
+        tal_net_bind(ap->broadcast_fd, ap->serv_ip, AP_BROADCAST_PORT);
+        op_ret  = tal_sw_timer_create((TAL_TIMER_CB)ap_broadcast_timeout, ap, &(ap->broadcast_timer));
+        op_ret |= tal_sw_timer_start(ap->broadcast_timer, 1 * 1000, TAL_TIMER_CYCLE); //1s
+        if (OPRT_OK != op_ret) {
+            goto __exit;
+        }
+    } else {
+        ap->is_psk_pincode = true;
+        PR_NOTICE("tuya ap using tls + psk(pincode), scan qrcode");
+    }
 
     THREAD_CFG_T thread_cfg = {
         .priority   = THREAD_PRIO_2,
@@ -713,6 +814,16 @@ static int ap_netcfg_start(int type, netcfg_finish_cb_t  cb, void *args)
     return op_ret;
 
 __exit:
+    if (ap) {
+        if (ap->broadcast_timer) {
+            tal_sw_timer_delete(ap->broadcast_timer);
+            ap->broadcast_timer = NULL;
+        }
+        if (ap->broadcast_fd > 0) {
+            tal_net_close(ap->broadcast_fd);
+        }
+    }
+
     ap_netcfg_free();
 
     return op_ret;

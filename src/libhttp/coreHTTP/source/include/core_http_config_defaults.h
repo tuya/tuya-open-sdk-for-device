@@ -20,6 +20,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "tal_log.h"
+
 /**
  * @file core_http_config_defaults.h
  * @brief The default values for the configuration macros for the HTTP Client
@@ -128,7 +130,7 @@
  * to the macro in the HTTP Client library on compilation.
  */
 #ifndef LogError
-    #define LogError( message )
+    #define LogError( message ) PR_ERR message
 #endif
 
 /**
@@ -148,7 +150,7 @@
  * to the macro in the HTTP Client library on compilation.
  */
 #ifndef LogWarn
-    #define LogWarn( message )
+    #define LogWarn( message )  PR_WARN message
 #endif
 
 /**
@@ -168,7 +170,7 @@
  * to the macro in the HTTP Client library on compilation.
  */
 #ifndef LogInfo
-    #define LogInfo( message )
+    #define LogInfo( message )  PR_INFO message
 #endif
 
 /**
@@ -188,7 +190,7 @@
  * to the macro in the HTTP Client library on compilation.
  */
 #ifndef LogDebug
-    #define LogDebug( message )
+    #define LogDebug( message )     PR_DEBUG message
 #endif
 
 #endif /* ifndef CORE_HTTP_CONFIG_DEFAULTS_ */

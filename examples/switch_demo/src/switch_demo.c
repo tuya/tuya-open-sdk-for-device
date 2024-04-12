@@ -215,7 +215,12 @@ VOID user_main()
 #endif  
     netmgr_init(type);
 #if defined(ENABLE_WIFI) && (ENABLE_WIFI == 1)
-    netmgr_conn_set(NETCONN_WIFI, NETCONN_CMD_NETCFG, &(netconn_wifi_netcfg_t){.netcfg_mode=NETCFG_TUYA_BLE|NETCFG_TUYA_BLE});
+    netmgr_conn_set(NETCONN_WIFI, 
+                    NETCONN_CMD_NETCFG, 
+                    &(netconn_wifi_netcfg_t) {
+                        .netcfg_mode         = NETCFG_TUYA_BLE | NETCFG_TUYA_WIFI_AP,
+                        .netcfg_args.uuid    = TUYA_DEVICE_UUID,
+                        .netcfg_args.pincode = NULL});
 #endif
 
     PR_DEBUG("tuya_iot_init success");

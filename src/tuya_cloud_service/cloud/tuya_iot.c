@@ -227,7 +227,6 @@ static int client_activate_process(tuya_iot_client_t* client, const char* token)
         .firmware_key = client->config.firmware_key,
         .bv = BS_VERSION,
         .pv = PV_VERSION,
-        .buflen_custom = ACTIVATE_BUFFER_LENGTH,
         .user_data = client
     };
 
@@ -848,7 +847,7 @@ int tuya_iot_activated_data_remove(tuya_iot_client_t* client)
     tal_kv_del((const char*)(client->activate.schemaId));
     tal_kv_del((const char*)(client->config.storage_namespace));
     tuya_endpoint_remove();
-    netmgr_conn_set(NETCONN_AUTO, NETCONN_CMD_CLOSE, NULL);
+    netmgr_conn_set(NETCONN_AUTO, NETCONN_CMD_RESET, NULL);
     client->is_activated = false;
     PR_INFO("Activated data remove successed");
 

@@ -578,6 +578,11 @@ static void processCompleteHeader( HTTPParsingContext_t * pParsingContext )
                     ( int ) ( pParsingContext->lastHeaderValueLen ),
                     pParsingContext->pLastHeaderValue ) );
 
+        if (0 == strncasecmp(pParsingContext->pLastHeaderField, "Transfer-Encoding", pParsingContext->lastHeaderFieldLen) && 
+            0 == strncasecmp(pParsingContext->pLastHeaderValue, "chunked", pParsingContext->lastHeaderValueLen)) {
+                LogDebug( ( "Http check chuned"));
+        }
+
         /* If the application registered a callback, then it must be notified. */
         if( pResponse->pHeaderParsingCallback != NULL )
         {
@@ -619,6 +624,35 @@ static int httpParserOnMessageBeginCallback( http_parser * pHttpParser )
     return HTTP_PARSER_CONTINUE_PARSING;
 }
 
+/*-----------------------------------------------------------*/
+static int httpParserOnChunkHeaderCallback( http_parser * pHttpParser )
+{
+    HTTPParsingContext_t * pParsingContext = NULL;
+
+    assert( pHttpParser != NULL );
+    assert( pHttpParser->data != NULL );
+
+    pParsingContext = ( HTTPParsingContext_t * ) ( pHttpParser->data );
+
+    LogDebug( ( "http Parser On Chunk Header, Chunk Length %d" , pHttpParser->content_length));
+
+    return HTTP_PARSER_CONTINUE_PARSING;
+}
+/*-----------------------------------------------------------*/
+
+static int httpParserOnChunkComleteCallback( http_parser * pHttpParser )
+{
+    HTTPParsingContext_t * pParsingContext = NULL;
+
+    assert( pHttpParser != NULL );
+    assert( pHttpParser->data != NULL );
+
+    pParsingContext = ( HTTPParsingContext_t * ) ( pHttpParser->data );
+
+    LogDebug( ( "http Parser On Chunk Comlete" ) );
+
+    return HTTP_PARSER_CONTINUE_PARSING;
+}
 /*-----------------------------------------------------------*/
 
 static int httpParserOnStatusCallback( http_parser * pHttpParser,
@@ -872,8 +906,22 @@ static int httpParserOnBodyCallback( http_parser * pHttpParser,
 
     assert( pResponse != NULL );
     assert( pResponse->pBuffer != NULL );
-    assert( pLoc >= ( const char * ) ( pResponse->pBuffer ) );
-    assert( pLoc < ( const char * ) ( pResponse->pBuffer + pResponse->bufferLen ) );
+
+    if (pHttpParser->flags & F_CHUNKED) {
+        if ((pResponse->bodyLen + length) > HTTP_MAX_RESPONSE_CHUNK_SIZE_BYTES) {
+            shouldContinueParse = HTTP_PARSER_STOP_PARSING;
+            LogError( ( "Chunk size is too large"
+                        "See HTTP_MAX_RESPONSE_CHUNK_SIZE_BYTES=%lu",
+                        ( unsigned long ) HTTP_MAX_RESPONSE_CHUNK_SIZE_BYTES ) );
+            return HTTP_PARSER_STOP_PARSING;
+        }
+        memcpy( pResponse->pBody + pResponse->bodyLen, pLoc, length);
+        pResponse->bodyLen += length;
+        return HTTP_PARSER_CONTINUE_PARSING;
+    }
+
+    // assert( pLoc >= ( const char * ) ( pResponse->pBuffer ) );
+    // assert( pLoc < ( const char * ) ( pResponse->pBuffer + pResponse->bufferLen ) );
 
     /* If this is the first time httpParserOnBodyCallback() has been invoked,
      * then the start of the response body is NULL. */
@@ -942,6 +990,7 @@ static int httpParserOnMessageCompleteCallback( http_parser * pHttpParser )
 
     /* The response message is complete. */
     pParsingContext->state = HTTP_PARSING_COMPLETE;
+    pParsingContext->recvState = HTTP_RECV_DONE;
 
     LogDebug( ( "Response parsing: Response message complete." ) );
 
@@ -2602,3 +2651,273 @@ const char * HTTPClient_strerror( HTTPStatus_t status )
 }
 
 /*-----------------------------------------------------------*/
+HTTPStatus_t HTTPClient_Request( const TransportInterface_t * pTransport,
+                                HTTPRequestHeaders_t * pRequestHeaders,
+                                const uint8_t * pRequestBodyBuf,
+                                size_t reqBodyBufLen,
+                                HTTPResponse_t * pResponse,
+                                uint32_t sendFlags )
+{
+    HTTPStatus_t returnStatus = HTTPInvalidParameter;
+
+    if( pResponse->getTime == NULL ) {
+        /* Set a zero timestamp function when the application did not configure * one. */
+        pResponse->getTime = getZeroTimestampMs;
+    }
+
+    returnStatus = sendHttpRequest( pTransport,
+                                    pResponse->getTime,
+                                    pRequestHeaders,
+                                    pRequestBodyBuf,
+                                    reqBodyBufLen,
+                                    sendFlags );
+    if (returnStatus != HTTPSuccess) {
+        return returnStatus;
+    }
+    size_t totalReceived = 0U;
+    int32_t currentReceived = 0;
+    HTTPParsingContext_t parsingContext = { 0 };
+
+    uint8_t *headerEOF  = NULL;
+    int32_t  headerOff  = 0;
+    int32_t  headerLen  = 0;
+    size_t   bodyLen    = 0U;
+
+    http_parser_settings parserSettings = { 0 };
+    size_t bytesParsed = 0U;
+    size_t   chunkLen    = 0;
+    uint8_t *chunkBuffer = NULL;
+
+    while (parsingContext.recvState != HTTP_RECV_DONE) {
+
+        switch (parsingContext.recvState) {
+
+        case HTTP_RECV_INIT:
+            memset(pResponse, 0, sizeof(HTTPResponse_t));
+            pResponse->pBuffer = HTTP_MALLOC(HTTP_MAX_RESPONSE_HEADERS_SIZE_BYTES + 1);
+            if (NULL == pResponse->pBuffer) {
+                return HTTPInsufficientMemory;
+            }
+            pResponse->bufferLen = HTTP_MAX_RESPONSE_HEADERS_SIZE_BYTES;
+            parsingContext.pResponse  = pResponse;
+            parsingContext.pBufferCur = ( const char * ) pResponse->pBuffer;
+            http_parser_settings_init( &parserSettings );
+            parserSettings.on_message_begin     = httpParserOnMessageBeginCallback;
+            parserSettings.on_status            = httpParserOnStatusCallback;
+            parserSettings.on_header_field      = httpParserOnHeaderFieldCallback;
+            parserSettings.on_header_value      = httpParserOnHeaderValueCallback;
+            parserSettings.on_headers_complete  = httpParserOnHeadersCompleteCallback;
+            parserSettings.on_body              = httpParserOnBodyCallback;
+            parserSettings.on_message_complete  = httpParserOnMessageCompleteCallback;
+            parserSettings.on_chunk_header      = httpParserOnChunkHeaderCallback;
+            parserSettings.on_chunk_complete    = httpParserOnChunkComleteCallback;
+            parsingContext.httpParser.data      = &parsingContext;
+            /* Initialize the third-party HTTP parser to parse responses. */
+            http_parser_init(&parsingContext.httpParser, HTTP_RESPONSE);
+            /* The parser will return an error if this header size limit is exceeded. */
+            http_parser_set_max_header_size(HTTP_MAX_RESPONSE_HEADERS_SIZE_BYTES);
+            parsingContext.recvState            = HTTP_RECV_HEADER;
+
+        case HTTP_RECV_HEADER:
+            currentReceived = pTransport->recv(pTransport->pNetworkContext,
+                                               pResponse->pBuffer   + totalReceived,
+                                               pResponse->bufferLen - totalReceived);
+            if (currentReceived <= 0) {
+                LogError( ( "Failed to receive HTTP data: Transport recv() "
+                            "returned error: TransportStatus=%ld",
+                            ( long int ) currentReceived ) );
+                return HTTPNetworkError;
+            }
+            totalReceived += currentReceived;
+            pResponse->pBuffer[totalReceived] = 0;
+            headerEOF = strstr(&pResponse->pBuffer[headerOff], "\r\n\r\n");
+            if (headerEOF) {
+                headerLen = (headerEOF + 4) - pResponse->pBuffer;
+                bodyLen   = totalReceived - headerLen;
+                parsingContext.recvState = HTTP_PARSE_HEADER;
+                break;
+            }
+            if (totalReceived >= HTTP_MAX_RESPONSE_HEADERS_SIZE_BYTES) {
+                returnStatus = HTTPInsufficientMemory;
+                goto __exit;
+            } else {
+                //! next header offset
+                headerOff = totalReceived > 4 ? totalReceived - 4 : 0;
+            }
+            break;
+
+        case HTTP_PARSE_HEADER:
+            bytesParsed  = http_parser_execute(&(parsingContext.httpParser),
+                                               &parserSettings,
+                                               pResponse->pBuffer,
+                                               headerLen);
+            returnStatus = processHttpParserError(&(parsingContext.httpParser));
+            if (HPE_OK != returnStatus) {
+                goto __exit;
+            }
+            if (0 == pResponse->contentLength && !(parsingContext.httpParser.flags & F_CHUNKED)) {
+                returnStatus = HTTPSecurityAlertInvalidContentLength;
+                goto __exit;
+            }
+            if (sendFlags && HTTP_SEND_DISABLE_RECV_BODY_FLAG) {
+                if (0 == bodyLen) {
+                    return OPRT_OK;
+                }
+                //! Remaining length of the body in the header
+                pResponse->bodyLen = bodyLen;
+                pResponse->pBody   = HTTP_MALLOC(pResponse->bodyLen + 1);
+                if (NULL == pResponse->pBody) {
+                    returnStatus = HTTPInsufficientMemory;
+                    goto __exit;
+                }
+                memcpy(pResponse->pBody, pResponse->pBuffer + headerLen, bodyLen);
+                return OPRT_OK;
+            }
+            if (parsingContext.httpParser.flags & F_CHUNKED) {
+                chunkBuffer = HTTP_MALLOC(HTTP_MAX_RESPONSE_CHUNK_ONCE_BYTES + 1);
+                if (NULL == chunkBuffer) {
+                    returnStatus = HTTPInsufficientMemory;
+                    goto __exit;
+                }
+                pResponse->pBody = HTTP_MALLOC(HTTP_MAX_RESPONSE_CHUNK_SIZE_BYTES + 1);
+                parsingContext.recvState = HTTP_RECV_CHUNK;
+            } else {
+                pResponse->pBody = HTTP_MALLOC(pResponse->contentLength + 1);
+                parsingContext.recvState = HTTP_RECV_BODY;
+            }
+            if (NULL == pResponse->pBody) {
+                returnStatus = HTTPInsufficientMemory;
+                goto __exit;
+            }
+            //! Remaining length of the body in the header
+            if (bodyLen) {
+                if (parsingContext.httpParser.flags & F_CHUNKED) {
+                    memcpy(chunkBuffer, pResponse->pBuffer + headerLen, bodyLen);
+                    chunkLen = bodyLen;
+                    parsingContext.recvState = HTTP_PARSE_CHUNK;
+                } else {
+                    memcpy(pResponse->pBody, pResponse->pBuffer + headerLen, bodyLen);
+                    if (bodyLen == pResponse->contentLength) {
+                        parsingContext.recvState = HTTP_PARSE_BODY;
+                    }
+                }
+            }
+            break;
+
+        case HTTP_RECV_CHUNK:
+            currentReceived = pTransport->recv( pTransport->pNetworkContext,
+                                                chunkBuffer,
+                                                HTTP_MAX_RESPONSE_CHUNK_ONCE_BYTES);
+            if (currentReceived <= 0) {
+                LogError( ( "Failed to receive HTTP data: Transport recv() "
+                            "returned error: TransportStatus=%ld",
+                            ( long int ) currentReceived ) );
+                return HTTPNetworkError;
+            }
+            chunkLen = currentReceived;
+            parsingContext.recvState = HTTP_PARSE_CHUNK;
+
+
+        case HTTP_PARSE_CHUNK:
+            bytesParsed  = http_parser_execute(&parsingContext.httpParser,
+                                               &parserSettings,
+                                               chunkBuffer,
+                                               chunkLen);
+            returnStatus = processHttpParserError(&(parsingContext.httpParser));
+            if (HPE_OK != returnStatus) {
+                goto __exit;
+            }
+            LogDebug( ( "Parsed HTTP Response buffer: BytesParsed=%lu, "
+                        "ExpectedBytesParsed=%lu",
+                        ( unsigned long ) bytesParsed,
+                        ( unsigned long ) chunkLen ) );
+            if (parsingContext.recvState != HTTP_RECV_DONE) {
+                parsingContext.recvState = HTTP_RECV_CHUNK;
+            }
+            break;
+
+        case HTTP_RECV_BODY:
+            currentReceived = pTransport->recv( pTransport->pNetworkContext,
+                                                pResponse->pBody + bodyLen,
+                                                pResponse->contentLength - bodyLen);
+            if (currentReceived <= 0) {
+                LogError( ( "Failed to receive HTTP data: Transport recv() "
+                            "returned error: TransportStatus=%ld",
+                            ( long int ) currentReceived ) );
+                return HTTPNetworkError;
+            }
+            bodyLen += currentReceived;
+            if (pResponse->contentLength == bodyLen) {
+                parsingContext.recvState = HTTP_PARSE_BODY;
+            }
+            break;
+
+        case HTTP_PARSE_BODY:
+            bytesParsed  = http_parser_execute(&parsingContext.httpParser,
+                                               &parserSettings,
+                                               pResponse->pBody,
+                                               bodyLen);
+            returnStatus = processHttpParserError(&(parsingContext.httpParser));
+            if (HPE_OK != returnStatus) {
+                goto __exit;
+            }
+            if (bytesParsed == pResponse->contentLength) {  
+                parsingContext.recvState = HTTP_RECV_DONE;
+            }
+        }
+    }
+
+    if (chunkBuffer) {
+        HTTP_FREE(chunkBuffer);
+    }
+
+    return returnStatus;
+
+__exit:
+    if (chunkBuffer) {
+        HTTP_FREE(chunkBuffer);
+    }
+
+    if (pResponse->pBuffer) {
+        HTTP_FREE(pResponse->pBuffer);
+    }
+
+    if (pResponse->pBody) {
+        HTTP_FREE(pResponse->pBody);
+    }
+
+    return returnStatus;
+}
+
+
+
+int32_t HTTPClient_Recv(const TransportInterface_t *pTransport,
+                        HTTPResponse_t *pResponse,
+                        uint8_t *data,
+                        size_t   dataLen)
+{
+    int32_t currentReceived = 0;
+
+    if (pResponse->pBody && pResponse->bodyLen) {
+        memcpy(data, pResponse->pBody, pResponse->bodyLen);
+        currentReceived = pResponse->bodyLen;
+        HTTP_FREE(pResponse->pBody);
+        pResponse->pBody = NULL;
+        pResponse->bodyLen = 0;
+        return currentReceived;
+    }
+
+    currentReceived = pTransport->recv( pTransport->pNetworkContext,
+                                        data,
+                                        dataLen);
+
+    if (currentReceived <= 0) {
+        LogError( ( "Failed to receive HTTP data: Transport recv() "
+                    "returned error: TransportStatus=%ld",
+                    ( long int ) currentReceived ) );
+        return HTTPNetworkError;
+    }
+
+
+    return currentReceived;
+}

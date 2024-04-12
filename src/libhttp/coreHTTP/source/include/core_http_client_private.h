@@ -179,8 +179,20 @@ typedef enum HTTPParsingState_t
 {
     HTTP_PARSING_NONE = 0,   /**< The parser has not started reading any response. */
     HTTP_PARSING_INCOMPLETE, /**< The parser found a partial reponse. */
-    HTTP_PARSING_COMPLETE    /**< The parser found the entire response. */
+    HTTP_PARSING_COMPLETE,    /**< The parser found the entire response. */
 } HTTPParsingState_t;
+
+typedef enum HTTPRecvState_t {
+    HTTP_RECV_INIT = 0,
+    HTTP_RECV_HEADER,
+    HTTP_PARSE_HEADER,
+    HTTP_RECV_BODY,
+    HTTP_PARSE_BODY,
+    HTTP_RECV_CHUNK,
+    HTTP_PARSE_CHUNK,
+    HTTP_RECV_DONE,
+} HTTPRecvState_t;
+
 
 /**
  * @brief An aggregator that represents the user-provided parameters to the
@@ -265,6 +277,8 @@ typedef struct HTTPParsingContext
     size_t lastHeaderFieldLen;     /**< The length of the last header field parsed. */
     const char * pLastHeaderValue; /**< Holds the last part of the header value parsed. */
     size_t lastHeaderValueLen;     /**< The length of the last value field parsed. */
+
+    HTTPRecvState_t recvState;
 } HTTPParsingContext_t;
 
 #endif /* ifndef CORE_HTTP_CLIENT_PRIVATE_H_ */

@@ -576,7 +576,7 @@ static void lan_make_udp_packets(BYTE_T **out, int *p_olen)
     // lpv3.5 test arch
     lpv35_frame_object_t frame = {
         .sequence   = 0,
-        .type       = FR_TYPE_ENCRYPTION,
+        .type       = FRM_TYPE_ENCRYPTION,
         .data       = (uint8_t*)plaintext_data,
         .data_len   = plaintext_len,
     };
