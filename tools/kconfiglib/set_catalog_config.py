@@ -17,14 +17,11 @@ KCONFIG = "Kconfig"
 
 def set_config(board, src_dir, output_config):
     context = "# CatalogKconfig\n"
+    config_path = os.path.join(src_dir, KCONFIG)
+    if os.path.exists(config_path):
+        context += f'source \"{config_path}\"\n'
     if board:
         config_path = os.path.join(board, KCONFIG)
-        if os.path.exists(config_path):
-            context += f'source \"{config_path}\"\n'
-
-    _, subdirs, _ = next(os.walk(src_dir))
-    for sub in subdirs:
-        config_path = os.path.join(src_dir, sub, KCONFIG)
         if os.path.exists(config_path):
             context += f'source \"{config_path}\"\n'
 

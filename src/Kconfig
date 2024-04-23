@@ -1,0 +1,7 @@
+# Ktuyaconf
+menu "config open-sdk-for-device"
+    rsource "tuya_cloud_service/Kconfig"
+    rsource "liblwip/Kconfig"
+    rsource "libtls/Kconfig"
+    rsource "tal_system/Kconfig"
+endmenu

@@ -39,7 +39,7 @@ if(NOT EXISTS "${DOT_CONFIG_DIR}/${DOT_CONFIG}")  # copy pre-config to dot-confi
         ${CMAKE_COMMAND} -E make_directory ${DOT_CONFIG_DIR}
 
         COMMAND
-        ${CMAKE_COMMAND} -E copy ${PRE_CONFIG_DIR}/${PRE_CONFIG_NAME} ${DOT_CONFIG_DIR}/${DOT_CONFIG}
+        ${CMAKE_COMMAND} -E copy ${BOARD_PATH}/${DEFAULT_CONFIG_NAME} ${DOT_CONFIG_DIR}/${DOT_CONFIG}
         )
 endif()
 

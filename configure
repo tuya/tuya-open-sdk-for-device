@@ -70,15 +70,9 @@ show "" ""
 ########################################
 # Choice Pre-config
 ########################################
-show "" "Choice Pre-config ..."
 PRE_CONFIG_DIR=$ROOT_DIR/pre_config
-PRE_CONFIG_NAME=$(ls -p $PRE_CONFIG_DIR | grep -E "^[^/]*\.config$" | bash $LISTMENU "Pre-config" 20 60 13)
-assert_non_null "$PRE_CONFIG_NAME" "Have no [pre-config]."
 KCONFIG_TOOLS=$ROOT_DIR/tools/kconfiglib
 KCONFIG_CATALOG=$CACHE_DIR/CatalogKconfig
-
-show "${fore[write]};${back[green]}" "[DONE] Choice Pre-config: $PRE_CONFIG_NAME"
-show "" ""
 
 ########################################
 # Choice example
@@ -95,6 +89,7 @@ show "" ""
 ########################################
 show "" "Genreate cmake file ..."
 CONFIG_CMAKE=$CACHE_DIR/config.cmake
+DEFAULT_CONFIG_NAME="default.config"
 FILE_INFO="
 set(SYSTEM_NAME \"${SYSTEM_NAME}\")
 set(CCMAKE \"${CCMAKE}\")
@@ -102,11 +97,12 @@ set(BOARD_NAME \"${BOARD_NAME}\")
 set(BOARD_PATH \"${BOARD_PATH}\")
 set(EXAMPLE_NAME \"${EXAMPLE_NAME}\")
 set(EXAMPLE_DIR \"${EXAMPLE_DIR}\")
+set(DEFAULT_CONFIG_NAME \"${DEFAULT_CONFIG_NAME}\")
 set(PRE_CONFIG_NAME \"${PRE_CONFIG_NAME}\")
 set(PRE_CONFIG_DIR \"${PRE_CONFIG_DIR}\")
 set(KCONFIG_CATALOG \"${KCONFIG_CATALOG}\")
 " # end FILE_INFO
-echo "$FILE_INFO" >$CONFIG_CMAKE
+echo "$FILE_INFO" > $CONFIG_CMAKE
 show "${fore[write]};${back[green]}" "[DONE] Genreate cmake file: $CONFIG_CMAKE"
 show "" ""
 
@@ -139,6 +135,9 @@ if [ -f "$BOARD_PATH/board_prepare.sh" ]; then
 	show "" "Run [$BOARD_PATH/board_prepare.sh]."
 	cd "$BOARD_PATH"
 	sh "board_prepare.sh"
+fi
+if [ ! -f "$BOARD_PATH/$DEFAULT_CONFIG_NAME" ]; then
+	show "${fore[yellow]}" "Warning: not found [$BOARD_PATH/$DEFAULT_CONFIG_NAME]."
 fi
 python3 $KCONFIG_TOOLS/set_catalog_config.py -b $BOARD_PATH -s $ROOT_DIR/src -o $KCONFIG_CATALOG
 show "${fore[write]};${back[green]}" "[DONE] Download board: $BOARD_PATH"

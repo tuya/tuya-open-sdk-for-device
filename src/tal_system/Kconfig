@@ -1,5 +1,5 @@
 # Ktuyaconf
-menu "configure open iot development kit"
+menu "configure system parameter"
 	# 设置sw timer任务栈
 	config STACK_SIZE_TIMERQ
 	    int "STACK_SIZE_TIMERQ: set stack size for sw timer queue"
