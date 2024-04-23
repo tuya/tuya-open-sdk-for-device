@@ -36,7 +36,7 @@ show "" "Check command and version ..."
 check_command_version "python3" "3.6.0" "python3 --version"
 check_command_version "git" "2.0.0" "git --version"
 check_command_version "cmake" "3.16.0" "cmake --version"
-check_command_version "ccmake" "3.16.0" "ccmake --version"
+check_command_version "ccmake" "3.16.0" "ccmake --version"  # sudo apt-get install cmake-curses-gui
 check_command_version "lcov" "1.14" "lcov --version"
 show "${fore[write]};${back[green]}" "[DONE] Check command and version"
 show "" ""
@@ -74,9 +74,6 @@ PRE_CONFIG_DIR=$ROOT_DIR/pre_config
 PRE_CONFIG_NAME=$(ls -p $PRE_CONFIG_DIR | grep -E "^[^/]*\.config$" | bash $LISTMENU "Pre-config" 20 60 13)
 assert_non_null "$PRE_CONFIG_NAME" "Have no [pre-config]."
 
-KCONFIG_TOOLS=$ROOT_DIR/tools/kconfiglib
-KCONFIG_CATALOG=$CACHE_DIR/CatalogKconfig
-python3 $KCONFIG_TOOLS/set_catalog_config.py -b $BOARD_PATH -s $ROOT_DIR/src -o $KCONFIG_CATALOG
 show "${fore[write]};${back[green]}" "[DONE] Choice Pre-config: $PRE_CONFIG_NAME"
 show "" ""
 
@@ -140,6 +137,9 @@ if [ -f "$BOARD_PATH/board_prepare.sh" ]; then
 	cd "$BOARD_PATH"
 	sh "board_prepare.sh"
 fi
+KCONFIG_TOOLS=$ROOT_DIR/tools/kconfiglib
+KCONFIG_CATALOG=$CACHE_DIR/CatalogKconfig
+python3 $KCONFIG_TOOLS/set_catalog_config.py -b $BOARD_PATH -s $ROOT_DIR/src -o $KCONFIG_CATALOG
 show "${fore[write]};${back[green]}" "[DONE] Download board: $BOARD_PATH"
 show "" ""
 
