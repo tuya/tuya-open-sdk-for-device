@@ -1,0 +1,556 @@
+/**
+ * @file tal_log.c
+ * @brief Implements logging functionalities for Tuya IoT applications.
+ *
+ * This source file provides the implementation of the logging system for Tuya
+ * IoT applications, facilitating the output of log messages with varying levels
+ * of severity. It supports dynamic log level adjustment, multiple output
+ * destinations (such as terminal or file), and custom log message formatting.
+ * The system is designed to aid in debugging and monitoring the application's
+ * behavior in development and production environments.
+ *
+ * Key features include:
+ * - Configurable log levels ranging from debug to critical errors.
+ * - Support for multiple log output destinations through callback registration.
+ * - Thread-safe log message output using mutexes.
+ * - Integration with Tuya's IoT SDK for memory management and system utilities.
+ *
+ * The logging system is implemented using a linked list to manage output
+ * destinations and utilizes Tuya's abstracted system functionalities, such as
+ * mutexes for thread safety and memory management for dynamic allocation of log
+ * nodes.
+ *
+ * @note This file is part of the Tuya IoT Development Platform and is intended
+ * for use in Tuya-based applications. It is subject to the platform's license
+ * and copyright terms.
+ *
+ * @copyright Copyright (c) 2021-2024 Tuya Inc. All Rights Reserved.
+ *
+ */
+
+#include <string.h>
+#include <stdio.h>
+#include "tal_log.h"
+#include "tuya_list.h"
+#include "tal_mutex.h"
+#include "tal_system.h"
+#include "tal_time_service.h"
+#include "tal_memory.h"
+
+/***********************************************************
+*************************micro define***********************
+***********************************************************/
+#define LOG_LEVEL_MIN 0
+#define LOG_LEVEL_MAX 5
+
+typedef struct {
+    LIST_HEAD node;
+    CHAR_T *name;
+    TAL_LOG_OUTPUT_CB out_term;
+} LOG_OUT_NODE_S;
+
+typedef struct {
+    LOG_LEVEL curLogLevel;
+    LIST_HEAD listHead;
+    LIST_HEAD log_list;
+    MUTEX_HANDLE mutex;
+
+    int32_t log_buf_len;
+    BOOL_T ms_level;
+    CHAR_T *log_buf;
+} LOG_MANAGE, *P_LOG_MANAGE;
+
+#define DEF_OUTPUT_NAME "def_output"
+
+/***********************************************************
+*************************variable define********************
+***********************************************************/
+const PCHAR_T sLevelStr[] = {"E", "W", "N", "I", "D", "T"};
+P_LOG_MANAGE pLogManage = NULL;
+
+/***********************************************************
+*************************function define********************
+***********************************************************/
+/**
+ * @brief Initializes the TAL log system.
+ *
+ * This function initializes the TAL log system with the specified log level,
+ * buffer length, and output callback function.
+ *
+ * @param level The log level to set. Must be between LOG_LEVEL_MIN and
+ * LOG_LEVEL_MAX.
+ * @param buf_len The length of the log buffer.
+ * @param output The output callback function to be called when a log message is
+ * generated.
+ * @return OPERATE_RET Returns OPRT_OK if the initialization is successful.
+ * Returns OPRT_INVALID_PARM if any of the parameters are invalid. Returns
+ * OPRT_MALLOC_FAILED if memory allocation fails. Returns an error code if
+ * adding the output terminal fails.
+ */
+OPERATE_RET tal_log_init(const TAL_LOG_LEVEL_E level, const int32_t buf_len, const TAL_LOG_OUTPUT_CB output)
+{
+    if (level < LOG_LEVEL_MIN || level > LOG_LEVEL_MAX || 0 == buf_len || NULL == output) {
+        return OPRT_INVALID_PARM;
+    }
+
+    if (!pLogManage) {
+        OPERATE_RET op_ret = OPRT_OK;
+
+        P_LOG_MANAGE tmp_log_mng = (P_LOG_MANAGE)tal_malloc(sizeof(LOG_MANAGE) + buf_len + 1);
+        if (!tmp_log_mng) {
+            return OPRT_MALLOC_FAILED;
+        }
+        tmp_log_mng->log_buf_len = buf_len;
+        tmp_log_mng->log_buf = (CHAR_T *)(tmp_log_mng + 1);
+        op_ret = tal_mutex_create_init(&tmp_log_mng->mutex);
+        if (OPRT_OK != op_ret) {
+            tal_free(tmp_log_mng);
+            return op_ret;
+        }
+        INIT_LIST_HEAD(&(tmp_log_mng->listHead));
+        INIT_LIST_HEAD(&(tmp_log_mng->log_list));
+        tmp_log_mng->curLogLevel = level;
+        tmp_log_mng->ms_level = FALSE;
+        pLogManage = tmp_log_mng;
+        op_ret = tal_log_add_output_term(DEF_OUTPUT_NAME, output);
+        if (OPRT_OK != op_ret) {
+            tal_mutex_release(tmp_log_mng->mutex);
+            tal_free(tmp_log_mng);
+            return op_ret;
+        }
+    } else {
+        pLogManage->curLogLevel = level;
+    }
+
+    return OPRT_OK;
+}
+
+void __output_logManage_buf(void)
+{
+    P_LIST_HEAD pPos;
+    LOG_OUT_NODE_S *output_node;
+    tuya_list_for_each(pPos, &(pLogManage->log_list))
+    {
+        output_node = tuya_list_entry(pPos, LOG_OUT_NODE_S, node);
+        if (output_node->out_term) {
+            output_node->out_term(pLogManage->log_buf);
+        }
+    }
+}
+
+OPERATE_RET __find_out_term_node(const CHAR_T *name, LOG_OUT_NODE_S **node)
+{
+    P_LIST_HEAD pPos;
+    LOG_OUT_NODE_S *output_node;
+
+    tuya_list_for_each(pPos, &(pLogManage->log_list))
+    {
+        output_node = tuya_list_entry(pPos, LOG_OUT_NODE_S, node);
+        if (!strcmp(output_node->name, name)) {
+            *node = output_node;
+            return OPRT_OK;
+        }
+    }
+
+    return OPRT_COM_ERROR;
+}
+
+/**
+ * @brief Adds an output terminal for logging.
+ *
+ * This function adds an output terminal for logging with the specified name and
+ * callback function.
+ *
+ * @param[in] name The name of the output terminal.
+ * @param[in] term The callback function for the output terminal.
+ *
+ * @return The result of the operation.
+ *     - OPRT_OK: Operation successful.
+ *     - OPRT_INVALID_PARM: Invalid parameter.
+ *     - OPRT_MALLOC_FAILED: Memory allocation failed.
+ */
+OPERATE_RET tal_log_add_output_term(const CHAR_T *name, const TAL_LOG_OUTPUT_CB term)
+{
+    if (NULL == name || NULL == term || NULL == pLogManage) {
+        return OPRT_INVALID_PARM;
+    }
+
+    LOG_OUT_NODE_S *output_node;
+    OPERATE_RET ret = __find_out_term_node(name, &output_node);
+    if (ret == OPRT_OK) {
+        output_node->out_term = term;
+        return OPRT_OK;
+    }
+
+    NEW_LIST_NODE(LOG_OUT_NODE_S, output_node);
+    if (!output_node) {
+        return OPRT_MALLOC_FAILED;
+    }
+    output_node->name = tal_malloc(strlen(name) + 1);
+    if (!output_node->name) {
+        tal_free(output_node);
+        return OPRT_MALLOC_FAILED;
+    }
+    strcpy(output_node->name, name);
+    output_node->out_term = term;
+    tuya_list_add(&(output_node->node), &(pLogManage->log_list));
+
+    return OPRT_OK;
+}
+
+static int32_t tal_log_strrchr(CHAR_T *str, CHAR_T ch)
+{
+    CHAR_T *ta;
+
+    ta = strrchr(str, ch);
+    if (ta) {
+        return (int32_t)(ta - str);
+    }
+
+    return -1;
+}
+
+/**
+ * @brief Deletes a log output terminal with the specified name.
+ *
+ * This function deletes a log output terminal from the log management system
+ * based on the provided name. The function first checks if the name and the
+ * log management system pointer are not NULL. If either of them is NULL, the
+ * function returns without performing any action. Otherwise, it locks the
+ * log management system mutex, searches for the output terminal node with
+ * the specified name, and if found, removes it from the list and frees the
+ * associated memory. Finally, it unlocks the mutex and returns.
+ *
+ * @param name The name of the log output terminal to be deleted.
+ */
+void tal_log_del_output_term(const CHAR_T *name)
+{
+    if (NULL == name || NULL == pLogManage) {
+        return;
+    }
+    tal_mutex_lock(pLogManage->mutex);
+    LOG_OUT_NODE_S *output_node;
+    OPERATE_RET ret = __find_out_term_node(name, &output_node);
+    if (ret == OPRT_OK) {
+        tuya_list_del(&(output_node->node));
+        tal_free(output_node->name);
+        tal_free(output_node);
+    }
+    tal_mutex_unlock(pLogManage->mutex);
+    return;
+}
+
+/**
+ * @brief Sets the millisecond information for the log.
+ *
+ * This function sets the millisecond information for the log. If the
+ * `if_ms_level` parameter is set to TRUE, the millisecond information will be
+ * included in the log; otherwise, it will be excluded.
+ *
+ * @param if_ms_level A boolean value indicating whether to include millisecond
+ * information in the log.
+ * @return The result of the operation. Returns OPRT_OK on success, or
+ * OPRT_INVALID_PARM if `pLogManage` is NULL.
+ */
+OPERATE_RET tal_log_set_ms_info(BOOL_T if_ms_level)
+{
+    if (!pLogManage) {
+        return OPRT_INVALID_PARM;
+    }
+    pLogManage->ms_level = if_ms_level;
+
+    return OPRT_OK;
+}
+
+/**
+ * @brief Sets the log level for the TAL system.
+ *
+ * This function sets the log level for the TAL system. The log level determines
+ * the verbosity of the log messages that will be outputted.
+ *
+ * @param level The log level to set.
+ * @return The result of the operation.
+ *     - OPRT_OK: The log level was set successfully.
+ *     - OPRT_INVALID_PARM: The provided log level is invalid.
+ */
+OPERATE_RET tal_log_set_level(const TAL_LOG_LEVEL_E level)
+{
+    if (!pLogManage) {
+        return OPRT_INVALID_PARM;
+    }
+
+    if (level < LOG_LEVEL_MIN || level > LOG_LEVEL_MAX) {
+        return OPRT_INVALID_PARM;
+    }
+
+    pLogManage->curLogLevel = level;
+
+    return OPRT_OK;
+}
+
+/**
+ * @brief Get the current log level.
+ *
+ * This function retrieves the current log level from the log manager.
+ *
+ * @param[out] level Pointer to a TAL_LOG_LEVEL_E variable to store the log
+ * level.
+ * @return OPERATE_RET Returns OPRT_OK on success, or OPRT_INVALID_PARM if
+ * pLogManage is NULL.
+ */
+OPERATE_RET tal_log_get_level(TAL_LOG_LEVEL_E *level)
+{
+    if (!pLogManage) {
+        return OPRT_INVALID_PARM;
+    }
+    *level = pLogManage->curLogLevel;
+
+    return OPRT_OK;
+}
+
+/**
+ * @brief Prints a log message with the specified log level, file name, line
+ * number, and format string.
+ *
+ * This function is used to print log messages with different log levels. It
+ * takes the log level, file name, line number, format string, and a variable
+ * argument list as parameters. The log level determines the severity of the log
+ * message. The file name and line number indicate the location where the log
+ * message is printed. The format string specifies the format of the log
+ * message, and the variable argument list contains the values to be formatted
+ * and printed.
+ *
+ * @param logLevel The log level of the message.
+ * @param pFile The name of the source file where the log message is printed.
+ * @param line The line number in the source file where the log message is
+ * printed.
+ * @param pFmt The format string for the log message.
+ * @param ap The variable argument list for the format string.
+ * @return The result of the log printing operation.
+ *     - OPRT_OK if the log message was printed successfully.
+ *     - OPRT_INVALID_PARM if the log level is invalid or the log manager is not
+ * initialized.
+ *     - OPRT_BASE_LOG_MNG_PRINT_LOG_LEVEL_HIGHER if the log level is higher
+ * than the current log level.
+ *     - OPRT_BASE_LOG_MNG_FORMAT_STRING_FAILED if there was an error formatting
+ * the log message.
+ */
+OPERATE_RET PrintLogV(LOG_LEVEL logLevel, CHAR_T *pFile, uint32_t line, CHAR_T *pFmt, va_list ap)
+{
+    if (!pLogManage) {
+        return OPRT_INVALID_PARM;
+    }
+    if (logLevel < LOG_LEVEL_MIN || logLevel > LOG_LEVEL_MAX) {
+        return OPRT_INVALID_PARM;
+    }
+    LOG_LEVEL tmpLogLevel = pLogManage->curLogLevel;
+    if (logLevel > tmpLogLevel) {
+        return OPRT_BASE_LOG_MNG_PRINT_LOG_LEVEL_HIGHER;
+    }
+    const char *pTmpModuleName = "ty";
+    const char *pTmpFilename = NULL;
+
+    if (NULL == pFile) {
+        pTmpFilename = "Null";
+    } else {
+        int pos = 0;
+        pTmpFilename = pFile;
+        pos = tal_log_strrchr((CHAR_T *)pFile, '/');
+        if (pos < 0) {
+            pos = tal_log_strrchr((CHAR_T *)pFile, '\\');
+            if (pos >= 0) {
+                pTmpFilename = pFile + pos + 1;
+            }
+        } else {
+            pTmpFilename = pFile + pos + 1;
+        }
+    }
+    tal_mutex_lock(pLogManage->mutex);
+    POSIX_TM_S tm;
+    memset(&tm, 0, sizeof(tm));
+
+    int32_t len = 0;
+    int32_t cnt = 0;
+    if (pLogManage->ms_level == FALSE) {
+        tal_time_get_local_time_custom(0, &tm);
+        cnt = snprintf(pLogManage->log_buf, pLogManage->log_buf_len, "[%02d-%02d %02d:%02d:%02d %s %s][%s:%d] ",
+                       tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, pTmpModuleName, sLevelStr[logLevel],
+                       pTmpFilename, line);
+    } else {
+        SYS_TICK_T time_ms = tal_time_get_posix_ms();
+        TIME_T sec = (TIME_T)(time_ms / 1000);
+        uint32_t ms = (uint32_t)(time_ms % 1000);
+        tal_time_get_local_time_custom(sec, &tm);
+        cnt = snprintf(pLogManage->log_buf, pLogManage->log_buf_len, "[%02d-%02d %02d:%02d:%02d:%d %s %s][%s:%d] ",
+                       tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms, pTmpModuleName,
+                       sLevelStr[logLevel], pTmpFilename, line);
+    }
+    if (cnt <= 0) {
+        goto ERR_EXIT;
+    }
+    len = cnt;
+    cnt = vsnprintf(pLogManage->log_buf + len, pLogManage->log_buf_len - len, pFmt, ap);
+    if (cnt <= 0) {
+        goto ERR_EXIT;
+    }
+    len += cnt;
+    if (len > (int32_t)(pLogManage->log_buf_len - 3)) { // 2
+        len = pLogManage->log_buf_len - 3;
+    }
+    pLogManage->log_buf[len] = '\r';
+    pLogManage->log_buf[len + 1] = '\n';
+    pLogManage->log_buf[len + 2] = 0;
+    __output_logManage_buf();
+    tal_mutex_unlock(pLogManage->mutex);
+
+    return OPRT_OK;
+
+ERR_EXIT:
+    tal_mutex_unlock(pLogManage->mutex);
+    return OPRT_BASE_LOG_MNG_FORMAT_STRING_FAILED;
+}
+
+/**
+ * @brief Prints a log message with the specified log level, file, line number,
+ * and format string.
+ *
+ * This function is used to print log messages with different log levels. It
+ * takes the log level, file name, line number, and a format string as input
+ * parameters. It then formats the log message using the provided format string
+ * and any additional arguments, and prints the formatted message to the log
+ * output.
+ *
+ * @param level The log level of the message.
+ * @param file The name of the source file where the log message is being
+ * printed.
+ * @param line The line number in the source file where the log message is being
+ * printed.
+ * @param fmt The format string for the log message.
+ * @param ... Additional arguments to be formatted and included in the log
+ * message.
+ * @return The result of the log printing operation.
+ */
+OPERATE_RET tal_log_print(const TAL_LOG_LEVEL_E level, const CHAR_T *file, const int32_t line, CHAR_T *fmt, ...)
+{
+    OPERATE_RET opRet = 0;
+    va_list ap;
+    va_start(ap, fmt);
+    opRet = PrintLogV(level, (CHAR_T *)file, line, fmt, ap);
+    va_end(ap);
+
+    return opRet;
+}
+
+static OPERATE_RET __PrintLogVRaw(IN const PCHAR_T pFmt, va_list ap)
+{
+    int32_t cnt = 0;
+    cnt = vsnprintf(pLogManage->log_buf, pLogManage->log_buf_len, pFmt, ap);
+    if (cnt <= 0) {
+        return OPRT_BASE_LOG_MNG_FORMAT_STRING_FAILED;
+    }
+    __output_logManage_buf();
+
+    return OPRT_OK;
+}
+
+/**
+ * @brief Prints a log message with a variable number of arguments.
+ *
+ * This function prints a log message using the provided format string and
+ * variable number of arguments.
+ *
+ * @param pFmt The format string for the log message.
+ * @param ... The variable number of arguments to be formatted and printed.
+ * @return The result of the log printing operation.
+ *         - OPRT_INVALID_PARM if pLogManage is NULL.
+ *         - The result of the __PrintLogVRaw function otherwise.
+ */
+OPERATE_RET tal_log_print_raw(const PCHAR_T pFmt, ...)
+{
+    if (NULL == pLogManage) {
+        return OPRT_INVALID_PARM;
+    }
+
+    OPERATE_RET opRet = 0;
+    va_list ap;
+
+    tal_mutex_lock(pLogManage->mutex);
+    va_start(ap, pFmt);
+    opRet = __PrintLogVRaw(pFmt, ap);
+    va_end(ap);
+    tal_mutex_unlock(pLogManage->mutex);
+
+    return opRet;
+}
+
+/**
+ * @brief Releases the memory allocated for the log management system.
+ *
+ * This function frees the memory allocated for the log management system and
+ * all associated log nodes. It iterates through the log list and frees the
+ * memory for each log node. After releasing the memory, it sets the pointer to
+ * the log management system to NULL.
+ */
+void tal_log_release(void)
+{
+    if (!pLogManage) {
+        return;
+    }
+
+    while (!tuya_list_empty(&(pLogManage->log_list))) {
+        LOG_OUT_NODE_S *log_out_nd = NULL;
+        log_out_nd = tuya_list_entry(&(pLogManage->log_list.next), LOG_OUT_NODE_S, node);
+        tuya_list_del(&(log_out_nd->node));
+        if (log_out_nd->name) {
+            tal_free(log_out_nd->name);
+        }
+        tal_free(log_out_nd);
+    }
+    tal_free(pLogManage);
+    pLogManage = NULL;
+}
+
+/**
+ * @brief Logs a hexadecimal dump of a buffer.
+ *
+ * This function logs a hexadecimal dump of a buffer with the specified log
+ * level, file, line, title, width, buffer, and size. The log level determines
+ * the severity of the log message. The file and line parameters indicate the
+ * source file and line number where the log message is generated. The title
+ * parameter is a string that provides additional information about the log
+ * message. The width parameter specifies the number of bytes to display per
+ * line in the hexadecimal dump. The buf parameter is a pointer to the buffer to
+ * be dumped. The size parameter specifies the size of the buffer in bytes.
+ *
+ * @param level The log level of the message.
+ * @param file The source file where the log message is generated.
+ * @param line The line number in the source file where the log message is
+ * generated.
+ * @param title Additional information about the log message.
+ * @param width The number of bytes to display per line in the hexadecimal dump.
+ * @param buf The buffer to be dumped.
+ * @param size The size of the buffer in bytes.
+ *
+ * @return None.
+ */
+void tal_log_hex_dump(const TAL_LOG_LEVEL_E level, const CHAR_T *file, const int32_t line, const CHAR_T *title,
+                      uint8_t width, uint8_t *buf, UINT16_T size)
+{
+    int i = 0;
+
+    if (!pLogManage || level > pLogManage->curLogLevel) {
+        return;
+    }
+
+    if (width >= 64) {
+        width = 64;
+    }
+    tal_log_print(level, file, line, "%s %d <%p>", title, size, buf);
+    for (i = 0; i < size; i++) {
+        tal_log_print_raw("%02x ", buf[i] & 0xFF);
+        if ((i + 1) % width == 0) {
+            tal_log_print_raw("\r\n");
+        }
+    }
+    tal_log_print_raw("\r\n\r\n");
+}

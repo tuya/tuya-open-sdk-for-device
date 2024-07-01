@@ -1,0 +1,239 @@
+menu "configure enable/disable liblwip"
+	menuconfig ENABLE_LIBLWIP
+		bool "ENABLE_LIBLWIP: enable liblwip instead of lwip in board"
+		default n
+		if (ENABLE_LIBLWIP)
+			config LWIP_TCP_HEAD_ALLOC_REUSE_POLL
+				int "LWIP_TCP_HEAD_ALLOC_REUSE_POLL: If PBUF_RAM space is not available for TCP header allocation, use PBUF_POOL space. Enabling this macro may cause packet loss (generally, the driver adaptation layer uses POOL)"
+				range 0 1
+				default 0
+				
+			config LWIP_TUYA_APP_TCPIP_THREAD_SWITCH
+				int "LWIP_TUYA_APP_TCPIP_THREAD_SWITCH: Priority function of the tuya thread, the current application's priority is raised to the highest after sending a message, and then restored to normal after receiving a message, to speed up application performance."
+				range 0 1
+				default 1
+		
+			config IPEF_TEST_OPTIMIZE
+				int "IPEF_TEST_OPTIMIZE: Enable IPEF test optimization"
+				range 0 1
+				default 0
+				
+			config MEM_SIZE
+				int "MEM_SIZE: Packet buffer size, if a large amount of data is sent and the sending speed is high, this value needs to be modified, IPEF_TEST_OPTIMIZE=0, default value 48*512, IPEF_TEST_OPTIMIZE=1, recommended 64*512"
+				range 0 65535
+				default 24576		
+			
+			config MEMP_NUM_UDP_PCB
+				int "MEMP_NUM_UDP_PCB: Number of UDPs in LWIP kernel"
+				range 0 100
+				default 6
+				
+			config MEMP_NUM_TCP_PCB
+				int "MEMP_NUM_TCP_PCB: Number of active TCPs with completed connections in LWIP kernel"
+				range 0 100
+				default 10
+				
+			config MEMP_NUM_TCP_PCB_LISTEN
+				int "MEMP_NUM_TCP_PCB_LISTEN: Number of TCPs in listen state in LWIP kernel"
+				range 0 100
+				default 5
+				
+			config MEMP_NUM_NETCONN
+				int "MEMP_NUM_NETCONN: Number of NETCONNs, located one layer below socket"
+				range 0 100
+				default 21
+
+			config MEMP_NUM_PBUF
+				int "MEMP_NUM_PBUF: Number of PBUF data caches, shared by all packets, if a large amount of data is sent and the sending speed is high, this value needs to be modified"
+				range 0 1024
+				default 100
+				
+			config MEMP_NUM_TCP_SEG
+				int "MEMP_NUM_TCP_SEG: Number of TCPs allocated in the TCP send buffer queue"
+				range 0 512
+				default 20
+
+			config IP_REASS_MAX_PBUFS
+				int "IP_REASS_MAX_PBUFS: Number of caches for packet fragmentation reassembly"
+				range 0 512
+				default 10
+				
+			config PBUF_POOL_SIZE
+				int "PBUF_POOL_SIZE: Number of POOL resources, generally used in the lower driver layer for packet reception, default value 2*IP_REASS_MAX_PBUFS"
+				range 0 512
+				default 20
+
+			config PBUF_LINK_ENCAPSULATION_HLEN
+				int "PBUF_LINK_ENCAPSULATION_HLEN: Size of a single POOL pool"
+				range 0 1024
+				default 400
+
+			config TCP_SND_BUF
+				int "TCP_SND_BUF: TCP send buffer, in bytes, default value 5*(1500-40)"
+				range 0 32768
+				default 7300
+
+			config TCP_SND_QUEUELEN
+				int "TCP_SND_QUEUELEN: TCP send buffer, in units, default value 4*TCP_SND_BUF/TCP_MSS"
+				range 0 512
+				default 20
+
+			config MEMP_NUM_NETBUF
+				int "MEMP_NUM_NETBUF: Number of caches for NETCON layer to receive packets (used in UDP, if the remote sends faster than the local reception, a small cache will drop)"
+				range 0 512
+				default 8
+				
+			# System scheduling resources
+			config TCPIP_MBOX_SIZE
+				int "TCPIP_MBOX_SIZE: Depth of TCPIP mailbox"
+				range 0 100
+				default 6
+				
+			config DEFAULT_UDP_RECVMBOX_SIZE
+				int "DEFAULT_UDP_RECVMBOX_SIZE: Depth of UDP receive mailbox"
+				range 0 100
+				default 6
+				
+			config DEFAULT_TCP_RECVMBOX_SIZE
+				int "DEFAULT_TCP_RECVMBOX_SIZE: Depth of TCP receive mailbox"
+				range 0 100
+				default 6
+				
+			config DEFAULT_RAW_RECVMBOX_SIZE
+				int "DEFAULT_RAW_RECVMBOX_SIZE: Depth of RAW receive mailbox"
+				range 0 100
+				default 6
+				
+			config DEFAULT_ACCEPTMBOX_SIZE
+				int "DEFAULT_ACCEPTMBOX_SIZE: Depth of TCP accept mailbox"
+				range 0 100
+				default 6
+				
+			config MEMP_NUM_SYS_TIMEOUT
+				int "MEMP_NUM_SYS_TIMEOUT: Number of LWIP timer timeout resources"
+				range 0 100
+				default 10
+				
+			# Tuya fixed business--no need to modify		
+			config LWIP_SO_SNDTIMEO
+				int "LWIP_SO_SNDTIMEO: Whether to support send timeout"
+				range 0 1
+				default 1
+
+			config LWIP_SO_RCVTIMEO
+				int "LWIP_SO_RCVTIMEO: Whether to support receive timeout"
+				range 0 1
+				default 1	
+			config LWIP_SO_LINGER
+				int "LWIP_SO_LINGER: Immediately send RST to disconnect"
+				range 0 1
+				default 1	
+				
+			config LWIP_TUYA_SO_LINGER_RST
+				int "LWIP_TUYA_SO_LINGER_RST: Whether to not wait for unsend and unacked, and directly send RST to close the connection, needs to be used in conjunction with the socket so_linger mechanism"
+				range 0 1
+				default 1	
+				
+			config LWIP_PROVIDE_ERRNO
+				int "LWIP_PROVIDE_ERRNO: Use LWIP provided errno values"
+				range 0 1
+				default 1
+
+			config LWIP_IPV6
+				int "LWIP_IPV6: Whether to support ipv6"
+				range 0 1
+				default 0
+
+			config LWIP_NETIF_HOSTNAME
+				int "LWIP_NETIF_HOSTNAME: Whether to support using DHCP_OPTION_HOSTNAME"
+				range 0 1
+				default 0
+
+			config LWIP_TCPIP_CORE_LOCKING
+				int "LWIP_TCPIP_CORE_LOCKING: Whether to lock the TCPIP thread"
+				range 0 1
+				default 0	
+				
+			config LWIP_EAPOL_SUPPORT
+				int "LWIP_EAPOL_SUPPORT: Whether to support EAPOL"
+				range 0 1
+				default 1	
+				
+			# Debugging
+			
+			# Original factory adaptation
+			config TCPIP_THREAD_STACKSIZE
+				int "TCPIP_THREAD_STACKSIZE: Size of the TCPIP thread"
+				range 0 10240
+				default 4096
+
+			config TCPIP_THREAD_PRIO
+				int "TCPIP_THREAD_PRIO: Priority of the TCPIP thread, the '11' here comes from freertos's configMAX_PRIORITIES, since the SDK cannot include the operating system, this is represented by a numerical value here"
+				range 0 11
+				default 9
+
+			config DHCPC_THREAD_STACKSIZE
+				int "DHCPC_THREAD_STACKSIZE: Size of the DHCP CLIENT thread"
+				range 0 10240
+				default 2048
+
+			config DHCPC_THREAD_PRIO
+				int "DHCPC_THREAD_PRIO: Priority of the DHCP CLIENT thread, the '11' here comes from freertos's configMAX_PRIORITIES, since the SDK cannot include the operating system, this is represented by a numerical value here"
+				range 0 11
+				default 5
+
+			config LWIP_TX_PBUF_ZERO_COPY
+				int "LWIP_TX_PBUF_ZERO_COPY: Enable tx pbuf zero copy"
+				range 0 1
+				default 1
+
+			config CONFIG_TUYA_SOCK_SHIM
+				int "CONFIG_TUYA_SOCK_SHIM: Enable socket shim"
+				range 0 1
+				default 1
+
+			config SOCK_API_SYNC
+				int "SOCK_API_SYNC: Enable socket api sync"
+				range 0 1
+				default 0
+
+			config LWIP_DHCPC_STATIC_IPADDR_ENABLE
+				int "LWIP_DHCPC_STATIC_IPADDR_ENABLE: Disable static dhcp address"
+				range 0 1
+				default 0
+
+			config LWIP_NETCONN_SEM_PER_THREAD
+				int "LWIP_NETCONN_SEM_PER_THREAD: Whether to support SEM_PER_THREAD"
+				range 0 1
+				default 1	
+
+			config ETHARP_SUPPORT_STATIC_ENTRIES 
+				int "ETHARP_SUPPORT_STATIC_ENTRIES: Whether to support static ARP table"
+				range 0 1
+				default 0	
+
+			config LWIP_NETIF_STATUS_CALLBACK 
+				int "LWIP_NETIF_STATUS_CALLBACK: Whether to support callback when netif status changes"
+				range 0 1
+				default 0	
+			config LWIP_COMPAT_MUTEX_ALLOWED
+				int "LWIP_COMPAT_MUTEX_ALLOWED: Whether to support SEM_PER_THREAD"
+				range 0 1
+				default 1			
+			config LWIP_TIMEVAL_PRIVATE
+				int "LWIP_TIMEVAL_PRIVATE: Whether to use a private timeval structure definition, if not used, then need to #include <sys/time.h>"
+				range 0 1
+				default 1			
+
+			config IN_ADDR_T_DEFINED
+				bool "IN_ADDR_T_DEFINED: Whether in_addr_t is already defined"
+				default n
+				config LWIP_NETCONN_FULLDUPLEX
+					int "LWIP_NETCONN_FULLDUPLEX: Network connection full duplex transmission and reception, supports multithreaded transmission and reception"
+					range 0 1
+					default 1	
+				config MEM_LIBC_MALLOC
+					bool "LWIP use LIBC MALLOC MEM"
+					default n
+		endif    
+endmenu
