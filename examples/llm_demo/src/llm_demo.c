@@ -1,22 +1,48 @@
 /**
- * @file llm_demo.c
- * @brief 
+ * @file LLM_DEMO.C
+ * @brief This file contains the implementation of a lightweight logging
+ * mechanism (LLM) for managing and processing conversation histories. It
+ * includes functionalities for adding conversations to history, retrieving
+ * conversation history, sending HTTP requests to AI models, and setting the
+ * current AI model type.
+ *
+ * The LLM system is designed to interface with different AI models and manage
+ * conversation histories efficiently. It provides a mechanism to log
+ * conversations, manage them in a list, and use them in HTTP requests to AI
+ * models for generating responses. The system supports different models by
+ * configuring model-specific parameters and handling their responses
+ * accordingly.
+ *
+ * Key functionalities include:
+ * - Logging output through a user-defined callback.
+ * - Adding conversations to a history list.
+ * - Retrieving and managing conversation history.
+ * - Sending HTTP requests to AI models based on the current configuration.
+ * - Setting and resetting the current AI model type.
+ *
+ * This implementation demonstrates the use of various C standard library
+ * functions, Tuya SDK functions, and cJSON for JSON parsing and formatting. It
+ * showcases a practical application of linked lists, dynamic memory management,
+ * and HTTP client interactions in embedded systems programming.
+ *
+ * @copyright Copyright (c) 2021-2024 Tuya Inc. All Rights Reserved.
+ *
  */
-#include <stdlib.h>
-#include <stdio.h>
+
 #include "llm_demo.h"
 #include "audio_asr.h"
 #include "audio_tts.h"
-#include "llm_config.h"
 #include "cJSON.h"
-#include "tal_api.h"
 #include "http_client_interface.h"
 #include "iotdns.h"
-#include "tuya_error_code.h"
-#include "tkl_output.h"
-#include "tuya_register_center.h"
+#include "llm_config.h"
 #include "netmgr.h"
+#include "tal_api.h"
 #include "tkl_output.h"
+#include "tuya_error_code.h"
+#include "tuya_register_center.h"
+#include <stdio.h>
+#include <stdlib.h>
 #if defined(ENABLE_WIFI) && (ENABLE_WIFI == 1)
 #include "netconn_wifi.h"
 #endif
@@ -29,25 +55,25 @@
 
 extern void tuya_app_cli_init(void);
 #define MAX_SIZE_OF_DEBUG_BUF 4096
-STATIC CHAR_T s_output_buf[MAX_SIZE_OF_DEBUG_BUF] = {0};
+static CHAR_T s_output_buf[MAX_SIZE_OF_DEBUG_BUF] = {0};
 
 /**
  * @brief large language model configure
- * 
+ *
  */
-STATIC LLM_t *sg_llm = NULL;
-STATIC LLM_config_t sg_config [] = {
+static LLM_t *sg_llm = NULL;
+static LLM_config_t sg_config[] = {
     {LLM_ALIQWEN_TOKEN, LLM_HTTP_URL_ALIQWEN, LLM_HTTP_PATH_ALIQWEN, LLM_HTTP_HEADER_ALIQWEN},
     {LLM_KIMI_TOKEN, LLM_HTTP_URL_KIMI, LLM_HTTP_PATH_KIMI, LLM_HTTP_HEADER_KIMI},
 };
 
 /**
  * @brief user defined log output api, in this demo, it will use uart0 as log-tx
- * 
+ *
  * @param str log string
- * @return VOID 
+ * @return void
  */
-VOID user_log_output_cb(CONST CHAR_T *format, ...)
+void user_log_output_cb(const CHAR_T *format, ...)
 {
     if (format == NULL) {
         return;
@@ -55,19 +81,19 @@ VOID user_log_output_cb(CONST CHAR_T *format, ...)
 
     va_list ap;
     va_start(ap, format);
-    vsnprintf(s_output_buf, MAX_SIZE_OF_DEBUG_BUF,format,ap);
+    vsnprintf(s_output_buf, MAX_SIZE_OF_DEBUG_BUF, format, ap);
     va_end(ap);
 
-    tal_uart_write(TUYA_UART_NUM_0, (CONST UINT8_T *)s_output_buf, strlen(s_output_buf));
+    tal_uart_write(TUYA_UART_NUM_0, (const uint8_t *)s_output_buf, strlen(s_output_buf));
 }
 
 /**
  * @brief save the conversation as history
- * 
- * @param conversation 
- * @return INT_T 
+ *
+ * @param conversation
+ * @return int32_t
  */
-INT_T __LLM_add_conversation(LLM_conversation_t *conversation)
+int32_t __LLM_add_conversation(LLM_conversation_t *conversation)
 {
     PR_DEBUG("save conversation %p, q: %p, a%p", conversation, conversation->q, conversation->a);
     sg_llm->his_cnt += conversation->q_size + conversation->a_size;
@@ -79,8 +105,8 @@ INT_T __LLM_add_conversation(LLM_conversation_t *conversation)
 
 /**
  * @brief get the conversatoion history
- * 
- * @return CHAR_T* 
+ *
+ * @return CHAR_T*
  */
 CHAR_T *__get_LLM_conversation()
 {
@@ -88,16 +114,18 @@ CHAR_T *__get_LLM_conversation()
         struct tuya_list_head *p = NULL;
         struct tuya_list_head *n = NULL;
         LLM_conversation_t *first_entry = NULL;
-        
-        tuya_list_for_each_safe(p, n, &sg_llm->history) {
+
+        tuya_list_for_each_safe(p, n, &sg_llm->history)
+        {
             first_entry = tuya_list_entry(p, LLM_conversation_t, node);
             if (first_entry) {
                 tuya_list_del(&first_entry->node);
-                PR_DEBUG("token is %d, drop \"%s\", length %d", sg_llm->his_cnt, first_entry->a, first_entry->q_size + first_entry->a_size);
-                sg_llm->his_cnt -= (first_entry->q_size + first_entry->a_size);    
-                if (first_entry->a)     
+                PR_DEBUG("token is %d, drop \"%s\", length %d", sg_llm->his_cnt, first_entry->a,
+                         first_entry->q_size + first_entry->a_size);
+                sg_llm->his_cnt -= (first_entry->q_size + first_entry->a_size);
+                if (first_entry->a)
                     tal_free(first_entry->a);
-                if (first_entry->q) 
+                if (first_entry->q)
                     tal_free(first_entry->q);
                 tal_free(first_entry);
                 first_entry = NULL;
@@ -110,107 +138,121 @@ CHAR_T *__get_LLM_conversation()
     }
 
     CHAR_T *hist_buffer = NULL;
-    INT_T offset = 0;
+    int32_t offset = 0;
     size_t hist_buffer_length = DEFAULT_MAX_HISTORY_CNT;
     if (sg_llm->his_cnt != 0) {
         hist_buffer = tal_malloc(hist_buffer_length);
         struct tuya_list_head *p = NULL;
         LLM_conversation_t *entry = NULL;
-        tuya_list_for_each(p, &sg_llm->history) {
+        tuya_list_for_each(p, &sg_llm->history)
+        {
             entry = tuya_list_entry(p, LLM_conversation_t, node);
             if (offset != 0)
-                offset += sprintf(hist_buffer+offset, ",");
+                offset += sprintf(hist_buffer + offset, ",");
             if (sg_llm->current == MODEL_ALI_QWEN) {
-                offset += sprintf(hist_buffer+offset, "{\"role\":\"user\", \"content\":\"%s\"},{\"role\":\"assistant\", \"content\":\"%s\"}", entry->q, entry->a);
+                offset += sprintf(hist_buffer + offset,
+                                  "{\"role\":\"user\", \"content\":\"%s\"},{\"role\":\"assistant\", "
+                                  "\"content\":\"%s\"}",
+                                  entry->q, entry->a);
             } else if (sg_llm->current == MODEL_MOONSHOT_AI) {
-                offset += sprintf(hist_buffer+offset, "{\"role\":\"user\", \"content\":\"%s\"},{\"role\":\"system\", \"content\":\"%s\"}", entry->q, entry->a);
+                offset += sprintf(hist_buffer + offset,
+                                  "{\"role\":\"user\", \"content\":\"%s\"},{\"role\":\"system\", "
+                                  "\"content\":\"%s\"}",
+                                  entry->q, entry->a);
             }
-            if (offset >= hist_buffer_length) {                        
+            if (offset >= hist_buffer_length) {
                 PR_ERR("history buffer malloc fail");
                 tal_free(hist_buffer);
                 return NULL;
             }
         }
-    }    
+    }
 
     return hist_buffer;
 }
 
 /**
  * @brief send a llm http request
- * 
+ *
  * @param q the question
  * @param a the answer
- * @return INT_T OPRT_OK: success; other: fail
+ * @return int32_t OPRT_OK: success; other: fail
  */
-INT_T __LLM_http_request(CHAR_T *q, CHAR_T **a) 
+int32_t __LLM_http_request(CHAR_T *q, CHAR_T **a)
 {
     PR_DEBUG("sg_llm->config[%d].model %s", sg_llm->current, sg_llm->config[sg_llm->current].model);
-    // INT_T offset = 0;
-    INT_T rt = OPRT_OK;
-    cJSON* response = NULL;
-    CHAR_T* result = NULL;
+    // int32_t offset = 0;
+    int32_t rt = OPRT_OK;
+    cJSON *response = NULL;
+    CHAR_T *result = NULL;
     CHAR_T *path_buf = NULL;
-    CHAR_T *body_buf = NULL;    
+    CHAR_T *body_buf = NULL;
     size_t path_buf_length = 128;
 
     /* HTTP Response */
     http_client_response_t http_response = {0};
 
-    /* HTTP path */     
+    /* HTTP path */
     path_buf = tal_malloc(path_buf_length);
     TUYA_CHECK_NULL_GOTO(path_buf, err_exit);
     memset(path_buf, 0, path_buf_length);
-    snprintf(path_buf, 128, "%s", sg_llm->config[sg_llm->current].path);    
+    snprintf(path_buf, 128, "%s", sg_llm->config[sg_llm->current].path);
 
     /* make HTTP body */
     CHAR_T *hist_buffer = __get_LLM_conversation();
-    size_t body_buf_length = DEFAULT_BODY_BUFFER_LEN; 
+    size_t body_buf_length = DEFAULT_BODY_BUFFER_LEN;
     body_buf = tal_malloc(body_buf_length);
     TUYA_CHECK_NULL_GOTO(body_buf, err_exit);
     memset(body_buf, 0, body_buf_length);
     if (sg_llm->current == MODEL_ALI_QWEN) {
         if (hist_buffer) {
-            body_buf_length = sprintf(body_buf, "{\"model\":\"%s\", \"input\":{\"messages\":[%s,{\"role\":\"user\", \"content\":\"%s\"}]}}", sg_llm->config[sg_llm->current].model, hist_buffer, q);
+            body_buf_length = sprintf(body_buf,
+                                      "{\"model\":\"%s\", \"input\":{\"messages\":[%s,{\"role\":\"user\", "
+                                      "\"content\":\"%s\"}]}}",
+                                      sg_llm->config[sg_llm->current].model, hist_buffer, q);
         } else {
-            body_buf_length = sprintf(body_buf, "{\"model\":\"%s\", \"input\":{\"prompt\":\"%s\"}}", sg_llm->config[sg_llm->current].model, q);
+            body_buf_length = sprintf(body_buf, "{\"model\":\"%s\", \"input\":{\"prompt\":\"%s\"}}",
+                                      sg_llm->config[sg_llm->current].model, q);
         }
     } else {
         if (hist_buffer) {
-            body_buf_length = sprintf(body_buf, "{\"model\":\"%s\", \"messages\":[%s, {\"role\":\"user\", \"content\":\"%s\"}], \"temperature\": 0.3}", sg_llm->config[sg_llm->current].model, hist_buffer, q);
+            body_buf_length = sprintf(body_buf,
+                                      "{\"model\":\"%s\", \"messages\":[%s, {\"role\":\"user\", "
+                                      "\"content\":\"%s\"}], \"temperature\": 0.3}",
+                                      sg_llm->config[sg_llm->current].model, hist_buffer, q);
         } else {
-            body_buf_length = sprintf(body_buf, "{\"model\":\"%s\", \"messages\":[{\"role\":\"user\", \"content\":\"%s\"}], \"temperature\": 0.3}", sg_llm->config[sg_llm->current].model, q);
-        }        
+            body_buf_length = sprintf(body_buf,
+                                      "{\"model\":\"%s\", \"messages\":[{\"role\":\"user\", "
+                                      "\"content\":\"%s\"}], \"temperature\": 0.3}",
+                                      sg_llm->config[sg_llm->current].model, q);
+        }
     }
     PR_DEBUG("https body: %s", body_buf);
 
     /* HTTP headers */
-    http_client_header_t headers[] = {  
-        {.key = "Content-Type", .value = "application/json"},
-        {.key = "Authorization", .value = sg_llm->config[sg_llm->current].token}
-    };
-    
+    http_client_header_t headers[] = {{.key = "Content-Type", .value = "application/json"},
+                                      {.key = "Authorization", .value = sg_llm->config[sg_llm->current].token}};
+
     /* HTTPS cert */
     uint16_t cacert_len = 0;
     uint8_t *cacert = NULL;
-    TUYA_CALL_ERR_GOTO(tuya_iotdns_query_domain_certs(sg_llm->config[sg_llm->current].host, &cacert, &cacert_len), err_exit);
+    TUYA_CALL_ERR_GOTO(tuya_iotdns_query_domain_certs(sg_llm->config[sg_llm->current].host, &cacert, &cacert_len),
+                       err_exit);
 
     /* HTTP Request send */
     PR_DEBUG("http request send!");
     http_client_status_t http_status = http_client_request(
-        &(const http_client_request_t){
-            .cacert = cacert,
-            .cacert_len = cacert_len,
-            .host = sg_llm->config[sg_llm->current].host,
-            .port = 443,
-            .method = "POST",
-            .path = path_buf,
-            .headers = headers,
-            .headers_count =  sizeof(headers)/sizeof(http_client_header_t),
-            .body = (uint8_t*)body_buf,
-            .body_length = strlen(body_buf),
-            .timeout_ms = LLM_HTTP_REQUEST_TIMEOUT
-        }, 
+        &(const http_client_request_t){.cacert = cacert,
+                                       .cacert_len = cacert_len,
+                                       .host = sg_llm->config[sg_llm->current].host,
+                                       .port = 443,
+                                       .method = "POST",
+                                       .path = path_buf,
+                                       .headers = headers,
+                                       .headers_count = sizeof(headers) / sizeof(http_client_header_t),
+                                       .body = (uint8_t *)body_buf,
+                                       .body_length = strlen(body_buf),
+                                       .timeout_ms = LLM_HTTP_REQUEST_TIMEOUT},
         &http_response);
 
     if (HTTP_CLIENT_SUCCESS != http_status) {
@@ -219,27 +261,26 @@ INT_T __LLM_http_request(CHAR_T *q, CHAR_T **a)
         goto err_exit;
     }
 
-    response = cJSON_Parse((CHAR_T *)http_response.body);    
+    response = cJSON_Parse((CHAR_T *)http_response.body);
     PR_DEBUG("response: %s", cJSON_PrintUnformatted(response));
     if (response) {
         if (sg_llm->current == MODEL_ALI_QWEN) {
             cJSON *output = cJSON_GetObjectItem(response, "output");
             if (output) {
-                result = (CHAR_T*)tal_malloc(strlen(cJSON_GetObjectItem(output, "text")->valuestring) + 1);
+                result = (CHAR_T *)tal_malloc(strlen(cJSON_GetObjectItem(output, "text")->valuestring) + 1);
                 strcpy(result, cJSON_GetObjectItem(output, "text")->valuestring);
                 *a = result;
-            } 
+            }
         } else if (sg_llm->current == MODEL_MOONSHOT_AI) {
             cJSON *output = cJSON_GetObjectItem(response, "choices");
             if (output) {
                 cJSON *first_item = cJSON_GetArrayItem(output, 0);
                 cJSON *message = cJSON_GetObjectItem(first_item, "message");
-                result = (CHAR_T*)tal_malloc(strlen(cJSON_GetObjectItem(message, "content")->valuestring) + 1);
+                result = (CHAR_T *)tal_malloc(strlen(cJSON_GetObjectItem(message, "content")->valuestring) + 1);
                 strcpy(result, cJSON_GetObjectItem(message, "content")->valuestring);
                 *a = result;
-            }             
+            }
         } else {
-
         }
         cJSON_Delete(response);
     }
@@ -259,15 +300,15 @@ err_exit:
 
 /**
  * @brief set current ai model type
- * 
- * @param type 
- * @return INT_T 
+ *
+ * @param type
+ * @return int32_t
  */
-INT_T LLM_set_model(LLM_type_e type)
+int32_t LLM_set_model(LLM_type_e type)
 {
-    if (NULL == sg_llm) {        
+    if (NULL == sg_llm) {
         PR_DEBUG("init llm");
-        sg_llm = (LLM_t*)tal_malloc(sizeof(LLM_t));
+        sg_llm = (LLM_t *)tal_malloc(sizeof(LLM_t));
         TUYA_CHECK_NULL_RETURN(sg_llm, OPRT_MALLOC_FAILED);
 
         sg_llm->his_cnt = 0;
@@ -275,7 +316,7 @@ INT_T LLM_set_model(LLM_type_e type)
         INIT_LIST_HEAD(&sg_llm->history);
     } else {
         LLM_reset_model();
-    } 
+    }
 
     sg_llm->current = type;
     PR_DEBUG("set llm to %d, host %s path %s", type, sg_llm->config[type].host, sg_llm->config[type].path);
@@ -287,13 +328,13 @@ INT_T LLM_set_model(LLM_type_e type)
 
 /**
  * @brief get current ai model type
- * 
- * @param type 
- * @return INT_T 
+ *
+ * @param type
+ * @return int32_t
  */
-INT_T LLM_get_model(LLM_type_e *type)
+int32_t LLM_get_model(LLM_type_e *type)
 {
-    INT_T rt = OPRT_OK;
+    int32_t rt = OPRT_OK;
 
     if (NULL == sg_llm) {
         TUYA_CALL_ERR_RETURN(LLM_set_model(MODEL_ALI_QWEN));
@@ -304,23 +345,23 @@ INT_T LLM_get_model(LLM_type_e *type)
 }
 
 /**
- * @brief 
- * 
- * @param model_config 
- * @param cur_context 
- * @param his_context 
- * @param result 
- * @return INT_T 
+ * @brief
+ *
+ * @param model_config
+ * @param cur_context
+ * @param his_context
+ * @param result
+ * @return int32_t
  */
-INT_T LLM_conversation(CHAR_T *q, CHAR_T *a)
+int32_t LLM_conversation(CHAR_T *q, CHAR_T *a)
 {
-    INT_T rt = OPRT_OK;
+    int32_t rt = OPRT_OK;
     CHAR_T *response = NULL;
 
     __LLM_http_request(q, &response);
     if (response) {
-        LLM_conversation_t *conversation = (LLM_conversation_t*)tal_malloc(sizeof(LLM_conversation_t));
-        conversation->q = (CHAR_T*)tal_malloc(strlen(q) + 1);
+        LLM_conversation_t *conversation = (LLM_conversation_t *)tal_malloc(sizeof(LLM_conversation_t));
+        conversation->q = (CHAR_T *)tal_malloc(strlen(q) + 1);
         strcpy(conversation->q, q);
         conversation->a = response;
         conversation->q_size = strlen(q) + 1;
@@ -337,17 +378,18 @@ INT_T LLM_conversation(CHAR_T *q, CHAR_T *a)
 }
 
 /**
- * @brief 
- * 
- * @return INT_T 
+ * @brief
+ *
+ * @return int32_t
  */
-INT_T LLM_reset_model()
+int32_t LLM_reset_model()
 {
     struct tuya_list_head *p = NULL;
     struct tuya_list_head *n = NULL;
     LLM_conversation_t *first_entry = NULL;
-    
-    tuya_list_for_each_safe(p, n, &sg_llm->history) {
+
+    tuya_list_for_each_safe(p, n, &sg_llm->history)
+    {
         first_entry = tuya_list_entry(p, LLM_conversation_t, node);
         if (first_entry) {
             tuya_list_del(&first_entry->node);
@@ -359,19 +401,22 @@ INT_T LLM_reset_model()
             tal_free(first_entry);
             first_entry = NULL;
         }
-    }    
-        
+    }
+
     sg_llm->his_cnt = 0;
     PR_NOTICE("history cnt %d", sg_llm->his_cnt);
     return OPRT_OK;
-}   
+}
 
-VOID user_main()
+void user_main()
 {
     //! open iot development kit runtim init
-    cJSON_InitHooks(&(cJSON_Hooks){.malloc_fn = tal_malloc,.free_fn = tal_free});    
-    tal_log_init(TAL_LOG_LEVEL_DEBUG,  1024, (TAL_LOG_OUTPUT_CB)user_log_output_cb);
-    tal_kv_init(&(tal_kv_cfg_t) {.seed = "vmlkasdh93dlvlcy", .key  = "dflfuap134ddlduq",});    
+    cJSON_InitHooks(&(cJSON_Hooks){.malloc_fn = tal_malloc, .free_fn = tal_free});
+    tal_log_init(TAL_LOG_LEVEL_DEBUG, 1024, (TAL_LOG_OUTPUT_CB)user_log_output_cb);
+    tal_kv_init(&(tal_kv_cfg_t){
+        .seed = "vmlkasdh93dlvlcy",
+        .key = "dflfuap134ddlduq",
+    });
     tal_sw_timer_init();
     tal_workq_init();
     tal_cli_init();
@@ -391,47 +436,46 @@ VOID user_main()
 #endif
 #if defined(ENABLE_WIRED) && (ENABLE_WIRED == 1)
     type |= NETCONN_WIRED;
-#endif  
+#endif
     netmgr_init(type);
 
-    while (1)
-    {
+    while (1) {
         tal_system_sleep(5000);
     }
 }
 
 /**
  * @brief main
- * 
- * @param argc 
- * @param argv 
- * @return VOID 
+ *
+ * @param argc
+ * @param argv
+ * @return void
  */
 #if OPERATING_SYSTEM == SYSTEM_LINUX
-VOID main(int argc, char *argv[])
+void main(int argc, char *argv[])
 {
     user_main();
 }
 #else
 
 /* Tuya thread handle */
-STATIC THREAD_HANDLE ty_app_thread = NULL;
+static THREAD_HANDLE ty_app_thread = NULL;
 
 /**
-* @brief  task thread
-*
-* @param[in] arg:Parameters when creating a task
-* @return none
-*/
-STATIC VOID_T tuya_app_thread(VOID_T *arg)
+ * @brief  task thread
+ *
+ * @param[in] arg:Parameters when creating a task
+ * @return none
+ */
+static void tuya_app_thread(void *arg)
 {
     user_main();
-    
+
     tal_thread_delete(ty_app_thread);
     ty_app_thread = NULL;
 }
 
-VOID tuya_app_main(VOID)
+void tuya_app_main(void)
 {
     THREAD_CFG_T thrd_param = {4096, 4, "tuya_app_main"};
     tal_thread_create_and_start(&ty_app_thread, NULL, NULL, tuya_app_thread, NULL, &thrd_param);

@@ -1,21 +1,21 @@
 /**
  * @file switch_demo.c
- * 
- * @brief a simple switch demo show how to use tuya-open-sdk-for-device to develop a simple switch. 
- *          1, download, compile, run in ubuntu according the README.md
- *          2, binding the device use tuya APP accoring scan QRCode
- *          3, on/off the switch in tuya APP
- *          4, "switch on/off" use cli
+ *
+ * @brief a simple switch demo show how to use tuya-open-sdk-for-device to
+ * develop a simple switch. 1, download, compile, run in ubuntu according the
+ * README.md 2, binding the device use tuya APP accoring scan QRCode 3, on/off
+ * the switch in tuya APP 4, "switch on/off" use cli
+ * @copyright Copyright (c) 2021-2024 Tuya Inc. All Rights Reserved.
  */
 
-#include <assert.h>
 #include "cJSON.h"
+#include "netmgr.h"
 #include "tal_api.h"
+#include "tkl_output.h"
 #include "tuya_config.h"
 #include "tuya_iot.h"
 #include "tuya_iot_dp.h"
-#include "netmgr.h"
-#include "tkl_output.h"
+#include <assert.h>
 #if defined(ENABLE_WIFI) && (ENABLE_WIFI == 1)
 #include "netconn_wifi.h"
 #endif
@@ -27,7 +27,7 @@
 #endif
 
 /* for string to QRCode translate and print */
-extern void example_qrcode_string(const char* string, void (*fputs)(const char *str), int invert);
+extern void example_qrcode_string(const char *string, void (*fputs)(const char *str), int invert);
 
 /* for cli command register */
 extern void tuya_app_cli_init(void);
@@ -37,23 +37,24 @@ tuya_iot_client_t client;
 
 /**
  * @brief user defined log output api, in this demo, it will use uart0 as log-tx
- * 
+ *
  * @param str log string
- * @return VOID 
+ * @return void
  */
-VOID user_log_output_cb(CONST CHAR_T *str)
+void user_log_output_cb(const CHAR_T *str)
 {
-    tal_uart_write(TUYA_UART_NUM_0, (CONST UINT8_T *)str, strlen(str));
+    tkl_log_output(str);
 }
 
 /**
- * @brief user defined upgrade notify callback, it will notify device a OTA request received
- * 
+ * @brief user defined upgrade notify callback, it will notify device a OTA
+ * request received
+ *
  * @param client device info
  * @param upgrade the upgrade request info
- * @return VOID 
+ * @return void
  */
-VOID user_upgrade_notify_on(tuya_iot_client_t* client, cJSON* upgrade)
+void user_upgrade_notify_on(tuya_iot_client_t *client, cJSON *upgrade)
 {
     PR_INFO("----- Upgrade information -----");
     PR_INFO("OTA Channel: %d", cJSON_GetObjectItem(upgrade, "type")->valueint);
@@ -67,18 +68,18 @@ VOID user_upgrade_notify_on(tuya_iot_client_t* client, cJSON* upgrade)
 
 /**
  * @brief user defined event handler
- * 
+ *
  * @param client device info
  * @param event the event info
- * @return VOID 
+ * @return void
  */
-VOID user_event_handler_on(tuya_iot_client_t* client, tuya_event_msg_t* event)
+void user_event_handler_on(tuya_iot_client_t *client, tuya_event_msg_t *event)
 {
     PR_DEBUG("Tuya Event ID:%d(%s)", event->id, EVENT_ID2STR(event->id));
+    PR_INFO("Device Free heap %d", tal_system_get_free_heap_size());
     switch (event->id) {
     case TUYA_EVENT_BIND_START:
         PR_INFO("Device Bind Start!");
-        PR_INFO("Device Free heap %d", tal_system_get_free_heap_size());
         break;
 
     /* Print the QRCode for Tuya APP bind */
@@ -86,18 +87,16 @@ VOID user_event_handler_on(tuya_iot_client_t* client, tuya_event_msg_t* event)
         char buffer[255];
         sprintf(buffer, "https://smartapp.tuya.com/s/p?p=%s&uuid=%s&v=2.0", TUYA_PRODUCT_KEY, TUYA_DEVICE_UUID);
         example_qrcode_string(buffer, user_log_output_cb, 0);
-        } break;
+    } break;
 
     /* MQTT with tuya cloud is connected, device online */
     case TUYA_EVENT_MQTT_CONNECTED:
         PR_INFO("Device MQTT Connected!");
-        PR_INFO("Device Free heap %d", tal_system_get_free_heap_size());
         break;
 
     /* RECV upgrade request */
     case TUYA_EVENT_UPGRADE_NOTIFY:
         user_upgrade_notify_on(client, event->value.asJSON);
-        PR_INFO("Device Free heap %d", tal_system_get_free_heap_size());        
         break;
 
     /* Sync time with tuya Cloud */
@@ -107,7 +106,7 @@ VOID user_event_handler_on(tuya_iot_client_t* client, tuya_event_msg_t* event)
         break;
     case TUYA_EVENT_RESET:
         PR_INFO("Device Reset:%d", event->value.asInteger);
-        break;        
+        break;
 
     /* RECV OBJ DP */
     case TUYA_EVENT_DP_RECEIVE_OBJ: {
@@ -117,18 +116,36 @@ VOID user_event_handler_on(tuya_iot_client_t* client, tuya_event_msg_t* event)
             PR_DEBUG("devid.%s", dpobj->devid);
         }
 
-        UINT_T index = 0;
-        for(index = 0; index < dpobj->dpscnt; index++) {
+        uint32_t index = 0;
+        for (index = 0; index < dpobj->dpscnt; index++) {
             dp_obj_t *dp = dpobj->dps + index;
             PR_DEBUG("idx:%d dpid:%d type:%d ts:%u", index, dp->id, dp->type, dp->time_stamp);
             switch (dp->type) {
-            case PROP_BOOL:     { PR_DEBUG("bool value:%d", dp->value.dp_bool); break;}
-            case PROP_VALUE:    { PR_DEBUG("INT value:%d", dp->value.dp_value); break;}
-            case PROP_STR:      { PR_DEBUG("str value:%s", dp->value.dp_str); break;}
-            case PROP_ENUM:     { PR_DEBUG("enum value:%u", dp->value.dp_enum); break;}
-            case PROP_BITMAP:   { PR_DEBUG("bits value:0x%X", dp->value.dp_bitmap); break;}
-            default:            { PR_ERR("idx:%d dpid:%d type:%d ts:%u is invalid", index, dp->id, dp->type, dp->time_stamp); break;}
-            }// end of switch
+            case PROP_BOOL: {
+                PR_DEBUG("bool value:%d", dp->value.dp_bool);
+                break;
+            }
+            case PROP_VALUE: {
+                PR_DEBUG("INT value:%d", dp->value.dp_value);
+                break;
+            }
+            case PROP_STR: {
+                PR_DEBUG("str value:%s", dp->value.dp_str);
+                break;
+            }
+            case PROP_ENUM: {
+                PR_DEBUG("enum value:%u", dp->value.dp_enum);
+                break;
+            }
+            case PROP_BITMAP: {
+                PR_DEBUG("bits value:0x%X", dp->value.dp_bitmap);
+                break;
+            }
+            default: {
+                PR_ERR("idx:%d dpid:%d type:%d ts:%u is invalid", index, dp->id, dp->type, dp->time_stamp);
+                break;
+            }
+            } // end of switch
         }
 
         tuya_iot_dp_obj_report(client, dpobj->devid, dpobj->dps, dpobj->dpscnt, 0);
@@ -143,18 +160,18 @@ VOID user_event_handler_on(tuya_iot_client_t* client, tuya_event_msg_t* event)
             PR_DEBUG("devid.%s", dpraw->devid);
         }
 
-        UINT_T index = 0;
+        uint32_t index = 0;
         dp_raw_t *dp = &dpraw->dp;
         PR_DEBUG("dpid:%d type:RAW len:%d data:", dp->id, dp->len);
         for (index = 0; index < dp->len; index++) {
             PR_DEBUG_RAW("%02x", dp->data[index]);
-        }  
+        }
 
         tuya_iot_dp_raw_report(client, dpraw->devid, &dpraw->dp, 3);
 
     } break;
 
-    /* TBD.. add other event if necessary */
+        /* TBD.. add other event if necessary */
 
     default:
         break;
@@ -162,49 +179,50 @@ VOID user_event_handler_on(tuya_iot_client_t* client, tuya_event_msg_t* event)
 }
 
 /**
- * @brief user defined network check callback, it will check the network every 1sec, 
- *        in this demo it alwasy return ture due to it's a wired demo
- * 
- * @return true 
- * @return false 
+ * @brief user defined network check callback, it will check the network every
+ * 1sec, in this demo it alwasy return ture due to it's a wired demo
+ *
+ * @return true
+ * @return false
  */
-bool user_network_check(VOID)
+bool user_network_check(void)
 {
     netmgr_status_e status = NETMGR_LINK_DOWN;
     netmgr_conn_get(NETCONN_AUTO, NETCONN_CMD_STATUS, &status);
-    return status==NETMGR_LINK_DOWN?false:true;
+    return status == NETMGR_LINK_DOWN ? false : true;
 }
 
-
-VOID user_main()
+void user_main()
 {
     int ret = OPRT_OK;
 
     //! open iot development kit runtim init
-    cJSON_InitHooks(&(cJSON_Hooks){.malloc_fn = tal_malloc,.free_fn = tal_free});    
-    tal_log_init(TAL_LOG_LEVEL_DEBUG,  1024, (TAL_LOG_OUTPUT_CB)tkl_log_output);
-    tal_kv_init(&(tal_kv_cfg_t) {.seed = "vmlkasdh93dlvlcy", .key  = "dflfuap134ddlduq",});    
+    cJSON_InitHooks(&(cJSON_Hooks){.malloc_fn = tal_malloc, .free_fn = tal_free});
+    tal_log_init(TAL_LOG_LEVEL_DEBUG, 1024, (TAL_LOG_OUTPUT_CB)tkl_log_output);
+    tal_kv_init(&(tal_kv_cfg_t){
+        .seed = "vmlkasdh93dlvlcy",
+        .key = "dflfuap134ddlduq",
+    });
     tal_sw_timer_init();
     tal_workq_init();
     tal_cli_init();
     tuya_app_cli_init();
 
     /* Initialize Tuya device configuration */
-    ret = tuya_iot_init(&client, &(const tuya_iot_config_t) {
-        .software_ver      = EXAMPLE_VER,
-        .productkey        = TUYA_PRODUCT_KEY,
-        .uuid              = TUYA_DEVICE_UUID,
-        .authkey           = TUYA_DEVICE_AUTHKEY,
-        .event_handler     = user_event_handler_on,
-        .network_check     = user_network_check,
-    });
+    ret = tuya_iot_init(&client, &(const tuya_iot_config_t){
+                                     .software_ver = EXAMPLE_VER,
+                                     .productkey = TUYA_PRODUCT_KEY,
+                                     .uuid = TUYA_DEVICE_UUID,
+                                     .authkey = TUYA_DEVICE_AUTHKEY,
+                                     .event_handler = user_event_handler_on,
+                                     .network_check = user_network_check,
+                                 });
     assert(ret == OPRT_OK);
 
     // 初始化LWIP
 #if defined(ENABLE_LIBLWIP) && (ENABLE_LIBLWIP == 1)
     TUYA_LwIP_Init();
 #endif
-
     // network init
     netmgr_type_e type = 0;
 #if defined(ENABLE_WIFI) && (ENABLE_WIFI == 1)
@@ -212,19 +230,12 @@ VOID user_main()
 #endif
 #if defined(ENABLE_WIRED) && (ENABLE_WIRED == 1)
     type |= NETCONN_WIRED;
-#endif  
+#endif
     netmgr_init(type);
 #if defined(ENABLE_WIFI) && (ENABLE_WIFI == 1)
-    netmgr_conn_set(NETCONN_WIFI, 
-                    NETCONN_CMD_NETCFG, 
-                    &(netconn_wifi_netcfg_t) {
-                        .netcfg_mode         = NETCFG_TUYA_BLE | NETCFG_TUYA_WIFI_AP,
-                        .netcfg_args.uuid    = TUYA_DEVICE_UUID,
-                        .netcfg_args.pincode = NULL});
+    netmgr_conn_set(NETCONN_WIFI, NETCONN_CMD_NETCFG, &(netcfg_args_t){.type = NETCFG_TUYA_BLE | NETCFG_TUYA_WIFI_AP});
 #endif
-
     PR_DEBUG("tuya_iot_init success");
-    
     /* Start tuya iot task */
     tuya_iot_start(&client);
 
@@ -236,36 +247,36 @@ VOID user_main()
 
 /**
  * @brief main
- * 
- * @param argc 
- * @param argv 
- * @return VOID 
+ *
+ * @param argc
+ * @param argv
+ * @return void
  */
 #if OPERATING_SYSTEM == SYSTEM_LINUX
-VOID main(int argc, char *argv[])
+void main(int argc, char *argv[])
 {
     user_main();
 }
 #else
 
 /* Tuya thread handle */
-STATIC THREAD_HANDLE ty_app_thread = NULL;
+static THREAD_HANDLE ty_app_thread = NULL;
 
 /**
-* @brief  task thread
-*
-* @param[in] arg:Parameters when creating a task
-* @return none
-*/
-STATIC VOID_T tuya_app_thread(VOID_T *arg)
+ * @brief  task thread
+ *
+ * @param[in] arg:Parameters when creating a task
+ * @return none
+ */
+static void tuya_app_thread(void *arg)
 {
     user_main();
-    
+
     tal_thread_delete(ty_app_thread);
     ty_app_thread = NULL;
 }
 
-VOID tuya_app_main(VOID)
+void tuya_app_main(void)
 {
     THREAD_CFG_T thrd_param = {4096, 4, "tuya_app_main"};
     tal_thread_create_and_start(&ty_app_thread, NULL, NULL, tuya_app_thread, NULL, &thrd_param);

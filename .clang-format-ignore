@@ -1,0 +1,8 @@
+src/libcjson/cJSON
+src/tal_kv/FlashDB
+src/tal_kv/littlefs
+src/common/backoffAlgorithm
+src/liblwip/lwip-2.1.2
+src/libhttp/coreHTTP
+src/libmqtt/coreMQTT
+examples/switch_demo/libqrencode

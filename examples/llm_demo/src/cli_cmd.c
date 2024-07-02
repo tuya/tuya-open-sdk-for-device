@@ -1,44 +1,60 @@
+/**
+ * @file cli_cmd.c
+ * @brief Command Line Interface (CLI) commands for Tuya IoT applications.
+ *
+ * This file contains the implementation of CLI commands for interacting with
+ * various services such as WiFi connection management, chatting with a large
+ * language model, switching between different language models, testing
+ * Automatic Speech Recognition (ASR), and Text-to-Speech (TTS) functionalities.
+ * It demonstrates the integration of Tuya's IoT SDK functionalities, including
+ * network management, language model interaction, and audio processing
+ * capabilities, providing a comprehensive example of how to build IoT
+ * applications with Tuya's technology stack.
+ *
+ * @copyright Copyright (c) 2021-2024 Tuya Inc. All Rights Reserved.
+ *
+ */
 
-#include <stdlib.h>
-#include "tal_api.h"
-#include "llm_demo.h"
-#include <sys/stat.h>
 #include "audio_asr.h"
 #include "audio_tts.h"
-#include "tal_cli.h"
+#include "llm_demo.h"
 #include "netmgr.h"
+#include "tal_api.h"
+#include "tal_cli.h"
 #include "tal_workq_service.h"
+#include <stdlib.h>
+#include <sys/stat.h>
 #if defined(ENABLE_WIFI) && (ENABLE_WIFI == 1)
 #include "netconn_wifi.h"
 #endif
 /**
  * @brief send chat information to big language model
- * 
- * @param argc 
- * @param argv 
+ *
+ * @param argc
+ * @param argv
  */
 void connect_cmd(int argc, char *argv[])
 {
     if (argc == 3) {
-    #if defined(ENABLE_WIFI) && (ENABLE_WIFI == 1)
-        netconn_wifi_info_t wifi_info = {{0}};
+#if defined(ENABLE_WIFI) && (ENABLE_WIFI == 1)
+        netconn_wifi_info_t wifi_info = {0};
         strcpy(wifi_info.ssid, argv[1]);
         strcpy(wifi_info.pswd, argv[2]);
         netmgr_conn_set(NETCONN_WIFI, NETCONN_CMD_SSID_PSWD, &wifi_info);
-    #endif
+#endif
     } else {
         PR_NOTICE("usage: connect <ssid> <password>");
     }
-    
+
     return;
 }
 
-VOID_T __chat(VOID_T *data)
+void __chat(void *data)
 {
     CHAR_T *context = (CHAR_T *)data;
-    CHAR_T *response = tal_malloc(8192);      
-    memset(response, 0, 8192);  
-    INT_T rt = LLM_conversation(context, response);    
+    CHAR_T *response = tal_malloc(8192);
+    memset(response, 0, 8192);
+    int32_t rt = LLM_conversation(context, response);
     if (OPRT_OK == rt) {
         PR_NOTICE("******************************************************");
         PR_NOTICE("q: %s", context);
@@ -53,9 +69,9 @@ VOID_T __chat(VOID_T *data)
 }
 /**
  * @brief send chat information to big language model
- * 
- * @param argc 
- * @param argv 
+ *
+ * @param argc
+ * @param argv
  */
 void chat_cmd(int argc, char *argv[])
 {
@@ -65,17 +81,17 @@ void chat_cmd(int argc, char *argv[])
         PR_ERR("please connect to the router first!");
         return;
     }
-        
-    INT_T index = 1;
-    INT_T offset = 0;
+
+    int32_t index = 1;
+    int32_t offset = 0;
     CHAR_T *context = tal_malloc(128);
     memset(context, 0, 128);
-    for (index = 1; index < argc; index ++) {
-        if (offset+strlen(argv[index])>= 128) {
+    for (index = 1; index < argc; index++) {
+        if (offset + strlen(argv[index]) >= 128) {
             PR_ERR("context is too long!");
             return;
         }
-        offset += sprintf(context+offset, "%s ", argv[index]);
+        offset += sprintf(context + offset, "%s ", argv[index]);
     }
 
     tal_workq_schedule(WORKQ_SYSTEM, __chat, context);
@@ -83,10 +99,10 @@ void chat_cmd(int argc, char *argv[])
 }
 
 /**
- * @brief switch the llm 
- * 
- * @param[in/out] argc 
- * @param[in/out] argv 
+ * @brief switch the llm
+ *
+ * @param[in/out] argc
+ * @param[in/out] argv
  */
 void switch_cmd(int argc, char *argv[])
 {
@@ -98,30 +114,30 @@ void switch_cmd(int argc, char *argv[])
             LLM_set_model(MODEL_MOONSHOT_AI);
             return;
         }
-    } 
+    }
 
     PR_NOTICE("usage: switch ali-qwen/moonshot");
     return;
 }
 
-VOID __asr(VOID_T *data)
+void __asr(void *data)
 {
-    INT_T fsize = 0;
-    UINT8_T *buffer = NULL;
+    int32_t fsize = 0;
+    uint8_t *buffer = NULL;
     CHAR_T output_text[128];
-    INT_T output_len = 128;
+    int32_t output_len = 128;
     CHAR_T *file_name = "../../../examples/llm_demo/src/localrec1.wav";
     FILE *fd = fopen(file_name, "rb");
     if (fd) {
         struct stat file_stat;
         if (stat(file_name, &file_stat) == -1) {
             perror("Error getting file status");
-            return ;
+            return;
         }
         fsize = file_stat.st_size;
         PR_DEBUG("input %p, size is %d", fd, fsize);
-        buffer = tal_malloc(fsize+10);
-        fsize = fread(buffer, sizeof(UINT8_T), fsize, fd);
+        buffer = tal_malloc(fsize + 10);
+        fsize = fread(buffer, sizeof(uint8_t), fsize, fd);
         fclose(fd);
 
         asr_request_baidu(ASR_FORMAT_WAV, 8000, 1, buffer, fsize, output_text, &output_len);
@@ -129,16 +145,15 @@ VOID __asr(VOID_T *data)
     } else {
         PR_DEBUG("audio file not found!");
     }
-
 }
 /**
  * @brief test asr
- * 
- * @param[in/out] argc 
- * @param[in/out] argv 
- * @return VOID 
+ *
+ * @param[in/out] argc
+ * @param[in/out] argv
+ * @return void
  */
-VOID asr_cmd(INT_T argc, CHAR_T *argv[])
+void asr_cmd(int32_t argc, CHAR_T *argv[])
 {
     netmgr_status_e status = NETMGR_LINK_DOWN;
     netmgr_conn_get(NETCONN_AUTO, NETCONN_CMD_STATUS, &status);
@@ -147,11 +162,11 @@ VOID asr_cmd(INT_T argc, CHAR_T *argv[])
         return;
     }
 
-    tal_workq_schedule(WORKQ_SYSTEM, __asr, NULL);    
+    tal_workq_schedule(WORKQ_SYSTEM, __asr, NULL);
     return;
 }
 
-VOID __tts(VOID_T *data)
+void __tts(void *data)
 {
     CHAR_T *context = (CHAR_T *)data;
     tts_request_baidu(TTS_FORMAT_MP3, context, 0, "zh", 5, 5, 5);
@@ -160,9 +175,9 @@ VOID __tts(VOID_T *data)
 }
 /**
  * @brief test tts
- * 
- * @param argc 
- * @param argv 
+ *
+ * @param argc
+ * @param argv
  */
 void tts_cmd(int argc, char *argv[])
 {
@@ -173,21 +188,21 @@ void tts_cmd(int argc, char *argv[])
         return;
     }
 
-    INT_T index = 1;
-    INT_T offset = 0;
+    int32_t index = 1;
+    int32_t offset = 0;
     CHAR_T *context = tal_malloc(128);
     memset(context, 0, 128);
     if (argc < 2) {
         PR_ERR("usage: tts <text>");
     } else {
-        for (index = 1; index < argc; index ++) {
+        for (index = 1; index < argc; index++) {
             if (offset + strlen(argv[index]) >= 128) {
                 PR_ERR("context is too long!");
                 return;
             }
-            offset += sprintf(context+offset, "%s ", argv[index]);
+            offset += sprintf(context + offset, "%s ", argv[index]);
         }
-        
+
         tal_workq_schedule(WORKQ_SYSTEM, __tts, context);
     }
 
@@ -195,25 +210,28 @@ void tts_cmd(int argc, char *argv[])
 }
 
 /**
- * @brief 
- * 
+ * @brief
+ *
  */
 void tuya_app_cli_init(void)
 {
     LLM_set_model(MODEL_ALI_QWEN);
 
-    STATIC cli_cmd_t cmd [5] = {
-        {.name = "connect", .help = "Connect to the router.",           .func = connect_cmd},
-        {.name = "chat",    .help = "Chat with large language model.",  .func = chat_cmd},
-        {.name = "switch",  .help = "Switch large language model.",     .func = switch_cmd},
-        {.name = "asr",     .help = "Test ASR.",                        .func = asr_cmd},
-        {.name = "tts",     .help = "Test TTS.",                        .func = tts_cmd},
+    static cli_cmd_t cmd[5] = {
+        {.name = "connect", .help = "Connect to the router.", .func = connect_cmd},
+        {.name = "chat", .help = "Chat with large language model.", .func = chat_cmd},
+        {.name = "switch", .help = "Switch large language model.", .func = switch_cmd},
+        {.name = "asr", .help = "Test ASR.", .func = asr_cmd},
+        {.name = "tts", .help = "Test TTS.", .func = tts_cmd},
     };
     tal_cli_cmd_register(cmd, 5);
-    PR_NOTICE("******************************************************************************************************************");
-    PR_NOTICE("now you can chat with large language model, default is ali-qwen, you can change the model according cli command!");
+    PR_NOTICE("******************************************************************"
+              "************************************************");
+    PR_NOTICE("now you can chat with large language model, default is ali-qwen, "
+              "you can change the model according cli command!");
     PR_NOTICE("");
     PR_NOTICE("TAB for help!");
-    PR_NOTICE("******************************************************************************************************************");
+    PR_NOTICE("******************************************************************"
+              "************************************************");
     return;
 }
