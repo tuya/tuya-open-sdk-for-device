@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ##
 # @file util_tools.sh
-# @brief 
+# @brief
 # @author Tuya
 # @version 1.0.0
 # @date 2023-03-26
