@@ -1,0 +1,4 @@
+platforms:
+- name: t2
+  repo: https://github.com/tuya/tuya-open-sdk-for-device-board-t2
+  commit: master

@@ -46,8 +46,8 @@ def main():
     board = args.board
     src_dir = args.src
     output_config = args.output
-    print(f'board: {board}')
-    print(f'src_dir: {src_dir}')
+    # print(f'board: {board}')
+    # print(f'src_dir: {src_dir}')
     print(f'output_config: {output_config}')
     output_dir = os.path.dirname(output_config)
     if not os.path.exists(output_dir):

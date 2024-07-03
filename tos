@@ -1,0 +1,355 @@
+#!/usr/bin/env bash
+
+OPEN_SDK_ROOT=$(cd "$(dirname "$0")" && pwd)
+PROJECT_ROOT=$(pwd)
+. $OPEN_SDK_ROOT/tools/util_tools.sh
+LISTMENU=$OPEN_SDK_ROOT/tools/listmenu.sh
+
+OPEN_BUILD=$(basename "$0")
+PROJECT_INI=$PROJECT_ROOT/project_build.ini
+KCONFIG_TOOLS=$OPEN_SDK_ROOT/tools/kconfiglib
+
+
+# ==============================================================================
+# executing define
+# ------------------------------------------------------------------------------
+function check_ini()
+{
+    if [ ! -f $PROJECT_INI ]; then
+        show "${fore[yellow]}" "Not found [$PROJECT_INI]."
+        show "${fore[green]}" "You could run [$OPEN_BUILD new your_project_name]."
+        exit 0
+    fi
+}
+
+function check_submodules()
+{
+    cd $OPEN_SDK_ROOT
+    submodules=($(grep "path" .gitmodules | sed 's/^[ \t]*path = //'))
+    for submodule in "${submodules[@]}"
+    do
+        if [ -z "$(ls -A $submodule)" ]; then
+            echo "$submodule is empty, initializing submodule..."
+            git submodule update --init $submodule
+        fi
+    done
+    cd - > /dev/null
+}
+
+function version_exec()
+{
+    show "" "1.0.0"
+}
+
+function check_exec()
+{
+    show "" "Check command and version ..."
+    check_command_version "python3" "3.6.0" "python3 --version"
+    check_command_version "git" "2.0.0" "git --version"
+    check_command_version "cmake" "3.16.0" "cmake --version"
+    check_command_version "ccmake" "3.16.0" "ccmake --version"  # sudo apt-get install cmake-curses-gui
+    check_command_version "lcov" "1.14" "lcov --version"
+
+    check_submodules
+
+    which $OPEN_BUILD > /dev/null
+    if [ "1" = "$?" ]; then
+        show "${fore[yellow]}" "Select a way to configure the OpenSDK tool:"
+        show "${fore[yellow]}" "1. export PATH=\$PATH:$OPEN_SDK_ROOT"
+        show "${fore[yellow]}" "2. set step1 to .bashrc / .zshrc / .profile"
+    fi
+}
+
+function download_platform()
+{
+    PLATFORMS_DIR=$OPEN_SDK_ROOT/platform
+    PLATFORM_PATH="${PLATFORMS_DIR}/${PLATFORM_NAME}"
+    DEFAULT_CONFIG_NAME="default.config"
+    KCONFIG_CATALOG=$PLATFORM_PATH/CatalogKconfig
+    if [ -d "$PLATFORM_PATH" ]; then
+        show "" "Skip download, exist [$PLATFORM_PATH]."
+        show "${fore[yellow]}" "If you want to download it again, please remove it."
+    else
+        show "" "Download platform ..."
+        git clone "$PLATFORM_REPO" "$PLATFORM_PATH"
+        cd "$PLATFORM_PATH"
+        git checkout -q "$PLATFORM_COMMIT"
+    fi
+    if [ -f "$PLATFORM_PATH/platform_prepare.sh" ]; then
+        show "" "Run [$PLATFORM_PATH/platform_prepare.sh]."
+        cd "$PLATFORM_PATH"
+        ./platform_prepare.sh $PLATFORM_CHIP
+    fi
+    if [ ! -f "$PLATFORM_PATH/$DEFAULT_CONFIG_NAME" ]; then
+        show "${fore[yellow]}" "Warning: not found [$PLATFORM_PATH/$DEFAULT_CONFIG_NAME]."
+    fi
+    python3 $KCONFIG_TOOLS/set_catalog_config.py -b $PLATFORM_PATH -s $OPEN_SDK_ROOT/src -o $KCONFIG_CATALOG
+}
+
+function download_platform_by_name()
+{
+    PLATFORM_NAME=$1
+    PLATFORM_CHIP=$2
+    echo "PLATFORM_NAME: $PLATFORM_NAME"
+    PLATFORMS_DIR=$OPEN_SDK_ROOT/platform
+    PLATFORM_YAML=$PLATFORMS_DIR/platform_config.yaml
+    PLATFORM_INFO=$(cat $PLATFORM_YAML | awk "/^- name: $PLATFORM_NAME[[:space:]]*$/{flag=1; next} /^- name:.*$/{flag=0} flag")
+    PLATFORM_REPO=$(echo "$PLATFORM_INFO" | grep -oP '(?<=repo: ).*(?=$)')
+    PLATFORM_COMMIT=$(echo "$PLATFORM_INFO" | grep -oP '(?<=commit: ).*(?=$)')
+    assert_non_null "$PLATFORM_NAME" "Can't find the [platform name]."
+    assert_non_null "$PLATFORM_REPO" "Can't find the [platform repo]."
+    assert_non_null "$PLATFORM_COMMIT" "Can't find the [platform commit]."
+    if [ -z $PLATFORM_NAME ] || [ -z $PLATFORM_REPO ] || [ -z $PLATFORM_COMMIT ]; then
+        exit 1
+    fi
+    download_platform PLATFORM_NAME=$PLATFORM_NAME PLATFORM_REPO=$PLATFORM_REPO PLATFORM_COMMIT=$PLATFORM_COMMIT PLATFORM_CHIP=$PLATFORM_CHIP
+}
+
+function new_exec()
+{
+    read -p "Input project name: " PROJ_NAME
+    if [ -z "$PROJ_NAME" ]; then
+        NOTE="Project name is empty."
+        show "${fore[yellow]}" "$NOTE"
+        exit 1
+    fi
+
+    if [ -d $PROJECT_ROOT/$PROJ_NAME ]; then
+        NOTE="[$PROJ_NAME] already exists, rename new project or delete the directory."
+        show "${fore[yellow]}" "$NOTE"
+        exit 1
+    fi
+
+    show "" "Choice platform ..."
+    PLATFORMS_DIR=$OPEN_SDK_ROOT/platform
+    PLATFORM_YAML=$PLATFORMS_DIR/platform_config.yaml
+    PLATFORM_NAMES=$(cat $PLATFORM_YAML | grep -oP '(?<=^- name: ).*(?=$)')
+    PLATFORM_NAME=$(echo "$PLATFORM_NAMES" | bash $LISTMENU "Platforms" 20 60 13)
+    PLATFORM_INFO=$(cat $PLATFORM_YAML | awk "/^- name: $PLATFORM_NAME[[:space:]]*$/{flag=1; next} /^- name:.*$/{flag=0} flag")
+    PLATFORM_REPO=$(echo "$PLATFORM_INFO" | grep -oP '(?<=repo: ).*(?=$)')
+    PLATFORM_COMMIT=$(echo "$PLATFORM_INFO" | grep -oP '(?<=commit: ).*(?=$)')
+    PLATFORM_CHIPS=$(echo "$PLATFORM_INFO" | awk '/^[[:space:]]*chip:[[:space:]]*$/{flag=1; next} flag{gsub(/^[[:space:]-]+/, ""); print}')
+    if [ ! x"$PLATFORM_CHIPS" = x"" ]; then
+        PLATFORM_CHIP=$(echo "$PLATFORM_CHIPS" | bash $LISTMENU "Chips" 20 60 13)
+    fi
+    assert_non_null "$PLATFORM_NAME" "Can't find the [platform name]."
+    assert_non_null "$PLATFORM_REPO" "Can't find the [platform repo]."
+    assert_non_null "$PLATFORM_COMMIT" "Can't find the [platform commit]."
+    PLATFORM_STR="platform: $PLATFORM_NAME
+repo: $PLATFORM_REPO
+commit: $PLATFORM_COMMIT
+chip: $PLATFORM_CHIP" # end PLATFORM_STR
+    show "" "$PLATFORM_STR"
+
+    cp -a $OPEN_SDK_ROOT/tools/app_template $PROJECT_ROOT/$PROJ_NAME
+    sed -i "s/###PROJECT_NAME###/$PROJ_NAME/g" $PROJECT_ROOT/$PROJ_NAME/project_build.ini
+    sed -i "s/###PLATFORM_NAME###/$PLATFORM_NAME/g" $PROJECT_ROOT/$PROJ_NAME/project_build.ini
+    if [ -n "$PLATFORM_CHIP" ]; then
+        echo "chip = $PLATFORM_CHIP" >> $PROJECT_ROOT/$PROJ_NAME/project_build.ini
+    fi
+    NOTE="You can modify the file [project_build.ini] to configure the project."
+    show "${fore[green]}" "$NOTE"
+
+    download_platform PLATFORM_NAME=$PLATFORM_NAME PLATFORM_REPO=$PLATFORM_REPO PLATFORM_COMMIT=$PLATFORM_COMMIT PLATFORM_CHIP=$PLATFORM_CHIP
+}
+
+function build_exec()
+{
+    check_ini
+    check_submodules
+    PROJECT_NAMES=$1
+    if [ -z "$PROJECT_NAMES" ]; then
+        PROJECT_NAMES=$(cat $PROJECT_INI | grep -oP '(?<=^\[project\:).*(?=\])')
+    fi
+    for PROJ in $PROJECT_NAMES; do
+        PROJECT_INFO=$(cat $PROJECT_INI | awk "/^\[project:$PROJ]$/{flag=1; next} /^\[project:.*$/{flag=0} flag")
+        if [ -z "$PROJECT_INFO" ]; then
+            NOTE="Can't found project [$PROJ]."
+            show "${fore[red]}" "$NOTE"
+            continue
+        fi
+        PROJECT_PLATFORM=$(echo "$PROJECT_INFO" | grep -oP '(?<=platform = ).*(?=$)')
+        if [ -z "$PROJECT_PLATFORM" ]; then
+            NOTE="Can't found project [$PROJ] platform."
+            show "${fore[red]}" "$NOTE"
+            continue
+        fi
+        PROJECT_CHIP=$(echo "$PROJECT_INFO" | grep -oP '(?<=chip = ).*(?=$)')
+
+        if [ ! -d "$OPEN_SDK_ROOT/platform/$PROJECT_PLATFORM" ]; then
+            download_platform_by_name $PROJECT_PLATFORM $PROJECT_CHIP
+            if [ "0" != "$?" ]; then
+                exit 1
+            fi
+        fi
+
+        mkdir -p $PROJECT_ROOT/.build/$PROJ
+        cd $PROJECT_ROOT/.build/$PROJ
+        cmake $OPEN_SDK_ROOT -DTOS_PROJECT_NAME=$PROJ -DTOS_PROJECT_ROOT=$PROJECT_ROOT -DTOS_PROJECT_PLATFORM=$PROJECT_PLATFORM -DTOS_PROJECT_CHIP=$PROJECT_CHIP
+        make example
+        cd - > /dev/null
+    done
+}
+
+function clean_exec()
+{
+    check_ini
+    PROJECT_NAMES=$1
+    if [ -z "$PROJECT_NAMES" ]; then
+        PROJECT_NAMES=$(cat $PROJECT_INI | grep -oP '(?<=^\[project\:).*(?=\])')
+    fi
+    for PROJ in $PROJECT_NAMES; do
+        if [ ! -d ".build/$PROJ" ]; then
+            NOTE="The project does not exist yet, run [$OPEN_BUILD build $PROJ] first"
+            show "${fore[yellow]}" "$NOTE"
+            continue
+        fi
+
+        cd $PROJECT_ROOT/.build/$PROJ
+        make clean_all
+        cd - > /dev/null
+    done
+}
+
+function menuconfig_exec()
+{
+    check_ini
+    PROJ=$1
+    if [ -z "$PROJ" ]; then
+        PROJECT_NAMES=$(cat $PROJECT_INI | grep -oP '(?<=^\[project\:).*(?=\])')
+        if [ $(echo "$PROJECT_NAMES" | wc -w) = "1" ]; then
+            PROJ=$PROJECT_NAMES
+        else
+            PROJ=$(echo "$PROJECT_NAMES" | bash $LISTMENU "Projects" 20 60 13)
+        fi
+    fi
+    if [ -z "$PROJ" ]; then
+        NOTE="The menuconfig requires one parameter [project name]"
+        show "${fore[yellow]}" "$NOTE"
+        exit 1
+    fi
+
+    PROJECT_INFO=$(cat $PROJECT_INI | awk "/^\[project:$PROJ]$/{flag=1; next} /^\[project:.*$/{flag=0} flag")
+    if [ -z "$PROJECT_INFO" ]; then
+        NOTE="Can't found project [$PROJ]."
+        show "${fore[red]}" "$NOTE"
+        exit 1
+    fi
+    PROJECT_PLATFORM=$(echo "$PROJECT_INFO" | grep -oP '(?<=platform = ).*(?=$)')
+
+    if [ ! -d ".build/$PROJ" ]; then
+        NOTE="The project does not exist yet, run [$OPEN_BUILD build $PROJ] first"
+        show "${fore[yellow]}" "$NOTE"
+        exit 1
+    fi
+
+    PLATFORMS_DIR="$OPEN_SDK_ROOT/platform"
+    PLATFORM_PATH="${PLATFORMS_DIR}/${PROJECT_PLATFORM}"
+    KCONFIG_CATALOG="$PLATFORM_PATH/CatalogKconfig"
+    DOT_CONFIG_DIR="$PROJECT_ROOT/.build/$PROJ/cache"
+    DOT_CONFIG="using.config"
+    CMAKE_CONFIG="using.cmake"
+    HEADER_DIR="$PROJECT_ROOT/.build/$PROJ/include"
+    HEADER_FILE="tuya_kconfig.h"
+    HEADER_IN_PATH="${KCONFIG_TOOLS}/config.h.in"
+
+    cd ${DOT_CONFIG_DIR}
+    bash ${KCONFIG_TOOLS}/run_menuconfig.sh "${KCONFIG_CATALOG}" "$DOT_CONFIG"
+    python3 ${KCONFIG_TOOLS}/conf2cmake.py -c "${DOT_CONFIG_DIR}/${DOT_CONFIG}" -o "${CMAKE_CONFIG}"
+    cd ${HEADER_DIR}
+    python3 ${KCONFIG_TOOLS}/conf2h.py -c "${DOT_CONFIG_DIR}/${DOT_CONFIG}" -o "${HEADER_FILE}" -i "${HEADER_IN_PATH}"
+    cd - > /dev/null
+}
+
+function _build_all()
+{
+    PROJECTS_DIR=$(cd "$1" && pwd)
+    MAX_DEEP=$(expr $2 - 1)
+    PROJECT_INI="$PROJECTS_DIR/project_build.ini"
+    if [ -f "$PROJECT_INI" ]; then
+        PROJECT_ROOT=$PROJECTS_DIR
+        PROJECT_INI=$PROJECT_INI
+        build_exec
+    elif [ "$MAX_DEEP" -gt "0" ]; then
+        SUB_DIRS=$(ls -d $PROJECTS_DIR/*/)
+        for dir in $SUB_DIRS; do
+            d=$(cd "$dir" && pwd)
+            _build_all "$d" "$MAX_DEEP"
+        done
+    fi
+    MAX_DEEP="$2"
+}
+
+function build_all_exec()
+{
+    PROJECTS_DIR=$1
+    if [ -z "$PROJECTS_DIR" ]; then
+        NOTE="build_all command need an argument [PROJECTS_DIR]"
+        show "${fore[yellow]}" "$NOTE"
+        exit 1
+    fi
+
+    if [ ! -d "$PROJECTS_DIR" ]; then
+        NOTE="Path not exists: [$PROJECTS_DIR]"
+        show "${fore[yellow]}" "$NOTE"
+        exit 1
+    fi
+    _build_all "$PROJECTS_DIR" "3"
+}
+
+function help_exec()
+{
+    NOTE="
+Usage: $OPEN_BUILD COMMAND [ARGS]...
+
+Commands:
+    version    - Show TOS verson
+    check      - Check command and version
+    new        - New project
+    build      - Build specific project or all projects
+                 [name] (default build all project by project_build.ini)
+    clean      - Clean specific project or all projects
+                 [name] (default clean all project by project_build.ini)
+    menuconfig - Configuration project features
+    build_all  - Build all projects in the directory
+                 [*path]
+    help       - Help information
+    "
+    show "" "$NOTE"
+}
+# ==============================================================================
+# executing define finished
+# ------------------------------------------------------------------------------
+
+case $1 in
+    version)
+        version_exec
+        ;;
+    check)
+        check_exec
+        ;;
+    new)
+        new_exec
+        ;;
+    build)
+        build_exec $2
+        ;;
+    clean)
+        clean_exec $2
+        ;;
+    menuconfig)
+        menuconfig_exec
+        ;;
+    build_all)
+        build_all_exec $2
+        ;;
+    help)
+        help_exec
+        ;;
+    *)
+        show "${fore[yellow]}" "Unknow command [$1]"
+        help_exec
+        ;;
+esac
+
+exit 0

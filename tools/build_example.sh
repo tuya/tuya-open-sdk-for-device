@@ -2,7 +2,7 @@
 ##
 # @file build_example.sh
 # @brief 在windows环境编译时，gcc生成的.d文件中路径可能存在冒号“:”
-#        导致第二次编译报错(makefile中冒号背当作目标)。
+#        导致第二次编译报错(makefile中冒号被当作目标)。
 #        此脚本在编译前提前生成compiler_depend.internal文件，
 #        可以阻止compiler_depend.make的生成
 # @author Tuya

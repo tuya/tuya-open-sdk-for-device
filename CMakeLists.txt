@@ -39,8 +39,14 @@ ENDIF ()
 
 include(${TOP_SOURCE_DIR}/tools/cmake/colors.cmake)
 include(${TOP_SOURCE_DIR}/tools/cmake/util.cmake)
-set(CONFIG_CMAKE "${TOP_SOURCE_DIR}/cache/config.cmake")
-include(${CONFIG_CMAKE})
+if(DEFINED TOS_PROJECT_PLATFORM)
+    set(PLATFORM_NAME ${TOS_PROJECT_PLATFORM})
+    set(PLATFORM_CHIP ${TOS_PROJECT_CHIP})
+    set(PLATFORM_PATH "${TOP_SOURCE_DIR}/platform/${TOS_PROJECT_PLATFORM}")
+endif()
+set(KCONFIG_CATALOG "${PLATFORM_PATH}/CatalogKconfig")
+set(DEFAULT_CONFIG_NAME "default.config")
+set(PRE_CONFIG_DIR "${TOS_PROJECT_ROOT}/pre_config")
 
 
 # use Kconfig
@@ -54,14 +60,14 @@ add_subdirectory("${TOP_SOURCE_DIR}/tools/kconfiglib")
 
 
 # toolchain cmake
-set(CMAKE_TOOLCHAIN_FILE "${BOARD_PATH}/toolchain_file.cmake")
+set(CMAKE_TOOLCHAIN_FILE "${PLATFORM_PATH}/toolchain_file.cmake")
 message(STATUS "[TOP] Using toolchain file [${CMAKE_TOOLCHAIN_FILE}].")
 
 
 project(opensdk)
 
-# add board
-include("${BOARD_PATH}/board_config.cmake")
+# add platform
+include("${PLATFORM_PATH}/platform_config.cmake")
 
 
 # add src
@@ -74,7 +80,7 @@ foreach(comp ${COMPONENT_LIST})
 endforeach(comp)
 message(STATUS "[TOP] COMPONENT_LIBS: ${COMPONENT_LIBS}")
 # copy_public_include("${COMPONENT_PUBINC}" "${HEADER_DIR}")
-list(APPEND HEADER_DIR ${BOARD_PUBINC})
+list(APPEND HEADER_DIR ${PLATFORM_PUBINC})
 list(APPEND HEADER_DIR ${COMPONENT_PUBINC})
 message(STATUS "[TOP] HEADER_DIR: ${HEADER_DIR}")
 deal_with_components("${COMPONENT_LIBS}" "${HEADER_DIR}")
@@ -89,21 +95,25 @@ add_library(${COMPONENTS_ALL_LIB} STATIC ${all_need})
 
 
 # add example
+set(EXAMPLE_NAME "${TOS_PROJECT_NAME}")
 message(STATUS "[TOP] Using example [${EXAMPLE_NAME}].")
 set(EXAMPLE_LIB "tuyaapp")
 set(EXAMPLE_VER "1.0.0" CACHE STRING "Example Version")
-string(REPLACE ";" " " BOARD_NEED_HDIR "${HEADER_DIR}")
-set(BOARD_NEED_LIBS "${EXAMPLE_LIB} ${COMPONENTS_ALL_LIB}")
-message(STATUS "[TOP] BOARD_NEED_LIBS: ${BOARD_NEED_LIBS}")
-add_subdirectory("${EXAMPLE_DIR}/${EXAMPLE_NAME}")
+string(REPLACE ";" " " PLATFORM_NEED_HDIR "${HEADER_DIR}")
+set(PLATFORM_NEED_LIBS "${EXAMPLE_LIB} ${COMPONENTS_ALL_LIB}")
+message(STATUS "[TOP] PLATFORM_NEED_LIBS: ${PLATFORM_NEED_LIBS}")
+include(${TOS_PROJECT_ROOT}/CMakeLists.txt)
 target_include_directories(${EXAMPLE_LIB}
     PUBLIC
     ${HEADER_DIR}
     )
 target_link_libraries(${EXAMPLE_LIB} ${COMPONENTS_ALL_LIB})
 add_custom_target(example
+    WORKING_DIRECTORY
+    ${TOP_SOURCE_DIR}
+
     COMMAND
-    ../tools/build_example.sh "${TOP_BINARY_DIR}" "${DEL_DEPEND}"
+    ./tools/build_example.sh "${TOP_BINARY_DIR}" "${DEL_DEPEND}"
     )
 
 add_custom_target(example_all
@@ -123,7 +133,7 @@ add_custom_command(
     ${CMAKE_COMMAND} -E echo "        ${Cyan}[make menuconfig]${ColourReset}"
 
     COMMAND
-    ${CMAKE_COMMAND} -E echo "        ${Cyan}[${CCMAKE} ..]${ColourReset}"
+    ${CMAKE_COMMAND} -E echo "        ${Cyan}[ccmake ..]${ColourReset}"
 
     COMMAND
     ${CMAKE_COMMAND} -E echo ""
@@ -136,34 +146,47 @@ add_custom_command(
     build_example_exe
 
     WORKING_DIRECTORY
-    ${BOARD_PATH}
+    ${PLATFORM_PATH}
 
     COMMAND
-    ./build_example.sh "${EXAMPLE_NAME}" "${EXAMPLE_VER}" "${BOARD_NEED_HDIR}"
-    "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" "${BOARD_NEED_LIBS}"
-    "${EXECUTABLE_OUTPUT_PATH}" "build"
+    ./build_example.sh "${EXAMPLE_NAME}" "${EXAMPLE_VER}" "${PLATFORM_NEED_HDIR}"
+    "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" "${PLATFORM_NEED_LIBS}"
+    "${EXECUTABLE_OUTPUT_PATH}" "build" "${PLATFORM_CHIP}"
 
     COMMENT
     "[EXAMPLE] Generate execute file [${EXAMPLE_NAME}]"
     )
 
 # clean
-add_custom_target(board_clean
+add_custom_target(platform_clean
     WORKING_DIRECTORY
-    ${BOARD_PATH}
+    ${PLATFORM_PATH}
 
     COMMAND
-    ./build_example.sh "${EXAMPLE_NAME}" "${EXAMPLE_VER}" "${BOARD_NEED_HDIR}"
-    "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" "${BOARD_NEED_LIBS}"
+    ./build_example.sh "${EXAMPLE_NAME}" "${EXAMPLE_VER}" "${PLATFORM_NEED_HDIR}"
+    "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" "${PLATFORM_NEED_LIBS}"
     "${EXECUTABLE_OUTPUT_PATH}" "clean"
 
     COMMENT
-    "[TOP] Board clean."
+    "[TOP] Platform clean."
+    )
+
+add_custom_target(platform_menuconfig
+    WORKING_DIRECTORY
+    ${PLATFORM_PATH}
+
+    COMMAND
+    ./build_example.sh "${EXAMPLE_NAME}" "${EXAMPLE_VER}" "${PLATFORM_NEED_HDIR}"
+    "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" "${PLATFORM_NEED_LIBS}"
+    "${EXECUTABLE_OUTPUT_PATH}" "menuconfig"
+
+    COMMENT
+    "[TOP] Platform menuconfig."
     )
 
 add_custom_target(clean_all
     DEPENDS
-    board_clean
+    platform_clean
 
     COMMAND ${CMAKE_BUILD_TOOL} clean
 )
@@ -176,4 +199,7 @@ add_subdirectory("${TOP_SOURCE_DIR}/tools/ut")
 # prompt
 message(STATUS "[TOP] If you want to build example
         ${Cyan}[make example]${ColourReset}.
+")
+message(STATUS "[TOP] If you want to clean project
+        ${Cyan}[make clean_all]${ColourReset}.
 ")

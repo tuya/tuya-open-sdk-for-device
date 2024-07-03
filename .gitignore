@@ -10,5 +10,7 @@ CMakeCache.txt
 /cache
 /output
 /build
-/board/*/
+/platform/*/
 /docs
+__pycache__
+.build
