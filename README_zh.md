@@ -20,16 +20,36 @@ $ sudo apt-get install lcov cmake-curses-gui build-essential wget git python3 li
 
 ```sh
 $ git clone https://github.com/tuya/tuya-open-sdk-for-device.git
-```
-
-### 更新工程
-
-```sh
 $ git submodule update --init
 ```
 
-### 修改示例工程
-`switch_demo` 演示一个简单的，跨平台、跨系统、支持多种连接的开关示例，通过涂鸦APP、涂鸦云服务，可以对这个开关进行远程控制。
+## 设置与编译
+
+### 设置环境变量
+```sh
+$ cd tuya-open-sdk-for-device
+$ export PATH=$PATH:$PWD
+```
+或将 tuya-open-sdk-for-device 路径添加到系统环境变量中。
+
+
+### 配置 
+选择需配置的 examples 或 apps 对应工程，在对应工程目录下运行如下命令进行菜单化配置
+```sh
+$ cd examples/get-started/sample_project
+$ tos menuconfig
+```
+
+### 编译
+选择当前编译的 examples 或 apps 对应工程
+```shell
+$ cd examples/get-started/sample_project
+$ tos build
+```
+编译完成后目标文件位于 `examples/get-started/sample_project/.build/t2/bin/t2_1.0.0` 目录。
+
+## 涂鸦云应用工程
+`switch_demo` 演示一个简单的，跨平台、跨系统、支持多种连接的开关示例，通过涂鸦 APP、涂鸦云服务，可以对这个开关进行远程控制。
 
 1. 创建产品并获取产品的 PID：
 
@@ -41,33 +61,8 @@ $ git submodule update --init
 
 3. 修改示例：
 
-`examples/switch_demo/src/tuya_config.h` 文件中 `TUYA_PRODUCT_KEY` 和 `TUYA_DEVICE_UUID` 、`TUYA_DEVICE_AUTHKEY` 宏分别对应 pid 和 uuid 、authkey，请根据步骤 1 和 2 分别获取到的 PID 及 uuid 、authkey 正确修改，修改后删除 `#error` 提示语句。 
+`apps/tuya_cloud/switch_demo/src/tuya_config.h` 文件中 `TUYA_PRODUCT_KEY` 和 `TUYA_DEVICE_UUID` 、`TUYA_DEVICE_AUTHKEY` 宏分别对应 pid 和 uuid 、authkey，请根据步骤 1 和 2 分别获取到的 PID 及 uuid 、authkey 正确修改，修改后删除 `#error` 提示语句。 
 
-### 配置工程
-选择当前编译的目标板和 demo
-```sh
-$ ./configure
-```
-
-### 编译工程
-
-```sh
-$ mkdir build; cd build; cmake ..
-
-$ make example
-```
-
-### 配置 tuya-open-sdk-for-device
-在 build 目录下运行如下命令进行菜单化配置
-```sh
-$ make menuconfig
-```
-
-### 运行示例程序
-
-```sh
-$ ./bin/switch_demo_1.0.0/switch_demo_1.0.0
-```
 
 ## FAQ
 1. tuya-open-sdk-for-device 支持的 board 通过子仓库动态下载，更新 tuya-open-sdk-for-device 仓库不会主动更新子仓库，如遇到问题无法正常编译，请至 board 文件夹下对应的目录下使用 `git pull` 命令更新，或删除 board 文件夹下对应目录后再次下载。
