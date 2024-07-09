@@ -55,11 +55,7 @@ After compilation, the target files will be located in the `examples/get-started
 
 Refer to the documentation at [https://developer.tuya.com/en/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc](https://developer.tuya.com/en/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc) to create a product on [https://iot.tuya.com](https://iot.tuya.com) and obtain the PID for the created product.
 
-2. Obtain the correct uuid and authkey:
-
-Refer to the documentation at [https://developer.tuya.com/en/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc#title-4-%E7%AC%AC%E4%BA%94%E6%AD%A5%EF%BC%9A%E9%A2%86%E5%8F%96%E6%8E%88%E6%9D%83%E7%A0%81](https://developer.tuya.com/en/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc#title-4-%E7%AC%AC%E4%BA%94%E6%AD%A5%EF%BC%9A%E9%A2%86%E5%8F%96%E6%8E%88%E6%9D%83%E7%A0%81) to get the authorization code list which includes the uuid and authkey for connecting to the Tuya Cloud Service.
-
-3. Modify the example:
+2. Modify the example:
 
 In the file `apps/tuya_cloud/switch_demo/src/tuya_config.h`, the macros `TUYA_PRODUCT_KEY`, `TUYA_DEVICE_UUID`, and `TUYA_DEVICE_AUTHKEY` correspond to the PID and uuid, authkey respectively. Please correctly modify these according to the PID and uuid, authkey obtained in steps 1 and 2, then delete the `#error` statement.
 
