@@ -22,8 +22,19 @@ function check_ini()
     fi
 }
 
+function check_hooks()
+{
+    if [ -d $OPEN_SDK_ROOT/.git/hooks ]; then
+        if [ ! -f $OPEN_SDK_ROOT/.git/hooks/pre-commit ]; then
+            cp -rf $OPEN_SDK_ROOT/tools/hooks/pre-commit $OPEN_SDK_ROOT/.git/hooks/pre-commit
+        fi
+    fi
+}
+
 function check_submodules()
 {
+    check_hooks
+
     cd $OPEN_SDK_ROOT
     submodules=($(grep "path" .gitmodules | sed 's/^[ \t]*path = //'))
     for submodule in "${submodules[@]}"
