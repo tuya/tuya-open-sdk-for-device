@@ -31,6 +31,7 @@
 #define IOTDNS_REQUEST_FMT                                                                                             \
     "{\"config\":[{\"key\":\"httpsSelfUrl\",\"need_ca\":true},{\"key\":"                                               \
     "\"mqttsSelfUrl\",\"need_ca\":true}],\"region\":\"%s\",\"env\":\"%s\"}"
+
 #define IOTDNS_REQUEST_FMT_NOREGION                                                                                    \
     "{\"config\":[{\"key\":\"httpsSelfUrl\",\"need_ca\":true},{\"key\":"                                               \
     "\"mqttsSelfUrl\",\"need_ca\":true}],\"env\":\"%s\"}"
@@ -221,7 +222,7 @@ static int iotdns_query_domain_certs_parser(const uint8_t *input, uint8_t **cace
 {
     int rt = OPRT_OK;
 
-    cJSON *root = cJSON_Parse((CHAR_T *)input);
+    cJSON *root = cJSON_Parse((char *)input);
     if (NULL == root) {
         PR_ERR("json parse fail. Rev:%s", input);
         return OPRT_CJSON_PARSE_ERR;

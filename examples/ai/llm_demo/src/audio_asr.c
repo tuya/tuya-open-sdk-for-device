@@ -32,13 +32,13 @@
  * @param[in/out] token
  * @return int32_t
  */
-int32_t __asr_baidu_get_token(CHAR_T *token)
+int32_t __asr_baidu_get_token(char *token)
 {
     int32_t rt = OPRT_OK;
     cJSON *response = NULL;
     uint16_t cacert_len = 0;
     uint8_t *cacert = NULL;
-    CHAR_T *path_buf = NULL;
+    char *path_buf = NULL;
     size_t path_buf_length = 256;
 
     /* HTTP Response */
@@ -51,7 +51,7 @@ int32_t __asr_baidu_get_token(CHAR_T *token)
              ASR_BAIDU_CLIENTID, ASR_BAIDU_CLIENT_SECURET);
 
     /* make HTTP body */
-    CHAR_T body_buf[8] = {0};
+    char body_buf[8] = {0};
     snprintf(body_buf, 8, "{}");
 
     /* HTTP headers */
@@ -82,7 +82,7 @@ int32_t __asr_baidu_get_token(CHAR_T *token)
         goto err_exit;
     }
 
-    response = cJSON_Parse((CHAR_T *)http_response.body);
+    response = cJSON_Parse((char *)http_response.body);
     if (response) {
         PR_DEBUG("response: %s", cJSON_PrintUnformatted(response));
         strcpy(token, cJSON_GetObjectItem(response, "access_token")->valuestring);
@@ -112,14 +112,14 @@ err_exit:
  * @return int32_t OPRT_OK match success, other match failed
  */
 int32_t asr_request_baidu(ASR_format_e format, int32_t rate, int32_t channel, void *data, int32_t len,
-                          CHAR_T *output_text, int32_t *output_len)
+                          char *output_text, int32_t *output_len)
 {
     int32_t rt = OPRT_OK;
     uint16_t cacert_len = 0;
     uint8_t *cacert = NULL;
-    CHAR_T *path_buf = NULL;
-    CHAR_T *base64_data = NULL;
-    CHAR_T *body_buf = NULL;
+    char *path_buf = NULL;
+    char *base64_data = NULL;
+    char *body_buf = NULL;
     size_t path_buf_length = 128;
     int32_t array_size = 0;
     int32_t index = 0;
@@ -136,7 +136,7 @@ int32_t asr_request_baidu(ASR_format_e format, int32_t rate, int32_t channel, vo
     snprintf(path_buf, 128, "%s", ASR_BAIDU_PATH);
 
     /* get token */
-    CHAR_T token[128] = {};
+    char token[128] = {};
     TUYA_CALL_ERR_GOTO(__asr_baidu_get_token(token), err_exit);
 
     /* data base64 encode*/
@@ -185,7 +185,7 @@ int32_t asr_request_baidu(ASR_format_e format, int32_t rate, int32_t channel, vo
         goto err_exit;
     }
 
-    response = cJSON_Parse((CHAR_T *)http_response.body);
+    response = cJSON_Parse((char *)http_response.body);
     if (response) {
         PR_DEBUG("result: %s", cJSON_PrintUnformatted(response));
         cJSON *result_array = cJSON_GetObjectItem(response, "result");

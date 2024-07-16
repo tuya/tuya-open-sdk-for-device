@@ -49,6 +49,6 @@ typedef enum {
  * @param volume the volume of tts:0-15,default is 5
  * @return int32_t OPRT_OK:success;other:fail
  */
-int32_t tts_request_baidu(TTS_format_e format, CHAR_T *text, int32_t voice, CHAR_T *lang, int32_t speed, int32_t pitch,
+int32_t tts_request_baidu(TTS_format_e format, char *text, int32_t voice, char *lang, int32_t speed, int32_t pitch,
                           int32_t volume);
 #endif

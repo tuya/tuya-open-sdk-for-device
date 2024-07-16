@@ -41,7 +41,7 @@ tuya_iot_client_t client;
  * @param str log string
  * @return void
  */
-void user_log_output_cb(const CHAR_T *str)
+void user_log_output_cb(const char *str)
 {
     tkl_log_output(str);
 }
@@ -126,7 +126,7 @@ void user_event_handler_on(tuya_iot_client_t *client, tuya_event_msg_t *event)
                 break;
             }
             case PROP_VALUE: {
-                PR_DEBUG("INT value:%d", dp->value.dp_value);
+                PR_DEBUG("int value:%d", dp->value.dp_value);
                 break;
             }
             case PROP_STR: {

@@ -177,7 +177,7 @@ static int32_t __is_valid_date_time(const POSIX_TM_S *tm)
     return 0;
 }
 
-static UCHAR_T __get_day_of_week(UCHAR_T month, UCHAR_T day, USHORT_T year)
+static uint8_t __get_day_of_week(uint8_t month, uint8_t day, uint16_t year)
 {
     /* Month should be a number 0 to 11, Day should be a number 1 to 31 */
 
@@ -186,9 +186,9 @@ static UCHAR_T __get_day_of_week(UCHAR_T month, UCHAR_T day, USHORT_T year)
     return (year + year / 4 - year / 100 + year / 400 + t[month - 1] + day) % 7;
 }
 
-static OPERATE_RET __get_time_zone(IN const CHAR_T *time_zone, OUT int32_t *posix)
+static OPERATE_RET __get_time_zone(const char *time_zone, int32_t *posix)
 {
-    CHAR_T *p = NULL;
+    char *p = NULL;
     int32_t offset = 1, plus = 1;
 
     p = strstr(time_zone, "+");
@@ -246,7 +246,7 @@ OPERATE_RET tal_time_service_init(void)
  *
  * @return the time in TIME_T format
  */
-TIME_T tal_time_mktime(IN const POSIX_TM_S *tm)
+TIME_T tal_time_mktime(const POSIX_TM_S *tm)
 {
     if (NULL == tm) {
         return 0;
@@ -284,7 +284,7 @@ TIME_T tal_time_mktime(IN const POSIX_TM_S *tm)
  * @param[out] result the time in posix time format
  * @return the time in posix time format
  */
-POSIX_TM_S *tal_time_gmtime_r(IN const TIME_T *tm, OUT POSIX_TM_S *result)
+POSIX_TM_S *tal_time_gmtime_r(const TIME_T *tm, POSIX_TM_S *result)
 {
     int leapyr = 0;
     TIME_T ltm = *tm;
@@ -338,7 +338,7 @@ POSIX_TM_S *tal_time_gmtime_r(IN const TIME_T *tm, OUT POSIX_TM_S *result)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_set(IN const POSIX_TM_S *tm)
+OPERATE_RET tal_time_set(const POSIX_TM_S *tm)
 {
     TIME_T time;
     if (__is_valid_date_time(tm) == 0) {
@@ -356,7 +356,7 @@ OPERATE_RET tal_time_set(IN const POSIX_TM_S *tm)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_get(OUT POSIX_TM_S *tm)
+OPERATE_RET tal_time_get(POSIX_TM_S *tm)
 {
     if (NULL == tm) {
         return OPRT_INVALID_PARM;
@@ -378,7 +378,7 @@ OPERATE_RET tal_time_get(OUT POSIX_TM_S *tm)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_set_posix(IN const TIME_T time, IN const int32_t update_source)
+OPERATE_RET tal_time_set_posix(const TIME_T time, const int32_t update_source)
 {
     if (!s_time_disable_update) { // for aging test
         tal_mutex_lock(s_time_mutex);
@@ -485,7 +485,7 @@ SYS_TICK_T tal_time_get_posix_ms(void)
  * @param[out] pMsTime the current time in micro-second
  * @return void
  */
-void tal_time_get_system_time(OUT TIME_S *pSecTime, OUT TIME_MS *pMsTime)
+void tal_time_get_system_time(TIME_S *pSecTime, TIME_MS *pMsTime)
 {
     static SYS_TIME_T last_ms = 0;
     static SYS_TIME_T roll_ms = 0;
@@ -515,7 +515,7 @@ void tal_time_get_system_time(OUT TIME_S *pSecTime, OUT TIME_MS *pMsTime)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_set_time_zone(IN const CHAR_T *time_zone)
+OPERATE_RET tal_time_set_time_zone(const char *time_zone)
 {
     OPERATE_RET op_ret = OPRT_OK;
     op_ret = __get_time_zone(time_zone, &s_time_tz);
@@ -534,7 +534,7 @@ OPERATE_RET tal_time_set_time_zone(IN const CHAR_T *time_zone)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_get_time_zone_seconds(OUT int32_t *time_zone)
+OPERATE_RET tal_time_get_time_zone_seconds(int32_t *time_zone)
 {
     *time_zone = s_time_tz;
     return OPRT_OK;
@@ -547,7 +547,7 @@ OPERATE_RET tal_time_get_time_zone_seconds(OUT int32_t *time_zone)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_set_time_zone_seconds(IN int32_t time_zone_sec)
+OPERATE_RET tal_time_set_time_zone_seconds(int32_t time_zone_sec)
 {
     s_time_tz = time_zone_sec;
     s_time_tz_sync = TRUE;
@@ -566,7 +566,7 @@ OPERATE_RET tal_time_set_time_zone_seconds(IN int32_t time_zone_sec)
  * @note if in_time is 0, return the IoTOS local time, otherwise, translate the
  * in_time to local time
  */
-OPERATE_RET tal_time_get_local_time_custom(IN TIME_T in_time, OUT POSIX_TM_S *tm)
+OPERATE_RET tal_time_get_local_time_custom(TIME_T in_time, POSIX_TM_S *tm)
 {
     if (NULL == tm) {
         return OPRT_INVALID_PARM;
@@ -598,7 +598,7 @@ OPERATE_RET tal_time_get_local_time_custom(IN TIME_T in_time, OUT POSIX_TM_S *tm
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-void tal_time_set_sum_zone_tbl(IN const SUM_ZONE_S *zone, IN const uint32_t cnt)
+void tal_time_set_sum_zone_tbl(const SUM_ZONE_S *zone, const uint32_t cnt)
 {
     if (NULL == zone || 0 == cnt) {
         s_time_sz_tbl.cnt = 0;
@@ -624,7 +624,7 @@ void tal_time_set_sum_zone_tbl(IN const SUM_ZONE_S *zone, IN const uint32_t cnt)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_get_sum_time(OUT POSIX_TM_S *tm)
+OPERATE_RET tal_time_get_sum_time(POSIX_TM_S *tm)
 {
     TIME_T time = tal_time_get_sum_time_posix();
 
@@ -658,7 +658,7 @@ TIME_T tal_time_get_sum_time_posix(void)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_get_sum_zone(OUT SUM_ZONE_TBL_S *sum_zone)
+OPERATE_RET tal_time_get_sum_zone(SUM_ZONE_TBL_S *sum_zone)
 {
     if (NULL == sum_zone) {
         return OPRT_INVALID_PARM;

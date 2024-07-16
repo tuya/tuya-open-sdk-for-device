@@ -133,7 +133,7 @@ typedef uint8_t dp_pv_stat_t;
 typedef union {
     int dp_value;       // valid when dp type is value
     uint32_t dp_enum;   // valid when dp type is enum
-    CHAR_T *dp_str;     // valid when dp type is str
+    char *dp_str;       // valid when dp type is str
     bool dp_bool;       // valid when dp type is bool
     uint32_t dp_bitmap; // valid when dp type is bitmap
 } dp_value_t;
@@ -252,7 +252,7 @@ typedef struct {
     /** mutex */
     void *dp_str_mutex;
     /** dp value */
-    CHAR_T *value;
+    char *value;
 } dp_prop_str_t;
 
 /**

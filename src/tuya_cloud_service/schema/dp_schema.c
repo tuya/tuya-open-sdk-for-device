@@ -757,7 +757,8 @@ int dp_rept_valid_check(dp_schema_t *schema, dp_rept_in_t *dpin, dp_rept_valid_t
             return OPRT_SVC_DP_TP_NOT_MATCH;
         }
 
-        // Only the reported interface needs to be checked. Retransmission does not require verification and flow control
+        // Only the reported interface needs to be checked. Retransmission does not require verification and flow
+        // control
         if (dpin->rept_type != T_RE_TRANS_REPT) {
             if (FALSE == dp_type_check(dpin->rept_type, dp, dpnode)) {
                 continue;
@@ -994,7 +995,7 @@ static int dp_obj_json_create(cJSON *root, dp_node_t *dpnode)
 {
     int length = 0;
 
-    CHAR_T dpid[10] = {0};
+    char dpid[10] = {0};
     snprintf(dpid, 10, "%d", dpnode->desc.id);
 
     switch (dpnode->desc.prop_tp) {
@@ -1199,14 +1200,14 @@ char *dp_obj_dump_all_json(char *devid, int flags)
         return NULL;
     }
 
-    CHAR_T *tmp = cJSON_PrintUnformatted(cjson);
+    char *tmp = cJSON_PrintUnformatted(cjson);
     cJSON_Delete(cjson);
     if (NULL == tmp) {
         PR_ERR("Json err");
         return NULL;
     }
 
-    CHAR_T *out = tmp;
+    char *out = tmp;
 
     if (flags & DP_APPEND_HEADER_FLAG) {
         dp_rept_json_append(schema, out, NULL, NULL, 0, &out);

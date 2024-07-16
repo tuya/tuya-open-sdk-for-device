@@ -34,13 +34,13 @@
  * @param[in/out] token
  * @return int32_t
  */
-int32_t __tts_baidu_get_token(CHAR_T *token)
+int32_t __tts_baidu_get_token(char *token)
 {
     int32_t rt = OPRT_OK;
     cJSON *response = NULL;
     uint16_t cacert_len = 0;
     uint8_t *cacert = NULL;
-    CHAR_T *path_buf = NULL;
+    char *path_buf = NULL;
     size_t path_buf_length = 256;
 
     /* HTTP Response */
@@ -54,7 +54,7 @@ int32_t __tts_baidu_get_token(CHAR_T *token)
              ASR_BAIDU_CLIENTID, ASR_BAIDU_CLIENT_SECURET);
 
     /* make HTTP body */
-    CHAR_T body_buf[8] = {0};
+    char body_buf[8] = {0};
     snprintf(body_buf, 8, "{}");
 
     /* HTTP headers */
@@ -85,7 +85,7 @@ int32_t __tts_baidu_get_token(CHAR_T *token)
         goto err_exit;
     }
 
-    response = cJSON_Parse((CHAR_T *)http_response.body);
+    response = cJSON_Parse((char *)http_response.body);
     if (response) {
         PR_DEBUG("response: %s", cJSON_PrintUnformatted(response));
         strcpy(token, cJSON_GetObjectItem(response, "access_token")->valuestring);
@@ -114,14 +114,14 @@ err_exit:
  * @param volume the volume of tts:0-15,default is 5
  * @return int32_t OPRT_OK:success;other:fail
  */
-int32_t tts_request_baidu(TTS_format_e format, CHAR_T *text, int32_t voice, CHAR_T *lang, int32_t speed, int32_t pitch,
+int32_t tts_request_baidu(TTS_format_e format, char *text, int32_t voice, char *lang, int32_t speed, int32_t pitch,
                           int32_t volume)
 {
     int32_t rt = OPRT_OK;
     uint16_t cacert_len = 0;
     uint8_t *cacert = NULL;
-    CHAR_T *path_buf = NULL;
-    CHAR_T *body_buf = NULL;
+    char *path_buf = NULL;
+    char *body_buf = NULL;
     size_t path_buf_length = 128;
 
     /* HTTP Response */
@@ -134,7 +134,7 @@ int32_t tts_request_baidu(TTS_format_e format, CHAR_T *text, int32_t voice, CHAR
     snprintf(path_buf, 128, "%s", TTS_BAIDU_SHORT_PATH);
 
     /* get token */
-    CHAR_T token[128] = {};
+    char token[128] = {};
     TUYA_CALL_ERR_GOTO(__tts_baidu_get_token(token), err_exit);
 
     /* make HTTP body */

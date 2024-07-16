@@ -43,7 +43,7 @@
  * @return A pointer to the allocated memory block, or NULL if the allocation
  * fails.
  */
-void *tal_malloc(SIZE_T size)
+void *tal_malloc(size_t size)
 {
     if (0 == size) {
         return NULL;
@@ -86,7 +86,7 @@ void tal_free(void *ptr)
  * @param size The size of each element in bytes.
  * @return A pointer to the allocated memory, or NULL if the allocation fails.
  */
-void *tal_calloc(SIZE_T nitems, SIZE_T size)
+void *tal_calloc(size_t nitems, size_t size)
 {
     return tkl_system_calloc(nitems, size);
 }
@@ -100,7 +100,7 @@ void *tal_calloc(SIZE_T nitems, SIZE_T size)
  * @return      Pointer to the reallocated memory block, or `NULL` if the
  * operation fails.
  */
-void *tal_realloc(void *ptr, SIZE_T size)
+void *tal_realloc(void *ptr, size_t size)
 {
     return tkl_system_realloc(ptr, size);
 }
@@ -192,7 +192,7 @@ int32_t tal_system_get_random(uint32_t range)
  *
  * @return The reset reason of the system.
  */
-TUYA_RESET_REASON_E tal_system_get_reset_reason(CHAR_T **describe)
+TUYA_RESET_REASON_E tal_system_get_reset_reason(char **describe)
 {
     return tkl_system_get_reset_reason(describe);
 }

@@ -46,7 +46,7 @@ typedef struct {
     uint32_t stackDepth;
     THREAD_ENTER_CB enter;
     THREAD_EXIT_CB exit;
-    CHAR_T thread_name[TAL_THREAD_MAX_NAME_LEN];
+    char thread_name[TAL_THREAD_MAX_NAME_LEN];
     LIST_HEAD node;
 } THRD_MANAGE, *P_THRD_MANAGE;
 
@@ -58,8 +58,8 @@ typedef struct {
 static DEL_THRD_MAG_S *s_del_thrd_mag = NULL;
 static LIST_HEAD s_all_thrd_mag;
 
-static void __WrapRunFunc(IN void *pArg);
-static void __inner_del_thread(IN THREAD_HANDLE thrdID);
+static void __WrapRunFunc(void *pArg);
+static void __inner_del_thread(THREAD_HANDLE thrdID);
 
 static OPERATE_RET __cr_and_init_del_thrd_mag(void)
 {
@@ -98,7 +98,7 @@ static void __add_del_thrd_node(THRD_MANAGE *thrd)
 }
 
 // need to port in different os
-static void __inner_del_thread(IN THREAD_HANDLE thrdID)
+static void __inner_del_thread(THREAD_HANDLE thrdID)
 {
     PR_DEBUG("real delete thread:%p", thrdID);
     // delete thread process
@@ -220,7 +220,7 @@ OPERATE_RET tal_thread_create_and_start(THREAD_HANDLE *handle, const THREAD_ENTE
     return OPRT_OK;
 }
 
-static void __WrapRunFunc(IN void *pArg)
+static void __WrapRunFunc(void *pArg)
 {
     __free_all_del_thrd_node();
 

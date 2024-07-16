@@ -39,14 +39,14 @@ extern void netmgr_cmd(int argc, char *argv[]);
  * @param argv
  * @return void
  */
-static void switch_test(int32_t argc, CHAR_T *argv[])
+static void switch_test(int32_t argc, char *argv[])
 {
     if (argc < 2) {
         PR_INFO("usge: switch <on/off>");
         return;
     }
 
-    CHAR_T bool_value[128];
+    char bool_value[128];
     if (0 == strcmp(argv[1], "on")) {
         sprintf(bool_value, "{\"1\": true}");
     } else if (0 == strcmp(argv[1], "off")) {
@@ -66,9 +66,9 @@ static void switch_test(int32_t argc, CHAR_T *argv[])
  * @param argv
  * @return void
  */
-static void system_cmd(int32_t argc, CHAR_T *argv[])
+static void system_cmd(int32_t argc, char *argv[])
 {
-    CHAR_T cmd[256];
+    char cmd[256];
 
     if (argc < 2) {
         PR_INFO("usge: sys <cmd>");

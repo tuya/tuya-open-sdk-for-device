@@ -1,19 +1,19 @@
 /**
  * @file tdd_sw_i2c.c
  * @brief Software I2C implementation for SDK.
- * 
+ *
  * This file provides the implementation of a software-based I2C (Inter-Integrated Circuit) protocol
  * specifically designed for Tuya IoT devices. It includes functions for initializing I2C pins,
  * starting and stopping I2C communication, sending and receiving bytes, and reading and writing data
  * over the I2C bus using software bit-banging technique.
- * 
+ *
  * @copyright Copyright (c) 2021-2024 Tuya Inc. All Rights Reserved.
- * 
+ *
  */
 
 #include "tuya_iot_config.h"
 
-#if defined(ENABLE_GPIO) && (ENABLE_GPIO) 
+#if defined(ENABLE_GPIO) && (ENABLE_GPIO)
 #include "tkl_gpio.h"
 #include "tal_log.h"
 #include "tkl_output.h"
@@ -22,33 +22,34 @@
 /***********************************************************
 ************************macro define************************
 ***********************************************************/
-#define I2C_WRITE           0
-#define I2C_READ            1
+#define I2C_WRITE 0
+#define I2C_READ  1
 
 /* You can change the I2C frequency by changing this value */
-#define DELAY_US            5
+#define DELAY_US 5
 
 /*
-* Adaptation is needed based on the chip platform.
-*/
-#define TICK_US             2
+ * Adaptation is needed based on the chip platform.
+ */
+#define TICK_US 2
 
-#define I2C_SCL_INIT()      __sw_i2c_scl_init(i2c_pin.scl)
-#define I2C_SCL_H()         __sw_i2c_write(i2c_pin.scl, TUYA_GPIO_LEVEL_HIGH)
-#define I2C_SCL_L()         __sw_i2c_write(i2c_pin.scl, TUYA_GPIO_LEVEL_LOW)
+#define I2C_SCL_INIT() __sw_i2c_scl_init(i2c_pin.scl)
+#define I2C_SCL_H()    __sw_i2c_write(i2c_pin.scl, TUYA_GPIO_LEVEL_HIGH)
+#define I2C_SCL_L()    __sw_i2c_write(i2c_pin.scl, TUYA_GPIO_LEVEL_LOW)
 
-#define I2C_SDA_INIT_OUT()  __sw_i2c_sda_init(i2c_pin.sda, FALSE)
-#define I2C_SDA_H()         __sw_i2c_write(i2c_pin.sda, TUYA_GPIO_LEVEL_HIGH)
-#define I2C_SDA_L()         __sw_i2c_write(i2c_pin.sda, TUYA_GPIO_LEVEL_LOW)
+#define I2C_SDA_INIT_OUT() __sw_i2c_sda_init(i2c_pin.sda, FALSE)
+#define I2C_SDA_H()        __sw_i2c_write(i2c_pin.sda, TUYA_GPIO_LEVEL_HIGH)
+#define I2C_SDA_L()        __sw_i2c_write(i2c_pin.sda, TUYA_GPIO_LEVEL_LOW)
 
-#define I2C_SDA_INIT_IN()   __sw_i2c_sda_init(i2c_pin.sda, TRUE)
-#define I2C_SDA_READ()      __sw_i2c_sda_read(i2c_pin.sda)
+#define I2C_SDA_INIT_IN() __sw_i2c_sda_init(i2c_pin.sda, TRUE)
+#define I2C_SDA_READ()    __sw_i2c_sda_read(i2c_pin.sda)
 
-#define I2C_DELAY(us) \
-do { \
-    volatile uint32_t i = us * TICK_US; \
-    while (i--); \
-} while(0)
+#define I2C_DELAY(us)                                                                                                  \
+    do {                                                                                                               \
+        volatile uint32_t i = us * TICK_US;                                                                            \
+        while (i--)                                                                                                    \
+            ;                                                                                                          \
+    } while (0)
 
 /***********************************************************
 ***********************typedef define***********************
@@ -77,10 +78,7 @@ static SW_I2C_GPIO_T sg_i2c_pin[SW_I2C_PORT_NUM_MAX] = {{0, 0}, {0, 0}, {0, 0}, 
 static void __sw_i2c_scl_init(TUYA_GPIO_NUM_E pin)
 {
     TUYA_GPIO_BASE_CFG_T pin_cfg = {
-        .mode = TUYA_GPIO_PUSH_PULL,
-        .direct = TUYA_GPIO_OUTPUT,
-        .level = TUYA_GPIO_LEVEL_LOW
-    };
+        .mode = TUYA_GPIO_PUSH_PULL, .direct = TUYA_GPIO_OUTPUT, .level = TUYA_GPIO_LEVEL_LOW};
 
     tkl_gpio_init(pin, &pin_cfg);
 
@@ -270,9 +268,9 @@ static BOOL_T __sw_i2c_get_ack(SW_I2C_GPIO_T i2c_pin, uint32_t flags)
  *
  * @return none
  */
-static void __sw_i2c_send_byte(SW_I2C_GPIO_T i2c_pin, UCHAR_T data)
+static void __sw_i2c_send_byte(SW_I2C_GPIO_T i2c_pin, uint8_t data)
 {
-    UCHAR_T i = 0;
+    uint8_t i = 0;
 
     I2C_SCL_L();
     I2C_SDA_INIT_OUT();
@@ -302,10 +300,10 @@ static void __sw_i2c_send_byte(SW_I2C_GPIO_T i2c_pin, UCHAR_T data)
  *
  * @return read byte
  */
-static UCHAR_T __sw_i2c_read_byte(SW_I2C_GPIO_T i2c_pin, BOOL_T need_ack)
+static uint8_t __sw_i2c_read_byte(SW_I2C_GPIO_T i2c_pin, BOOL_T need_ack)
 {
-    UCHAR_T read_byte = 0x00;
-    UCHAR_T i = 0;
+    uint8_t read_byte = 0x00;
+    uint8_t i = 0;
 
     I2C_SCL_L();
     I2C_SDA_INIT_IN();
@@ -340,7 +338,7 @@ static UCHAR_T __sw_i2c_read_byte(SW_I2C_GPIO_T i2c_pin, BOOL_T need_ack)
  *
  * @return operation result
  */
-static int32_t __sw_i2c_write_data(UCHAR_T port, UCHAR_T addr, const UCHAR_T *buf, UCHAR_T len, uint32_t flags)
+static int32_t __sw_i2c_write_data(uint8_t port, uint8_t addr, const uint8_t *buf, uint8_t len, uint32_t flags)
 {
     if (0 == (flags & SW_I2C_FLAG_NO_START)) {
         __sw_i2c_start(sg_i2c_pin[port]);
@@ -355,7 +353,7 @@ static int32_t __sw_i2c_write_data(UCHAR_T port, UCHAR_T addr, const UCHAR_T *bu
         }
     }
 
-    for (UCHAR_T i = 0; i < len; i++) {
+    for (uint8_t i = 0; i < len; i++) {
         __sw_i2c_send_byte(sg_i2c_pin[port], buf[i]);
         if (0 == (flags & SW_I2C_FLAG_NO_READ_ACK)) {
             if (!__sw_i2c_get_ack(sg_i2c_pin[port], flags)) {
@@ -381,9 +379,9 @@ static int32_t __sw_i2c_write_data(UCHAR_T port, UCHAR_T addr, const UCHAR_T *bu
  *
  * @return operation result
  */
-static int32_t __sw_i2c_read_data(UCHAR_T port, UCHAR_T addr, UCHAR_T *buf, UCHAR_T len, uint32_t flags)
+static int32_t __sw_i2c_read_data(uint8_t port, uint8_t addr, uint8_t *buf, uint8_t len, uint32_t flags)
 {
-    UCHAR_T i;
+    uint8_t i;
 
     if (0 == (flags & SW_I2C_FLAG_NO_START)) {
         __sw_i2c_start(sg_i2c_pin[port]);
@@ -398,7 +396,7 @@ static int32_t __sw_i2c_read_data(UCHAR_T port, UCHAR_T addr, UCHAR_T *buf, UCHA
         }
     }
 
-    for (i = 0; i < len-1; i++) {
+    for (i = 0; i < len - 1; i++) {
         buf[i] = __sw_i2c_read_byte(sg_i2c_pin[port], TRUE);
     }
     buf[i] = __sw_i2c_read_byte(sg_i2c_pin[port], FALSE);
@@ -433,7 +431,7 @@ static void __sw_i2c_init(SW_I2C_GPIO_T i2c_pin)
  *
  * @return OPRT_OK on success, others on error
  */
-OPERATE_RET tdd_sw_i2c_init(UCHAR_T port, SW_I2C_GPIO_T i2c_pin)
+OPERATE_RET tdd_sw_i2c_init(uint8_t port, SW_I2C_GPIO_T i2c_pin)
 {
     if (port >= SW_I2C_PORT_NUM_MAX) {
         return OPRT_INVALID_PARM;
@@ -453,7 +451,7 @@ OPERATE_RET tdd_sw_i2c_init(UCHAR_T port, SW_I2C_GPIO_T i2c_pin)
  *
  * @return OPRT_OK on success, others on error
  */
-OPERATE_RET tdd_sw_i2c_deinit(UCHAR_T port)
+OPERATE_RET tdd_sw_i2c_deinit(uint8_t port)
 {
     if (port >= SW_I2C_PORT_NUM_MAX) {
         return OPRT_INVALID_PARM;
@@ -473,18 +471,18 @@ OPERATE_RET tdd_sw_i2c_deinit(UCHAR_T port)
  *
  * @return OPRT_OK on success, others on error
  */
-OPERATE_RET tdd_sw_i2c_xfer(UCHAR_T port, SW_I2C_MSG_T *msg)
+OPERATE_RET tdd_sw_i2c_xfer(uint8_t port, SW_I2C_MSG_T *msg)
 {
     if ((port >= SW_I2C_PORT_NUM_MAX) || (NULL == msg) || (NULL == msg->buff) || (0 == msg->len)) {
         return OPRT_INVALID_PARM;
     }
 
     if (msg->flags & SW_I2C_FLAG_WR) {
-        __sw_i2c_write_data(port, msg->addr, msg->buff, (UCHAR_T)msg->len, msg->flags);
+        __sw_i2c_write_data(port, msg->addr, msg->buff, (uint8_t)msg->len, msg->flags);
     }
 
     if (msg->flags & SW_I2C_FLAG_RD) {
-        __sw_i2c_read_data(port, msg->addr, msg->buff, (UCHAR_T)msg->len, msg->flags);
+        __sw_i2c_read_data(port, msg->addr, msg->buff, (uint8_t)msg->len, msg->flags);
     }
 
     return OPRT_OK;

@@ -1,18 +1,22 @@
 /**
  * @file example_wifi_sta.c
  * @brief WiFi Station (STA) mode example for SDK.
- * 
- * This file demonstrates the setup and management of a device in WiFi Station mode using the Tuya IoT SDK. 
- * It includes initializing the WiFi module, connecting to a specified WiFi network (SSID and password), handling WiFi events (connection success, connection failure, disconnection), and maintaining a connection to the WiFi network. 
- * The example covers the implementation of a WiFi event callback function, a main user task for initiating WiFi connection, and conditional compilation for different operating systems to showcase portability across platforms supported by the Tuya IoT SDK.
- * 
- * The code aims to provide a clear example of managing WiFi connectivity in IoT devices, which is a fundamental requirement for most IoT applications. 
- * It demonstrates how to use Tuya's APIs to connect to WiFi networks, handle connection events, and ensure the device operates correctly in WiFi Station mode.
- * 
+ *
+ * This file demonstrates the setup and management of a device in WiFi Station mode using the Tuya IoT SDK.
+ * It includes initializing the WiFi module, connecting to a specified WiFi network (SSID and password), handling WiFi
+ * events (connection success, connection failure, disconnection), and maintaining a connection to the WiFi network. The
+ * example covers the implementation of a WiFi event callback function, a main user task for initiating WiFi connection,
+ * and conditional compilation for different operating systems to showcase portability across platforms supported by the
+ * Tuya IoT SDK.
+ *
+ * The code aims to provide a clear example of managing WiFi connectivity in IoT devices, which is a fundamental
+ * requirement for most IoT applications. It demonstrates how to use Tuya's APIs to connect to WiFi networks, handle
+ * connection events, and ensure the device operates correctly in WiFi Station mode.
+ *
  * @note This example is designed for educational purposes and may need to be adapted for production environments.
- * 
+ *
  * @copyright Copyright (c) 2021-2024 Tuya Inc. All Rights Reserved.
- * 
+ *
  */
 
 #include "tuya_cloud_types.h"
@@ -25,27 +29,24 @@
 *************************micro define***********************
 ***********************************************************/
 
-
 /***********************************************************
 ***********************typedef define***********************
 ***********************************************************/
-
 
 /***********************************************************
 ***********************variable define**********************
 ***********************************************************/
 
-
 /***********************************************************
 ***********************function define**********************
 ***********************************************************/
 /**
-* @brief wifi Related event callback function
-*
-* @param[in] event:event
-* @param[in] arg:parameter
-* @return none
-*/
+ * @brief wifi Related event callback function
+ *
+ * @param[in] event:event
+ * @param[in] arg:parameter
+ * @return none
+ */
 static void wifi_event_callback(WF_EVENT_E event, void *arg)
 {
     OPERATE_RET op_ret = OPRT_OK;
@@ -54,46 +55,46 @@ static void wifi_event_callback(WF_EVENT_E event, void *arg)
 
     PR_DEBUG("-------------event callback-------------");
     switch (event) {
-        case WFE_CONNECTED:{
-            PR_DEBUG("connection succeeded!");
+    case WFE_CONNECTED: {
+        PR_DEBUG("connection succeeded!");
 
-            /* output ip information */
-            op_ret = tal_wifi_get_ip(WF_STATION, &sta_info);
-            if (OPRT_OK != op_ret) {
-                PR_ERR("get station ip error");
-                return;
-            }
-            PR_NOTICE("gw: %s", sta_info.gw);
-            PR_NOTICE("ip: %s", sta_info.ip);
-            PR_NOTICE("mask: %s", sta_info.mask);
-            break;
+        /* output ip information */
+        op_ret = tal_wifi_get_ip(WF_STATION, &sta_info);
+        if (OPRT_OK != op_ret) {
+            PR_ERR("get station ip error");
+            return;
         }
+        PR_NOTICE("gw: %s", sta_info.gw);
+        PR_NOTICE("ip: %s", sta_info.ip);
+        PR_NOTICE("mask: %s", sta_info.mask);
+        break;
+    }
 
-        case WFE_CONNECT_FAILED: {
-            PR_DEBUG("connection fail!");
-            break;
-        }
+    case WFE_CONNECT_FAILED: {
+        PR_DEBUG("connection fail!");
+        break;
+    }
 
-        case WFE_DISCONNECTED: {
-            PR_DEBUG("disconnect!");
-            break;        
-        }
+    case WFE_DISCONNECTED: {
+        PR_DEBUG("disconnect!");
+        break;
+    }
     }
 }
 
 /**
-* @brief WiFi STA task
-*
-* @param[in] param:Task parameters
-* @return none
-*/
+ * @brief WiFi STA task
+ *
+ * @param[in] param:Task parameters
+ * @return none
+ */
 void user_main()
 {
     OPERATE_RET rt = OPRT_OK;
-    CHAR_T connect_ssid[] = "your-ssid-xxx";    // connect wifi ssid
-    CHAR_T connect_pswd[] = "your-pswd-xxx";    // connect wifi password
+    char connect_ssid[] = "your-ssid-xxx"; // connect wifi ssid
+    char connect_pswd[] = "your-pswd-xxx"; // connect wifi password
 
-    tal_log_init(TAL_LOG_LEVEL_DEBUG,  1024, (TAL_LOG_OUTPUT_CB)tkl_log_output);
+    tal_log_init(TAL_LOG_LEVEL_DEBUG, 1024, (TAL_LOG_OUTPUT_CB)tkl_log_output);
     PR_NOTICE("------ wifi station example start ------");
 
     /*WiFi init*/
@@ -104,7 +105,7 @@ void user_main()
 
     /*STA mode, connect to WiFi*/
     PR_NOTICE("\r\nconnect wifi ssid: %s, password: %s\r\n", connect_ssid, connect_pswd);
-    TUYA_CALL_ERR_LOG(tal_wifi_station_connect((SCHAR_T *)connect_ssid, (SCHAR_T *)connect_pswd));
+    TUYA_CALL_ERR_LOG(tal_wifi_station_connect((int8_t *)connect_ssid, (int8_t *)connect_pswd));
 
 __EXIT:
     return;
@@ -112,17 +113,16 @@ __EXIT:
 
 /**
  * @brief main
- * 
- * @param argc 
- * @param argv 
- * @return void 
+ *
+ * @param argc
+ * @param argv
+ * @return void
  */
 #if OPERATING_SYSTEM == SYSTEM_LINUX
 void main(int argc, char *argv[])
 {
     user_main();
-    while (1)
-    {
+    while (1) {
         tal_system_sleep(500);
     }
 }
@@ -132,15 +132,15 @@ void main(int argc, char *argv[])
 static THREAD_HANDLE ty_app_thread = NULL;
 
 /**
-* @brief  task thread
-*
-* @param[in] arg:Parameters when creating a task
-* @return none
-*/
+ * @brief  task thread
+ *
+ * @param[in] arg:Parameters when creating a task
+ * @return none
+ */
 static void tuya_app_thread(void *arg)
 {
     user_main();
-    
+
     tal_thread_delete(ty_app_thread);
     ty_app_thread = NULL;
 }
@@ -151,4 +151,3 @@ void tuya_app_main(void)
     tal_thread_create_and_start(&ty_app_thread, NULL, NULL, tuya_app_thread, NULL, &thrd_param);
 }
 #endif
-

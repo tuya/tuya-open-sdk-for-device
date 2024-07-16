@@ -249,8 +249,8 @@ OPERATE_RET tal_net_fd_zero(TUYA_FD_SET_T *fds)
  *
  * @return the count of available file descriptors.
  */
-int32_t tal_net_select(IN const int32_t maxfd, INOUT TUYA_FD_SET_T *readfds, INOUT TUYA_FD_SET_T *writefds,
-                       OUT TUYA_FD_SET_T *errorfds, IN const uint32_t ms_timeout)
+int32_t tal_net_select(const int32_t maxfd, TUYA_FD_SET_T *readfds, TUYA_FD_SET_T *writefds, TUYA_FD_SET_T *errorfds,
+                       const uint32_t ms_timeout)
 {
     int ret = -1;
 
@@ -279,7 +279,7 @@ int32_t tal_net_select(IN const int32_t maxfd, INOUT TUYA_FD_SET_T *readfds, INO
  *
  * @return the count of no block file descriptors.
  */
-int32_t tal_net_get_nonblock(IN const int32_t fd)
+int32_t tal_net_get_nonblock(const int32_t fd)
 {
     int ret = 0;
 
@@ -309,7 +309,7 @@ int32_t tal_net_get_nonblock(IN const int32_t fd)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_net_set_block(IN const int32_t fd, IN const BOOL_T block)
+OPERATE_RET tal_net_set_block(const int32_t fd, const BOOL_T block)
 {
     int ret = 0;
 
@@ -347,7 +347,7 @@ OPERATE_RET tal_net_set_block(IN const int32_t fd, IN const BOOL_T block)
  * @return 0 on success. Others on error, please refer to the error no of the
  * target system
  */
-TUYA_ERRNO tal_net_close(IN const int32_t fd)
+TUYA_ERRNO tal_net_close(const int32_t fd)
 {
     int ret = 0;
 
@@ -373,7 +373,7 @@ TUYA_ERRNO tal_net_close(IN const int32_t fd)
  *
  * @return file descriptor
  */
-int32_t tal_net_socket_create(IN const TUYA_PROTOCOL_TYPE_E type)
+int32_t tal_net_socket_create(const TUYA_PROTOCOL_TYPE_E type)
 {
     int32_t fd = -1;
 
@@ -404,7 +404,7 @@ int32_t tal_net_socket_create(IN const TUYA_PROTOCOL_TYPE_E type)
  * @return 0 on success. Others on error, please refer to the error no of the
  * target system
  */
-TUYA_ERRNO tal_net_connect(IN const int32_t fd, IN const TUYA_IP_ADDR_T addr, IN const UINT16_T port)
+TUYA_ERRNO tal_net_connect(const int32_t fd, const TUYA_IP_ADDR_T addr, const uint16_t port)
 {
     int ret = -1;
 
@@ -414,7 +414,7 @@ TUYA_ERRNO tal_net_connect(IN const int32_t fd, IN const TUYA_IP_ADDR_T addr, IN
 
 #if NET_USING_POSIX
     struct sockaddr_in sock_addr;
-    UINT16_T tmp_port = port;
+    uint16_t tmp_port = port;
     TUYA_IP_ADDR_T tmp_addr = addr;
 
     sock_addr.sin_family = AF_INET;
@@ -441,7 +441,7 @@ TUYA_ERRNO tal_net_connect(IN const int32_t fd, IN const TUYA_IP_ADDR_T addr, IN
  * @return 0 on success. Others on error, please refer to the error no of the
  * target system
  */
-TUYA_ERRNO tal_net_connect_raw(IN const int32_t fd, void *p_socket_addr, IN const int32_t len)
+TUYA_ERRNO tal_net_connect_raw(const int32_t fd, void *p_socket_addr, const int32_t len)
 {
     int ret = -1;
 
@@ -459,7 +459,7 @@ TUYA_ERRNO tal_net_connect_raw(IN const int32_t fd, void *p_socket_addr, IN cons
 }
 
 #if defined(ENABLE_BIND_INTERFACE) && 1 == ENABLE_BIND_INTERFACE
-static TUYA_ERRNO __bind_interface(IN const int32_t fd, IN const TUYA_IP_ADDR_T addr)
+static TUYA_ERRNO __bind_interface(const int32_t fd, const TUYA_IP_ADDR_T addr)
 {
     int32_t ret = 0;
     int32_t i = 0;
@@ -515,7 +515,7 @@ static TUYA_ERRNO __bind_interface(IN const int32_t fd, IN const TUYA_IP_ADDR_T 
  * @return 0 on success. Others on error, please refer to the error no of the
  * target system
  */
-TUYA_ERRNO tal_net_bind(IN const int32_t fd, IN const TUYA_IP_ADDR_T addr, IN const UINT16_T port)
+TUYA_ERRNO tal_net_bind(const int32_t fd, const TUYA_IP_ADDR_T addr, const uint16_t port)
 {
     int ret = -1;
 
@@ -524,7 +524,7 @@ TUYA_ERRNO tal_net_bind(IN const int32_t fd, IN const TUYA_IP_ADDR_T addr, IN co
     }
 
 #if NET_USING_POSIX
-    UINT16_T tmp_port = port;
+    uint16_t tmp_port = port;
     TUYA_IP_ADDR_T tmp_addr = addr;
 
     struct sockaddr_in sock_addr;
@@ -558,7 +558,7 @@ TUYA_ERRNO tal_net_bind(IN const int32_t fd, IN const TUYA_IP_ADDR_T addr, IN co
  * @return 0 on success. Others on error, please refer to the error no of the
  * target system
  */
-TUYA_ERRNO tal_net_listen(IN const int32_t fd, IN const int32_t backlog)
+TUYA_ERRNO tal_net_listen(const int32_t fd, const int32_t backlog)
 {
     int ret = -1;
 
@@ -587,7 +587,7 @@ TUYA_ERRNO tal_net_listen(IN const int32_t fd, IN const int32_t backlog)
  * @return 0 on success. Others on error, please refer to the error no of the
  * target system
  */
-int32_t tal_net_accept(IN const int32_t fd, OUT TUYA_IP_ADDR_T *addr, OUT UINT16_T *port)
+int32_t tal_net_accept(const int32_t fd, TUYA_IP_ADDR_T *addr, uint16_t *port)
 {
     int ret = -1;
 
@@ -629,7 +629,7 @@ int32_t tal_net_accept(IN const int32_t fd, OUT TUYA_IP_ADDR_T *addr, OUT UINT16
  * @return 0 on success. Others on error, please refer to the error no of the
  * target system
  */
-TUYA_ERRNO tal_net_send(IN const int32_t fd, IN const void *buf, IN const uint32_t nbytes)
+TUYA_ERRNO tal_net_send(const int32_t fd, const void *buf, const uint32_t nbytes)
 {
     int ret = -1;
 
@@ -660,8 +660,8 @@ TUYA_ERRNO tal_net_send(IN const int32_t fd, IN const void *buf, IN const uint32
  * @return 0 on success. Others on error, please refer to the error no of the
  * target system
  */
-TUYA_ERRNO tal_net_send_to(IN const int32_t fd, IN const void *buf, IN const uint32_t nbytes,
-                           IN const TUYA_IP_ADDR_T addr, IN const UINT16_T port)
+TUYA_ERRNO tal_net_send_to(const int32_t fd, const void *buf, const uint32_t nbytes, const TUYA_IP_ADDR_T addr,
+                           const uint16_t port)
 {
     int ret = -1;
 
@@ -670,7 +670,7 @@ TUYA_ERRNO tal_net_send_to(IN const int32_t fd, IN const void *buf, IN const uin
     }
 
 #if NET_USING_POSIX
-    UINT16_T tmp_port = port;
+    uint16_t tmp_port = port;
     TUYA_IP_ADDR_T tmp_addr = addr;
 
     struct sockaddr_in sock_addr;
@@ -698,7 +698,7 @@ TUYA_ERRNO tal_net_send_to(IN const int32_t fd, IN const void *buf, IN const uin
  * @return 0 on success. Others on error, please refer to the error no of the
  * target system
  */
-TUYA_ERRNO tal_net_recv(IN const int32_t fd, OUT void *buf, IN const uint32_t nbytes)
+TUYA_ERRNO tal_net_recv(const int32_t fd, void *buf, const uint32_t nbytes)
 {
     int ret = -1;
 
@@ -732,7 +732,7 @@ TUYA_ERRNO tal_net_recv(IN const int32_t fd, OUT void *buf, IN const uint32_t nb
  *
  * @return >0 on success. Others on error
  */
-int32_t tal_net_recv_nd_size(IN const int32_t fd, OUT void *buf, IN const uint32_t buf_size, IN const uint32_t nd_size)
+int32_t tal_net_recv_nd_size(const int32_t fd, void *buf, const uint32_t buf_size, const uint32_t nd_size)
 {
     int ret = -1;
 
@@ -781,8 +781,7 @@ int32_t tal_net_recv_nd_size(IN const int32_t fd, OUT void *buf, IN const uint32
  * @return 0 on success. Others on error, please refer to the error no of the
  * target system
  */
-TUYA_ERRNO tal_net_recvfrom(IN const int32_t fd, OUT void *buf, IN const uint32_t nbytes, OUT TUYA_IP_ADDR_T *addr,
-                            OUT UINT16_T *port)
+TUYA_ERRNO tal_net_recvfrom(const int32_t fd, void *buf, const uint32_t nbytes, TUYA_IP_ADDR_T *addr, uint16_t *port)
 {
     int ret = -1;
 
@@ -878,7 +877,7 @@ OPERATE_RET tal_net_getsockopt(const int32_t fd, const TUYA_OPT_LEVEL level, con
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_net_set_timeout(IN const int32_t fd, IN const int32_t ms_timeout, IN const TUYA_TRANS_TYPE_E type)
+OPERATE_RET tal_net_set_timeout(const int32_t fd, const int32_t ms_timeout, const TUYA_TRANS_TYPE_E type)
 {
     int ret = -1;
 
@@ -891,7 +890,7 @@ OPERATE_RET tal_net_set_timeout(IN const int32_t fd, IN const int32_t ms_timeout
     struct timeval timeout = {ms_timeout / 1000, (ms_timeout % 1000) * 1000};
     int32_t optname = ((type == TRANS_RECV) ? SO_RCVTIMEO : SO_SNDTIMEO);
 
-    ret = tal_net_setsockopt(fd, SOL_SOCKET, optname, (const CHAR_T *)&timeout, sizeof(timeout));
+    ret = tal_net_setsockopt(fd, SOL_SOCKET, optname, (const char *)&timeout, sizeof(timeout));
 #else
     ret = tkl_net_set_timeout(fd, ms_timeout, type);
 #endif
@@ -911,7 +910,7 @@ OPERATE_RET tal_net_set_timeout(IN const int32_t fd, IN const int32_t ms_timeout
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_net_set_bufsize(IN const int32_t fd, IN const int32_t buf_size, IN const TUYA_TRANS_TYPE_E type)
+OPERATE_RET tal_net_set_bufsize(const int32_t fd, const int32_t buf_size, const TUYA_TRANS_TYPE_E type)
 {
     int ret = -1;
 
@@ -923,7 +922,7 @@ OPERATE_RET tal_net_set_bufsize(IN const int32_t fd, IN const int32_t buf_size, 
     int32_t size = buf_size;
     int32_t optname = ((type == TRANS_RECV) ? SO_RCVBUF : SO_SNDBUF);
 
-    ret = tal_net_setsockopt(fd, SOL_SOCKET, optname, (const CHAR_T *)&size, sizeof(size));
+    ret = tal_net_setsockopt(fd, SOL_SOCKET, optname, (const char *)&size, sizeof(size));
 #else
     ret = tkl_net_set_bufsize(fd, buf_size, type);
 #endif
@@ -941,7 +940,7 @@ OPERATE_RET tal_net_set_bufsize(IN const int32_t fd, IN const int32_t buf_size, 
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_net_set_reuse(IN const int32_t fd)
+OPERATE_RET tal_net_set_reuse(const int32_t fd)
 {
     int ret = -1;
 
@@ -952,7 +951,7 @@ OPERATE_RET tal_net_set_reuse(IN const int32_t fd)
 #if NET_USING_POSIX
     int32_t flag = 1;
 
-    ret = tal_net_setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const CHAR_T *)&flag, sizeof(int));
+    ret = tal_net_setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const char *)&flag, sizeof(int));
 #else
     ret = tkl_net_set_reuse(fd);
 #endif
@@ -970,7 +969,7 @@ OPERATE_RET tal_net_set_reuse(IN const int32_t fd)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_net_disable_nagle(IN const int32_t fd)
+OPERATE_RET tal_net_disable_nagle(const int32_t fd)
 {
     int ret = -1;
 
@@ -981,7 +980,7 @@ OPERATE_RET tal_net_disable_nagle(IN const int32_t fd)
 #if NET_USING_POSIX
     int32_t flag = 1;
 
-    ret = tal_net_setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (const CHAR_T *)&flag, sizeof(int));
+    ret = tal_net_setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (const char *)&flag, sizeof(int));
 #else
     ret = tkl_net_disable_nagle(fd);
 #endif
@@ -999,7 +998,7 @@ OPERATE_RET tal_net_disable_nagle(IN const int32_t fd)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_net_set_broadcast(IN const int32_t fd)
+OPERATE_RET tal_net_set_broadcast(const int32_t fd)
 {
     int ret = -1;
 
@@ -1008,7 +1007,7 @@ OPERATE_RET tal_net_set_broadcast(IN const int32_t fd)
     }
 #if NET_USING_POSIX
     int32_t flag = 1;
-    ret = tal_net_setsockopt(fd, SOL_SOCKET, SO_BROADCAST, (const CHAR_T *)&flag, sizeof(int));
+    ret = tal_net_setsockopt(fd, SOL_SOCKET, SO_BROADCAST, (const char *)&flag, sizeof(int));
 #else
     ret = tkl_net_set_broadcast(fd);
 #endif
@@ -1027,7 +1026,7 @@ OPERATE_RET tal_net_set_broadcast(IN const int32_t fd)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_net_gethostbyname(IN const CHAR_T *domain, OUT TUYA_IP_ADDR_T *addr)
+OPERATE_RET tal_net_gethostbyname(const char *domain, TUYA_IP_ADDR_T *addr)
 {
     int ret = -1;
 
@@ -1065,8 +1064,8 @@ OPERATE_RET tal_net_gethostbyname(IN const CHAR_T *domain, OUT TUYA_IP_ADDR_T *a
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_net_set_keepalive(IN int32_t fd, IN const BOOL_T alive, IN const uint32_t idle, IN const uint32_t intr,
-                                  IN const uint32_t cnt)
+OPERATE_RET tal_net_set_keepalive(int32_t fd, const BOOL_T alive, const uint32_t idle, const uint32_t intr,
+                                  const uint32_t cnt)
 {
     int ret = -1;
 
@@ -1131,7 +1130,7 @@ OPERATE_RET tal_net_get_socket_ip(int32_t fd, TUYA_IP_ADDR_T *addr)
  *
  * @return ip address
  */
-TUYA_IP_ADDR_T tal_net_str2addr(IN const CHAR_T *ip_str)
+TUYA_IP_ADDR_T tal_net_str2addr(const char *ip_str)
 {
 
 #if NET_USING_POSIX
@@ -1158,7 +1157,7 @@ TUYA_IP_ADDR_T tal_net_str2addr(IN const CHAR_T *ip_str)
  *
  * @return ip string
  */
-CHAR_T *tal_net_addr2str(TUYA_IP_ADDR_T ipaddr)
+char *tal_net_addr2str(TUYA_IP_ADDR_T ipaddr)
 {
 #if NET_USING_POSIX
     struct in_addr hostaddr;

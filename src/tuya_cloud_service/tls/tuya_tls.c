@@ -63,7 +63,7 @@ static mbedtls_ctr_drbg_context ty_ctr_drbg;
 static void __tuya_tls_event_cb(tuya_tls_event_t event, void *p_args)
 {
     OPERATE_RET rt = OPRT_OK;
-    const CHAR_T *p_url = (CHAR_T *)p_args;
+    const char *p_url = (char *)p_args;
     if (NULL == p_url) {
         PR_ERR("url was NULL");
         return;
@@ -236,7 +236,7 @@ int __tuya_tls_nv_seed_write(unsigned char *buf, size_t buf_len)
  * @return Returns an int32_t value indicating the success or failure of the
  * operation.
  */
-int32_t tuya_tls_register_x509_crt_der(void *p_ctx, UCHAR_T *p_der, uint32_t der_len)
+int32_t tuya_tls_register_x509_crt_der(void *p_ctx, uint8_t *p_der, uint32_t der_len)
 {
     mbedtls_x509_crt *p_cert_ctx = (mbedtls_x509_crt *)p_ctx;
     return mbedtls_x509_crt_parse(p_cert_ctx, (const unsigned char *)p_der, der_len);
@@ -543,8 +543,8 @@ tuya_tls_config_t *tuya_tls_config_get(tuya_tls_hander p_tls_handler)
  * @return OPERATE_RET Returns OPRT_OK if the connection is established
  * successfully, or an error code if the connection fails.
  */
-OPERATE_RET tuya_tls_connect(tuya_tls_hander p_tls_handler, IN CHAR_T *hostname, IN int32_t port_num,
-                             IN int32_t socket_fd, IN int32_t overtime_s)
+OPERATE_RET tuya_tls_connect(tuya_tls_hander p_tls_handler, char *hostname, int32_t port_num, int32_t socket_fd,
+                             int32_t overtime_s)
 {
     OPERATE_RET op_ret;
     tuya_mbedtls_context_t *tls_context = (tuya_mbedtls_context_t *)p_tls_handler;
@@ -643,7 +643,7 @@ OPERATE_RET tuya_tls_connect(tuya_tls_hander p_tls_handler, IN CHAR_T *hostname,
         if (op_ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED) {
             PR_NOTICE("tls handshake :%d .require new certs.", op_ret);
             if (tls_context->config.exception_cb != NULL) {
-                CHAR_T whole_hostname[TLS_URL_LEN] = {0};
+                char whole_hostname[TLS_URL_LEN] = {0};
                 if (port_num != 443) {
                     snprintf(whole_hostname, sizeof(whole_hostname), "%s:%d", hostname, port_num);
                 } else {
@@ -706,7 +706,7 @@ tuya_tls_connect_EXIT:
  * @return The number of bytes written on success, or a negative error code on
  * failure.
  */
-int32_t tuya_tls_write(IN tuya_tls_hander tls_handler, BYTE_T *buf, uint32_t len)
+int32_t tuya_tls_write(tuya_tls_hander tls_handler, uint8_t *buf, uint32_t len)
 {
     if ((tls_handler == NULL) || (buf == NULL) || (len == 0)) {
         PR_ERR("Input Invalid");
@@ -766,7 +766,7 @@ int32_t tuya_tls_write(IN tuya_tls_hander tls_handler, BYTE_T *buf, uint32_t len
  * @return The number of bytes read on success, or a negative error code on
  * failure.
  */
-int32_t tuya_tls_read(IN tuya_tls_hander tls_handler, BYTE_T *buf, uint32_t len)
+int32_t tuya_tls_read(tuya_tls_hander tls_handler, uint8_t *buf, uint32_t len)
 {
     if ((tls_handler == NULL) || (buf == NULL) || (len == 0)) {
         PR_ERR("Input Invalid");
@@ -789,7 +789,7 @@ int32_t tuya_tls_read(IN tuya_tls_hander tls_handler, BYTE_T *buf, uint32_t len)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tuya_tls_disconnect(IN tuya_tls_hander tls_handler)
+OPERATE_RET tuya_tls_disconnect(tuya_tls_hander tls_handler)
 {
     OPERATE_RET mu_ret = OPRT_OK;
 

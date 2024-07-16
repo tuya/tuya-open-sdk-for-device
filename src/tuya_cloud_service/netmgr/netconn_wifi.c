@@ -56,7 +56,7 @@ static void __netconn_wifi_connect_process(void *msg)
         tal_sw_timer_start(wifi->conn.timer, WIFI_CONN_TIMEOUT_MAX * 1000, TAL_TIMER_ONCE);
         wifi->conn.stat = NETCONN_WIFI_CONN_CHECK;
         tal_wifi_set_work_mode(WWM_STATION);
-        tal_wifi_station_connect((SCHAR_T *)wifi->conn.wifi_conn_info.ssid, (SCHAR_T *)wifi->conn.wifi_conn_info.pswd);
+        tal_wifi_station_connect((int8_t *)wifi->conn.wifi_conn_info.ssid, (int8_t *)wifi->conn.wifi_conn_info.pswd);
         break;
 
     case NETCONN_WIFI_MSG_DISCONNECT:
@@ -168,7 +168,7 @@ static void __netconn_wifi_conn_timer(TIMER_ID timer_id, void *arg)
 
 OPERATE_RET __netconn_wifi_info_set(netconn_wifi_info_t *info)
 {
-    CHAR_T netinfo[128];
+    char netinfo[128];
     sprintf(netinfo, "{\"s\":\"%s\",\"p\":\"%s\"}", info->ssid, info->pswd);
     PR_DEBUG("netinfo %s", netinfo);
 
@@ -382,7 +382,7 @@ OPERATE_RET netconn_wifi_set(netmgr_conn_config_type_e cmd, void *param)
         __netconn_wifi_connect();
         break;
     case NETCONN_CMD_COUNTRYCODE:
-        memcpy(netmgr_wifi->ccode, (CHAR_T *)param, strlen((CHAR_T *)param));
+        memcpy(netmgr_wifi->ccode, (char *)param, strlen((char *)param));
         TUYA_CALL_ERR_RETURN(tal_wifi_set_country_code(netmgr_wifi->ccode));
         break;
     case NETCONN_CMD_NETCFG: {
@@ -440,7 +440,7 @@ OPERATE_RET netconn_wifi_get(netmgr_conn_config_type_e cmd, void *param)
         memcpy((netconn_wifi_info_t *)param, &netmgr_wifi->conn.wifi_conn_info, sizeof(netconn_wifi_info_t));
         break;
     case NETCONN_CMD_COUNTRYCODE:
-        memcpy((CHAR_T *)param, netmgr_wifi->ccode, strlen(netmgr_wifi->ccode));
+        memcpy((char *)param, netmgr_wifi->ccode, strlen(netmgr_wifi->ccode));
         break;
     case NETCONN_CMD_IP:
         TUYA_CALL_ERR_RETURN(tal_wifi_get_ip(WF_STATION, (NW_IP_S *)param));

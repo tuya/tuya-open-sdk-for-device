@@ -32,7 +32,7 @@
 #define DEFAULT_RESPONSE_BUFFER_LEN 4096 + 512
 #define HTTP_TIMEOUT_MS_DEFAULT     30 * 1000
 
-typedef int32_t (*LLM_REQUEST_FUNC)(CHAR_T *q, CHAR_T **a);
+typedef int32_t (*LLM_REQUEST_FUNC)(char *q, char **a);
 /**
  * @brief define the large language model type
  *
@@ -48,10 +48,10 @@ typedef enum {
  *
  */
 typedef struct {
-    CHAR_T *token;
-    CHAR_T *host;
-    CHAR_T *path;
-    CHAR_T *model;
+    char *token;
+    char *host;
+    char *path;
+    char *model;
 } LLM_config_t;
 
 /**
@@ -59,8 +59,8 @@ typedef struct {
  *
  */
 typedef struct {
-    CHAR_T *q;
-    CHAR_T *a;
+    char *q;
+    char *a;
     int32_t q_size;
     int32_t a_size;
     LIST_HEAD node;
@@ -103,7 +103,7 @@ int32_t LLM_get_model(LLM_type_e *type);
  * @param result
  * @return int32_t
  */
-int32_t LLM_conversation(CHAR_T *q, CHAR_T *a);
+int32_t LLM_conversation(char *q, char *a);
 
 /**
  * @brief clear the ai model to default, clear the history

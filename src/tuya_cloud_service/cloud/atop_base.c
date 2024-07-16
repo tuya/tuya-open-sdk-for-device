@@ -176,7 +176,7 @@ static int atop_response_data_decode(const char *key, const uint8_t *input, size
     char *value;
     size_t value_length;
 
-    cJSON *root = cJSON_Parse((CHAR_T *)input);
+    cJSON *root = cJSON_Parse((char *)input);
     if (NULL == root) {
         return OPRT_CJSON_PARSE_ERR;
     }

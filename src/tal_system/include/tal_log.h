@@ -62,7 +62,7 @@ typedef TAL_LOG_LEVEL_E LOG_LEVEL;
 #endif
 
 PRINTF_CHECK(4, 5)
-OPERATE_RET tal_log_print(const TAL_LOG_LEVEL_E level, const CHAR_T *file, const int32_t line, CHAR_T *fmt, ...);
+OPERATE_RET tal_log_print(const TAL_LOG_LEVEL_E level, const char *file, const int32_t line, char *fmt, ...);
 
 // file name maybe define from complie parameter
 #ifndef _THIS_FILE_NAME_
@@ -99,7 +99,7 @@ OPERATE_RET tal_log_print(const TAL_LOG_LEVEL_E level, const CHAR_T *file, const
  ********************* struct ******************************************
  **********************************************************************/
 // prototype of log output function
-typedef void (*TAL_LOG_OUTPUT_CB)(IN const CHAR_T *str);
+typedef void (*TAL_LOG_OUTPUT_CB)(const char *str);
 
 /***********************************************************************
  ********************* variable ****************************************
@@ -134,7 +134,7 @@ OPERATE_RET tal_log_init(const TAL_LOG_LEVEL_E level, const int32_t buf_len, con
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_log_add_output_term(const CHAR_T *name, const TAL_LOG_OUTPUT_CB term);
+OPERATE_RET tal_log_add_output_term(const char *name, const TAL_LOG_OUTPUT_CB term);
 
 /**
  * @brief delete one output terminal.
@@ -145,7 +145,7 @@ OPERATE_RET tal_log_add_output_term(const CHAR_T *name, const TAL_LOG_OUTPUT_CB 
  *
  * @return NONE
  */
-void tal_log_del_output_term(const CHAR_T *name);
+void tal_log_del_output_term(const char *name);
 
 /**
  * @brief set global log level.
@@ -194,7 +194,7 @@ OPERATE_RET tal_log_get_level(TAL_LOG_LEVEL_E *level);
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_log_add_module_level(const PCHAR_T module_name, const TAL_LOG_LEVEL_E level);
+OPERATE_RET tal_log_add_module_level(const char *module_name, const TAL_LOG_LEVEL_E level);
 
 /**
  * @brief This API is used for adding one module's log level.
@@ -205,7 +205,7 @@ OPERATE_RET tal_log_add_module_level(const PCHAR_T module_name, const TAL_LOG_LE
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_log_set_module_level(const PCHAR_T module_name, TAL_LOG_LEVEL_E level);
+OPERATE_RET tal_log_set_module_level(const char *module_name, TAL_LOG_LEVEL_E level);
 /**
  * @brief get one module's log level
  *
@@ -217,7 +217,7 @@ OPERATE_RET tal_log_set_module_level(const PCHAR_T module_name, TAL_LOG_LEVEL_E 
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_log_get_module_level(const PCHAR_T module_name, TAL_LOG_LEVEL_E *level);
+OPERATE_RET tal_log_get_module_level(const char *module_name, TAL_LOG_LEVEL_E *level);
 
 /**
  * @brief delete one module's log level
@@ -229,7 +229,7 @@ OPERATE_RET tal_log_get_module_level(const PCHAR_T module_name, TAL_LOG_LEVEL_E 
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_log_delete_module_level(const PCHAR_T module_name);
+OPERATE_RET tal_log_delete_module_level(const char *module_name);
 
 PRINTF_CHECK(1, 2)
 
@@ -242,7 +242,7 @@ PRINTF_CHECK(1, 2)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_log_print_raw(const PCHAR_T pFmt, ...);
+OPERATE_RET tal_log_print_raw(const char *pFmt, ...);
 
 /**
  * @brief destroy log management
@@ -268,8 +268,8 @@ void tal_log_release(void);
  *
  * @return NONE
  */
-void tal_log_hex_dump(const TAL_LOG_LEVEL_E level, const CHAR_T *file, const int32_t line, const CHAR_T *title,
-                      uint8_t width, uint8_t *buf, UINT16_T size);
+void tal_log_hex_dump(const TAL_LOG_LEVEL_E level, const char *file, const int32_t line, const char *title,
+                      uint8_t width, uint8_t *buf, uint16_t size);
 
 #ifdef __cplusplus
 }

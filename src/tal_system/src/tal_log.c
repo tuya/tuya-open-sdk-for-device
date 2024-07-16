@@ -45,7 +45,7 @@
 
 typedef struct {
     LIST_HEAD node;
-    CHAR_T *name;
+    char *name;
     TAL_LOG_OUTPUT_CB out_term;
 } LOG_OUT_NODE_S;
 
@@ -57,7 +57,7 @@ typedef struct {
 
     int32_t log_buf_len;
     BOOL_T ms_level;
-    CHAR_T *log_buf;
+    char *log_buf;
 } LOG_MANAGE, *P_LOG_MANAGE;
 
 #define DEF_OUTPUT_NAME "def_output"
@@ -65,7 +65,7 @@ typedef struct {
 /***********************************************************
 *************************variable define********************
 ***********************************************************/
-const PCHAR_T sLevelStr[] = {"E", "W", "N", "I", "D", "T"};
+const char *sLevelStr[] = {"E", "W", "N", "I", "D", "T"};
 P_LOG_MANAGE pLogManage = NULL;
 
 /***********************************************************
@@ -101,7 +101,7 @@ OPERATE_RET tal_log_init(const TAL_LOG_LEVEL_E level, const int32_t buf_len, con
             return OPRT_MALLOC_FAILED;
         }
         tmp_log_mng->log_buf_len = buf_len;
-        tmp_log_mng->log_buf = (CHAR_T *)(tmp_log_mng + 1);
+        tmp_log_mng->log_buf = (char *)(tmp_log_mng + 1);
         op_ret = tal_mutex_create_init(&tmp_log_mng->mutex);
         if (OPRT_OK != op_ret) {
             tal_free(tmp_log_mng);
@@ -138,7 +138,7 @@ void __output_logManage_buf(void)
     }
 }
 
-OPERATE_RET __find_out_term_node(const CHAR_T *name, LOG_OUT_NODE_S **node)
+OPERATE_RET __find_out_term_node(const char *name, LOG_OUT_NODE_S **node)
 {
     P_LIST_HEAD pPos;
     LOG_OUT_NODE_S *output_node;
@@ -169,7 +169,7 @@ OPERATE_RET __find_out_term_node(const CHAR_T *name, LOG_OUT_NODE_S **node)
  *     - OPRT_INVALID_PARM: Invalid parameter.
  *     - OPRT_MALLOC_FAILED: Memory allocation failed.
  */
-OPERATE_RET tal_log_add_output_term(const CHAR_T *name, const TAL_LOG_OUTPUT_CB term)
+OPERATE_RET tal_log_add_output_term(const char *name, const TAL_LOG_OUTPUT_CB term)
 {
     if (NULL == name || NULL == term || NULL == pLogManage) {
         return OPRT_INVALID_PARM;
@@ -198,9 +198,9 @@ OPERATE_RET tal_log_add_output_term(const CHAR_T *name, const TAL_LOG_OUTPUT_CB 
     return OPRT_OK;
 }
 
-static int32_t tal_log_strrchr(CHAR_T *str, CHAR_T ch)
+static int32_t tal_log_strrchr(char *str, char ch)
 {
-    CHAR_T *ta;
+    char *ta;
 
     ta = strrchr(str, ch);
     if (ta) {
@@ -223,7 +223,7 @@ static int32_t tal_log_strrchr(CHAR_T *str, CHAR_T ch)
  *
  * @param name The name of the log output terminal to be deleted.
  */
-void tal_log_del_output_term(const CHAR_T *name)
+void tal_log_del_output_term(const char *name)
 {
     if (NULL == name || NULL == pLogManage) {
         return;
@@ -335,7 +335,7 @@ OPERATE_RET tal_log_get_level(TAL_LOG_LEVEL_E *level)
  *     - OPRT_BASE_LOG_MNG_FORMAT_STRING_FAILED if there was an error formatting
  * the log message.
  */
-OPERATE_RET PrintLogV(LOG_LEVEL logLevel, CHAR_T *pFile, uint32_t line, CHAR_T *pFmt, va_list ap)
+OPERATE_RET PrintLogV(LOG_LEVEL logLevel, char *pFile, uint32_t line, char *pFmt, va_list ap)
 {
     if (!pLogManage) {
         return OPRT_INVALID_PARM;
@@ -355,9 +355,9 @@ OPERATE_RET PrintLogV(LOG_LEVEL logLevel, CHAR_T *pFile, uint32_t line, CHAR_T *
     } else {
         int pos = 0;
         pTmpFilename = pFile;
-        pos = tal_log_strrchr((CHAR_T *)pFile, '/');
+        pos = tal_log_strrchr((char *)pFile, '/');
         if (pos < 0) {
-            pos = tal_log_strrchr((CHAR_T *)pFile, '\\');
+            pos = tal_log_strrchr((char *)pFile, '\\');
             if (pos >= 0) {
                 pTmpFilename = pFile + pos + 1;
             }
@@ -430,18 +430,18 @@ ERR_EXIT:
  * message.
  * @return The result of the log printing operation.
  */
-OPERATE_RET tal_log_print(const TAL_LOG_LEVEL_E level, const CHAR_T *file, const int32_t line, CHAR_T *fmt, ...)
+OPERATE_RET tal_log_print(const TAL_LOG_LEVEL_E level, const char *file, const int32_t line, char *fmt, ...)
 {
     OPERATE_RET opRet = 0;
     va_list ap;
     va_start(ap, fmt);
-    opRet = PrintLogV(level, (CHAR_T *)file, line, fmt, ap);
+    opRet = PrintLogV(level, (char *)file, line, fmt, ap);
     va_end(ap);
 
     return opRet;
 }
 
-static OPERATE_RET __PrintLogVRaw(IN const PCHAR_T pFmt, va_list ap)
+static OPERATE_RET __PrintLogVRaw(const char *pFmt, va_list ap)
 {
     int32_t cnt = 0;
     cnt = vsnprintf(pLogManage->log_buf, pLogManage->log_buf_len, pFmt, ap);
@@ -465,7 +465,7 @@ static OPERATE_RET __PrintLogVRaw(IN const PCHAR_T pFmt, va_list ap)
  *         - OPRT_INVALID_PARM if pLogManage is NULL.
  *         - The result of the __PrintLogVRaw function otherwise.
  */
-OPERATE_RET tal_log_print_raw(const PCHAR_T pFmt, ...)
+OPERATE_RET tal_log_print_raw(const char *pFmt, ...)
 {
     if (NULL == pLogManage) {
         return OPRT_INVALID_PARM;
@@ -533,8 +533,8 @@ void tal_log_release(void)
  *
  * @return None.
  */
-void tal_log_hex_dump(const TAL_LOG_LEVEL_E level, const CHAR_T *file, const int32_t line, const CHAR_T *title,
-                      uint8_t width, uint8_t *buf, UINT16_T size)
+void tal_log_hex_dump(const TAL_LOG_LEVEL_E level, const char *file, const int32_t line, const char *title,
+                      uint8_t width, uint8_t *buf, uint16_t size)
 {
     int i = 0;
 

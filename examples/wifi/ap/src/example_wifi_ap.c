@@ -1,19 +1,21 @@
 /**
  * @file example_wifi_ap.c
  * @brief WiFi AP (Access Point) example for SDK
- * 
- * This file demonstrates the setup and management of a WiFi Access Point using the Tuya IoT SDK. 
- * It includes initializing the WiFi system, configuring the Access Point with SSID and password, starting the AP mode, and handling WiFi events. 
- * Additionally, it showcases how to implement a UDP broadcast over the WiFi network, allowing devices to discover each other or communicate simple messages. 
- * This example is particularly useful for creating local networks for IoT devices to interact without requiring an external router.
- * 
- * The code is structured to support conditional compilation, making it adaptable for different operating systems supported by the Tuya IoT SDK. 
- * It provides a practical example of using Tuya's APIs to manage network connectivity and perform basic network communication tasks.
- * 
+ *
+ * This file demonstrates the setup and management of a WiFi Access Point using the Tuya IoT SDK.
+ * It includes initializing the WiFi system, configuring the Access Point with SSID and password, starting the AP mode,
+ * and handling WiFi events. Additionally, it showcases how to implement a UDP broadcast over the WiFi network, allowing
+ * devices to discover each other or communicate simple messages. This example is particularly useful for creating local
+ * networks for IoT devices to interact without requiring an external router.
+ *
+ * The code is structured to support conditional compilation, making it adaptable for different operating systems
+ * supported by the Tuya IoT SDK. It provides a practical example of using Tuya's APIs to manage network connectivity
+ * and perform basic network communication tasks.
+ *
  * @note This example is designed for educational purposes and may need to be adapted for production environments.
- * 
+ *
  * @copyright Copyright (c) 2021-2024 Tuya Inc. All Rights Reserved.
- * 
+ *
  */
 
 #include "tuya_cloud_types.h"
@@ -28,9 +30,9 @@
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-#define DEFAULT_WIFI_CHANNEL                 5
+#define DEFAULT_WIFI_CHANNEL 5
 
-#define AP_SSID "my-wifi"
+#define AP_SSID   "my-wifi"
 #define AP_PASSWD "12345678"
 
 #define AP_IP   "192.168.1.123"
@@ -38,12 +40,11 @@
 #define AP_GW   "192.168.1.1"
 
 // udp broadcast
-#define UDP_BROADCAST_PORT  6666
+#define UDP_BROADCAST_PORT 6666
 
 /***********************************************************
 ***********************typedef define***********************
 ***********************************************************/
-
 
 /***********************************************************
 ***********************variable define**********************
@@ -55,12 +56,12 @@ int32_t udp_broadcast_fd = 0;
 ***********************function define**********************
 ***********************************************************/
 /**
-* @brief wifi Related event callback function
-*
-* @param[in] event:event
-* @param[in] arg:parameter
-* @return none
-*/
+ * @brief wifi Related event callback function
+ *
+ * @param[in] event:event
+ * @param[in] arg:parameter
+ * @return none
+ */
 static void wifi_event_callback(WF_EVENT_E event, void *arg)
 {
     PR_DEBUG("-------------event callback-------------");
@@ -68,7 +69,7 @@ static void wifi_event_callback(WF_EVENT_E event, void *arg)
 
 void udp_broadcast_func(TIMER_ID timer_id, void *arg)
 {
-    CHAR_T send_data[] = "hello world";
+    char send_data[] = "hello world";
     TUYA_IP_ADDR_T broadcast_addr = 0xFFFFFFFF;
     tal_net_send_to(udp_broadcast_fd, send_data, strlen(send_data), broadcast_addr, UDP_BROADCAST_PORT);
     PR_DEBUG("send data:%s", send_data);
@@ -77,17 +78,20 @@ void udp_broadcast_func(TIMER_ID timer_id, void *arg)
 }
 
 /**
-* @brief WiFi AP task
-*
-* @param[in] param:Task parameters
-* @return none
-*/
+ * @brief WiFi AP task
+ *
+ * @param[in] param:Task parameters
+ * @return none
+ */
 void user_main()
 {
     OPERATE_RET rt = OPRT_OK;
 
-    tal_log_init(TAL_LOG_LEVEL_DEBUG,  1024, (TAL_LOG_OUTPUT_CB)tkl_log_output);
-    tal_kv_init(&(tal_kv_cfg_t) {.seed = "vmlkasdh93dlvlcy", .key  = "dflfuap134ddlduq",});    
+    tal_log_init(TAL_LOG_LEVEL_DEBUG, 1024, (TAL_LOG_OUTPUT_CB)tkl_log_output);
+    tal_kv_init(&(tal_kv_cfg_t){
+        .seed = "vmlkasdh93dlvlcy",
+        .key = "dflfuap134ddlduq",
+    });
     tal_sw_timer_init();
     tal_workq_init();
 
@@ -96,8 +100,8 @@ void user_main()
     TUYA_LwIP_Init();
 #endif
 
-    const char ap_ssid[] = AP_SSID;        // ssid
-    const char ap_password[] = AP_PASSWD;     // password
+    const char ap_ssid[] = AP_SSID;       // ssid
+    const char ap_password[] = AP_PASSWD; // password
     NW_IP_S nw_ip = {
         .ip = AP_IP,
         .mask = AP_MASK,
@@ -113,17 +117,17 @@ void user_main()
     TUYA_CALL_ERR_LOG(tal_wifi_set_work_mode(WWM_SOFTAP));
 
     WF_AP_CFG_IF_S wifi_cfg = {
-        .s_len = strlen(ap_ssid),       //ssid length
-        .p_len = strlen(ap_password),   //password length
-        .chan = DEFAULT_WIFI_CHANNEL,   //wifi channel
-        .md = WAAM_WPA2_PSK,             //encryption type
-        .ip = nw_ip,                    //ip information
-        .ms_interval = 100,             //broadcast interval,Unit(ms)
-        .max_conn = 3                   //max sta connect numbers 
+        .s_len = strlen(ap_ssid),     // ssid length
+        .p_len = strlen(ap_password), // password length
+        .chan = DEFAULT_WIFI_CHANNEL, // wifi channel
+        .md = WAAM_WPA2_PSK,          // encryption type
+        .ip = nw_ip,                  // ip information
+        .ms_interval = 100,           // broadcast interval,Unit(ms)
+        .max_conn = 3                 // max sta connect numbers
     };
 
-    strcpy((char *)wifi_cfg.ssid, ap_ssid);   //ssid
-    strcpy((char *)wifi_cfg.passwd, ap_password); //password
+    strcpy((char *)wifi_cfg.ssid, ap_ssid);       // ssid
+    strcpy((char *)wifi_cfg.passwd, ap_password); // password
     TUYA_CALL_ERR_LOG(tal_wifi_ap_start(&wifi_cfg));
 
     /* udp broadcast */
@@ -147,7 +151,7 @@ void user_main()
     tal_net_set_broadcast(udp_broadcast_fd);
 
     tal_sw_timer_create(udp_broadcast_func, NULL, &timer_id);
-    tal_sw_timer_start(timer_id, 5*1000, TAL_TIMER_CYCLE);
+    tal_sw_timer_start(timer_id, 5 * 1000, TAL_TIMER_CYCLE);
 #endif
 
 __EXIT:
@@ -156,17 +160,16 @@ __EXIT:
 
 /**
  * @brief main
- * 
- * @param argc 
- * @param argv 
- * @return void 
+ *
+ * @param argc
+ * @param argv
+ * @return void
  */
 #if OPERATING_SYSTEM == SYSTEM_LINUX
 void main(int argc, char *argv[])
 {
     user_main();
-    while (1)
-    {
+    while (1) {
         tal_system_sleep(500);
     }
 }
@@ -176,15 +179,15 @@ void main(int argc, char *argv[])
 static THREAD_HANDLE ty_app_thread = NULL;
 
 /**
-* @brief  task thread
-*
-* @param[in] arg:Parameters when creating a task
-* @return none
-*/
+ * @brief  task thread
+ *
+ * @param[in] arg:Parameters when creating a task
+ * @return none
+ */
 static void tuya_app_thread(void *arg)
 {
     user_main();
-    
+
     tal_thread_delete(ty_app_thread);
     ty_app_thread = NULL;
 }

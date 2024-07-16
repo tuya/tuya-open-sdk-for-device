@@ -36,5 +36,5 @@ typedef enum {
  * @return int32_t
  */
 int32_t asr_request_baidu(ASR_format_e format, int32_t rate, int32_t channel, void *data, int32_t len,
-                          CHAR_T *output_text, int32_t *output_len);
+                          char *output_text, int32_t *output_len);
 #endif

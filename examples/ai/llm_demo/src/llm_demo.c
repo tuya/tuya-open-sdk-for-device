@@ -55,7 +55,7 @@
 
 extern void tuya_app_cli_init(void);
 #define MAX_SIZE_OF_DEBUG_BUF 4096
-static CHAR_T s_output_buf[MAX_SIZE_OF_DEBUG_BUF] = {0};
+static char s_output_buf[MAX_SIZE_OF_DEBUG_BUF] = {0};
 
 /**
  * @brief large language model configure
@@ -73,7 +73,7 @@ static LLM_config_t sg_config[] = {
  * @param str log string
  * @return void
  */
-void user_log_output_cb(const CHAR_T *format, ...)
+void user_log_output_cb(const char *format, ...)
 {
     if (format == NULL) {
         return;
@@ -106,9 +106,9 @@ int32_t __LLM_add_conversation(LLM_conversation_t *conversation)
 /**
  * @brief get the conversatoion history
  *
- * @return CHAR_T*
+ * @return char*
  */
-CHAR_T *__get_LLM_conversation()
+char *__get_LLM_conversation()
 {
     if (sg_llm->his_cnt >= DEFAULT_MAX_HISTORY_CNT) {
         struct tuya_list_head *p = NULL;
@@ -137,7 +137,7 @@ CHAR_T *__get_LLM_conversation()
         }
     }
 
-    CHAR_T *hist_buffer = NULL;
+    char *hist_buffer = NULL;
     int32_t offset = 0;
     size_t hist_buffer_length = DEFAULT_MAX_HISTORY_CNT;
     if (sg_llm->his_cnt != 0) {
@@ -178,15 +178,15 @@ CHAR_T *__get_LLM_conversation()
  * @param a the answer
  * @return int32_t OPRT_OK: success; other: fail
  */
-int32_t __LLM_http_request(CHAR_T *q, CHAR_T **a)
+int32_t __LLM_http_request(char *q, char **a)
 {
     PR_DEBUG("sg_llm->config[%d].model %s", sg_llm->current, sg_llm->config[sg_llm->current].model);
     // int32_t offset = 0;
     int32_t rt = OPRT_OK;
     cJSON *response = NULL;
-    CHAR_T *result = NULL;
-    CHAR_T *path_buf = NULL;
-    CHAR_T *body_buf = NULL;
+    char *result = NULL;
+    char *path_buf = NULL;
+    char *body_buf = NULL;
     size_t path_buf_length = 128;
 
     /* HTTP Response */
@@ -199,7 +199,7 @@ int32_t __LLM_http_request(CHAR_T *q, CHAR_T **a)
     snprintf(path_buf, 128, "%s", sg_llm->config[sg_llm->current].path);
 
     /* make HTTP body */
-    CHAR_T *hist_buffer = __get_LLM_conversation();
+    char *hist_buffer = __get_LLM_conversation();
     size_t body_buf_length = DEFAULT_BODY_BUFFER_LEN;
     body_buf = tal_malloc(body_buf_length);
     TUYA_CHECK_NULL_GOTO(body_buf, err_exit);
@@ -261,13 +261,13 @@ int32_t __LLM_http_request(CHAR_T *q, CHAR_T **a)
         goto err_exit;
     }
 
-    response = cJSON_Parse((CHAR_T *)http_response.body);
+    response = cJSON_Parse((char *)http_response.body);
     PR_DEBUG("response: %s", cJSON_PrintUnformatted(response));
     if (response) {
         if (sg_llm->current == MODEL_ALI_QWEN) {
             cJSON *output = cJSON_GetObjectItem(response, "output");
             if (output) {
-                result = (CHAR_T *)tal_malloc(strlen(cJSON_GetObjectItem(output, "text")->valuestring) + 1);
+                result = (char *)tal_malloc(strlen(cJSON_GetObjectItem(output, "text")->valuestring) + 1);
                 strcpy(result, cJSON_GetObjectItem(output, "text")->valuestring);
                 *a = result;
             }
@@ -276,7 +276,7 @@ int32_t __LLM_http_request(CHAR_T *q, CHAR_T **a)
             if (output) {
                 cJSON *first_item = cJSON_GetArrayItem(output, 0);
                 cJSON *message = cJSON_GetObjectItem(first_item, "message");
-                result = (CHAR_T *)tal_malloc(strlen(cJSON_GetObjectItem(message, "content")->valuestring) + 1);
+                result = (char *)tal_malloc(strlen(cJSON_GetObjectItem(message, "content")->valuestring) + 1);
                 strcpy(result, cJSON_GetObjectItem(message, "content")->valuestring);
                 *a = result;
             }
@@ -353,15 +353,15 @@ int32_t LLM_get_model(LLM_type_e *type)
  * @param result
  * @return int32_t
  */
-int32_t LLM_conversation(CHAR_T *q, CHAR_T *a)
+int32_t LLM_conversation(char *q, char *a)
 {
     int32_t rt = OPRT_OK;
-    CHAR_T *response = NULL;
+    char *response = NULL;
 
     __LLM_http_request(q, &response);
     if (response) {
         LLM_conversation_t *conversation = (LLM_conversation_t *)tal_malloc(sizeof(LLM_conversation_t));
-        conversation->q = (CHAR_T *)tal_malloc(strlen(q) + 1);
+        conversation->q = (char *)tal_malloc(strlen(q) + 1);
         strcpy(conversation->q, q);
         conversation->a = response;
         conversation->q_size = strlen(q) + 1;

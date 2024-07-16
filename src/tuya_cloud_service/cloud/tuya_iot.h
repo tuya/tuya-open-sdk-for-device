@@ -91,27 +91,11 @@ typedef enum {
                                             : ((S) == TUYA_EVENT_DP_RECEIVE                                                                            \
                                                    ? "TUYA_EVENT_DP_RECEIVE"                                                                           \
                                                    : ((S) == TUYA_EVENT_DP_RECEIVE_CJSON                                                               \
-                                                          ? "TUYA_EVENT_DP_"                                                                           \
-                                                            "RECEIVE_CJSON"                                                                            \
+                                                          ? "TUYA_EVENT_DP_RECEIVE_CJSON"                                                              \
                                                           : ((S) == TUYA_EVENT_UPGRADE_NOTIFY                                                          \
-                                                                 ? "TUYA_"                                                                             \
-                                                                   "EVENT_"                                                                            \
-                                                                   "UPGRADE_"                                                                          \
-                                                                   "NOTIFY"                                                                            \
+                                                                 ? "TUYA_EVENT_UPGRADE_NOTIFY"                                                         \
                                                                  : ((S) == TUYA_EVENT_RESET_COMPLETE                                                   \
-                                                                        ? "TU"                                                                         \
-                                                                          "YA"                                                                         \
-                                                                          "_E"                                                                         \
-                                                                          "VE"                                                                         \
-                                                                          "NT"                                                                         \
-                                                                          "_R"                                                                         \
-                                                                          "ES"                                                                         \
-                                                                          "ET"                                                                         \
-                                                                          "_C"                                                                         \
-                                                                          "OM"                                                                         \
-                                                                          "PL"                                                                         \
-                                                                          "ET"                                                                         \
-                                                                          "E"                                                                          \
+                                                                        ? "TUYA_EVENT_RESET_COMPLETE"                                                  \
                                                                         : ((S) == TUYA_EVENT_TIMESTAMP_SYNC                                            \
                                                                                ? "TUYA_EVENT_TIMESTAMP_SYNC"                                           \
                                                                                : ((S) == TUYA_EVENT_DPCACHE_NOTIFY                                     \
@@ -131,6 +115,7 @@ typedef enum {
                                                                                                            : ((S) == TUYA_EVENT_DIRECT_MQTT_CONNECTED  \
                                                                                                                   ? "TUYA_EVENT_DIRECT_MQTT_CONNECTED" \
                                                                                                                   : "Unknown"))))))))))))))))
+// clang-format on
 
 typedef enum {
     TUYA_STATUS_UNACTIVE = 0,

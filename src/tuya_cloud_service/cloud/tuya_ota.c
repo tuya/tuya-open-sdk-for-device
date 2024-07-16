@@ -103,10 +103,10 @@ static void file_download_event_cb(http_download_event_id_t id, http_download_ev
         PR_DEBUG("File Download Percent: %d%%", 100);
         tal_sha256_finish_ret(ota->sha256, file_hmac);
         tal_sha256_free(ota->sha256);
-        hex2str((BYTE_T *)file_sha256, file_hmac, 32);
+        hex2str((uint8_t *)file_sha256, file_hmac, 32);
         tal_sha256_mac((const uint8_t *)client->activate.seckey, strlen(client->activate.seckey), file_sha256, 32 * 2,
                        file_hmac);
-        ascs2hex(self_hmac, (BYTE_T *)(ota->msg.fw_hmac), FW_HMAC_LEN);
+        ascs2hex(self_hmac, (uint8_t *)(ota->msg.fw_hmac), FW_HMAC_LEN);
         if ((memcmp(self_hmac, file_hmac, 32) == 0)) {
             PR_DEBUG("file hmac check success");
             tuya_ota_upgrade_progress_report(ota, 100);

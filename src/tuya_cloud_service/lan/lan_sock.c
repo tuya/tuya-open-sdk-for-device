@@ -85,7 +85,7 @@ void __ty_sock_loop_deinit(void)
         return;
     }
 
-    UCHAR_T idx = 0;
+    uint8_t idx = 0;
     if (g_sloop->readers) {
         for (idx = 0; idx < __ty_sock_get_reader_num(); idx++) {
             if (g_sloop->readers[idx].sock != -1) {
@@ -120,7 +120,7 @@ void __ty_add_sock_reader(sloop_sock_t sock_info)
         g_sloop->max_sock = sock_info.sock;
     }
 
-    UCHAR_T idx = 0;
+    uint8_t idx = 0;
     for (idx = 0; idx < __ty_sock_get_reader_num(); idx++) {
         if ((sock_info.sock == g_sloop->readers[idx].sock) && (g_sloop->readers[idx].read == sock_info.read)) {
             PR_DEBUG("update lan sock %d,read:%p", sock_info.sock, sock_info.read);
@@ -152,7 +152,7 @@ void __ty_add_sock_reader(sloop_sock_t sock_info)
 
 void __ty_del_sock_reader(int32_t sock)
 {
-    UCHAR_T idx = 0;
+    uint8_t idx = 0;
     for (idx = 0; idx < __ty_sock_get_reader_num(); idx++) {
         if (g_sloop->readers[idx].sock == sock) {
             PR_DEBUG("unreg lan sock %d and close it", sock);
@@ -295,7 +295,7 @@ Err:
 OPERATE_RET tuya_sock_loop_init(void)
 {
     OPERATE_RET op_ret = OPRT_OK;
-    UCHAR_T idx = 0;
+    uint8_t idx = 0;
     if (g_sloop) {
         return OPRT_OK;
     }
@@ -430,7 +430,7 @@ BOOL_T tuya_get_sock_loop_terminate(void)
  */
 void tuya_dump_lan_sock_reader(void)
 {
-    UCHAR_T idx = 0;
+    uint8_t idx = 0;
     if (NULL == g_sloop) {
         return;
     }

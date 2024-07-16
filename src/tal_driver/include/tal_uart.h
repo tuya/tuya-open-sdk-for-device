@@ -15,11 +15,11 @@
 extern "C" {
 #endif
 
-#define O_BLOCK         1
-#define O_ASYNC_WRITE   (1 << 1)
-#define O_FLOW_CTRL     (1 << 2)
-#define O_TX_DMA        (1 << 3)
-#define O_RX_DMA        (1 << 4)
+#define O_BLOCK       1
+#define O_ASYNC_WRITE (1 << 1)
+#define O_FLOW_CTRL   (1 << 2)
+#define O_TX_DMA      (1 << 3)
+#define O_RX_DMA      (1 << 4)
 
 typedef struct {
     uint32_t rx_buffer_size;
@@ -113,7 +113,7 @@ OPERATE_RET tal_uart_deinit(TUYA_UART_NUM_E port_id);
  *
  * @return none
  */
-typedef void (*TAL_UART_IRQ_CB)(TUYA_UART_NUM_E port_id, void *buff, UINT16_T len);
+typedef void (*TAL_UART_IRQ_CB)(TUYA_UART_NUM_E port_id, void *buff, uint16_t len);
 
 /**
  * @brief enable uart rx interrupt and register interrupt callback func
