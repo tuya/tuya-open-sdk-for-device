@@ -55,7 +55,7 @@ typedef struct {
     LIST_HEAD log_list;
     MUTEX_HANDLE mutex;
 
-    int32_t log_buf_len;
+    int log_buf_len;
     BOOL_T ms_level;
     char *log_buf;
 } LOG_MANAGE, *P_LOG_MANAGE;
@@ -87,7 +87,7 @@ P_LOG_MANAGE pLogManage = NULL;
  * OPRT_MALLOC_FAILED if memory allocation fails. Returns an error code if
  * adding the output terminal fails.
  */
-OPERATE_RET tal_log_init(const TAL_LOG_LEVEL_E level, const int32_t buf_len, const TAL_LOG_OUTPUT_CB output)
+OPERATE_RET tal_log_init(const TAL_LOG_LEVEL_E level, const int buf_len, const TAL_LOG_OUTPUT_CB output)
 {
     if (level < LOG_LEVEL_MIN || level > LOG_LEVEL_MAX || 0 == buf_len || NULL == output) {
         return OPRT_INVALID_PARM;
@@ -198,13 +198,13 @@ OPERATE_RET tal_log_add_output_term(const char *name, const TAL_LOG_OUTPUT_CB te
     return OPRT_OK;
 }
 
-static int32_t tal_log_strrchr(char *str, char ch)
+static int tal_log_strrchr(char *str, char ch)
 {
     char *ta;
 
     ta = strrchr(str, ch);
     if (ta) {
-        return (int32_t)(ta - str);
+        return (int)(ta - str);
     }
 
     return -1;
@@ -369,8 +369,8 @@ OPERATE_RET PrintLogV(LOG_LEVEL logLevel, char *pFile, uint32_t line, char *pFmt
     POSIX_TM_S tm;
     memset(&tm, 0, sizeof(tm));
 
-    int32_t len = 0;
-    int32_t cnt = 0;
+    int len = 0;
+    int cnt = 0;
     if (pLogManage->ms_level == FALSE) {
         tal_time_get_local_time_custom(0, &tm);
         cnt = snprintf(pLogManage->log_buf, pLogManage->log_buf_len, "[%02d-%02d %02d:%02d:%02d %s %s][%s:%d] ",
@@ -394,7 +394,7 @@ OPERATE_RET PrintLogV(LOG_LEVEL logLevel, char *pFile, uint32_t line, char *pFmt
         goto ERR_EXIT;
     }
     len += cnt;
-    if (len > (int32_t)(pLogManage->log_buf_len - 3)) { // 2
+    if (len > (int)(pLogManage->log_buf_len - 3)) { // 2
         len = pLogManage->log_buf_len - 3;
     }
     pLogManage->log_buf[len] = '\r';
@@ -430,7 +430,7 @@ ERR_EXIT:
  * message.
  * @return The result of the log printing operation.
  */
-OPERATE_RET tal_log_print(const TAL_LOG_LEVEL_E level, const char *file, const int32_t line, char *fmt, ...)
+OPERATE_RET tal_log_print(const TAL_LOG_LEVEL_E level, const char *file, const int line, char *fmt, ...)
 {
     OPERATE_RET opRet = 0;
     va_list ap;
@@ -443,7 +443,7 @@ OPERATE_RET tal_log_print(const TAL_LOG_LEVEL_E level, const char *file, const i
 
 static OPERATE_RET __PrintLogVRaw(const char *pFmt, va_list ap)
 {
-    int32_t cnt = 0;
+    int cnt = 0;
     cnt = vsnprintf(pLogManage->log_buf, pLogManage->log_buf_len, pFmt, ap);
     if (cnt <= 0) {
         return OPRT_BASE_LOG_MNG_FORMAT_STRING_FAILED;
@@ -533,8 +533,8 @@ void tal_log_release(void)
  *
  * @return None.
  */
-void tal_log_hex_dump(const TAL_LOG_LEVEL_E level, const char *file, const int32_t line, const char *title,
-                      uint8_t width, uint8_t *buf, uint16_t size)
+void tal_log_hex_dump(const TAL_LOG_LEVEL_E level, const char *file, const int line, const char *title, uint8_t width,
+                      uint8_t *buf, uint16_t size)
 {
     int i = 0;
 

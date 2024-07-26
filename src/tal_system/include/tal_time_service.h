@@ -33,13 +33,13 @@ extern "C" {
  *
  */
 typedef struct {
-    int32_t tm_sec;  /* seconds [0-59] */
-    int32_t tm_min;  /* minutes [0-59] */
-    int32_t tm_hour; /* hours [0-23] */
-    int32_t tm_mday; /* day of the month [1-31] */
-    int32_t tm_mon;  /* month [0-11] */
-    int32_t tm_year; /* year. The number of years since 1900 */
-    int32_t tm_wday; /* day of the week [0-6] 0-Sunday...6-Saturday */
+    int tm_sec;  /* seconds [0-59] */
+    int tm_min;  /* minutes [0-59] */
+    int tm_hour; /* hours [0-23] */
+    int tm_mday; /* day of the month [1-31] */
+    int tm_mon;  /* month [0-11] */
+    int tm_year; /* year. The number of years since 1900 */
+    int tm_wday; /* day of the week [0-6] 0-Sunday...6-Saturday */
 } POSIX_TM_S;
 
 /**
@@ -122,7 +122,7 @@ OPERATE_RET tal_time_set(const POSIX_TM_S *tm);
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_set_posix(const TIME_T time, const int32_t update_source);
+OPERATE_RET tal_time_set_posix(const TIME_T time, const int update_source);
 
 /**
  * @brief get IoTOS UTC time in posix time format
@@ -179,7 +179,7 @@ OPERATE_RET tal_time_set_time_zone(const char *time_zone);
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_set_time_zone_seconds(int32_t time_zone_sec);
+OPERATE_RET tal_time_set_time_zone_seconds(int time_zone_sec);
 
 /**
  * @brief get IoTOS time zone in second format
@@ -188,7 +188,7 @@ OPERATE_RET tal_time_set_time_zone_seconds(int32_t time_zone_sec);
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_get_time_zone_seconds(int32_t *time_zone);
+OPERATE_RET tal_time_get_time_zone_seconds(int *time_zone);
 
 /**
  * @brief set IoTOS summer time zone

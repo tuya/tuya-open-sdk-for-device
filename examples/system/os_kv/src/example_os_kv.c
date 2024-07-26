@@ -52,7 +52,7 @@
 void user_main()
 {
     OPERATE_RET rt = OPRT_OK;
-    int32_t i;
+    int i;
     uint8_t *read_buf = NULL;
     size_t read_len;
     BOOL_T is_exist = FALSE;

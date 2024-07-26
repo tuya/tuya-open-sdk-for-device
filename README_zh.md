@@ -13,7 +13,7 @@ tuya-open-sdk-for-device 是一款跨芯片平台、操作系统的 IoT 开发�
 Ubuntu and Debian
 
 ```sh
-$ sudo apt-get install lcov cmake-curses-gui build-essential wget git python3 libc6-i386 libsystemd-dev
+$ sudo apt-get install lcov cmake-curses-gui build-essential wget git python3 python3-pip python3-venv libc6-i386 libsystemd-dev
 ```
 
 ### 克隆仓库

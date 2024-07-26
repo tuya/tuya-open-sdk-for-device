@@ -39,7 +39,7 @@ extern void netmgr_cmd(int argc, char *argv[]);
  * @param argv
  * @return void
  */
-static void switch_test(int32_t argc, char *argv[])
+static void switch_test(int argc, char *argv[])
 {
     if (argc < 2) {
         PR_INFO("usge: switch <on/off>");
@@ -66,7 +66,7 @@ static void switch_test(int32_t argc, char *argv[])
  * @param argv
  * @return void
  */
-static void system_cmd(int32_t argc, char *argv[])
+static void system_cmd(int argc, char *argv[])
 {
     char cmd[256];
 
@@ -93,7 +93,7 @@ static void system_cmd(int32_t argc, char *argv[])
  */
 static void mem(int argc, char *argv[])
 {
-    int32_t free_heap = 0;
+    int free_heap = 0;
     free_heap = tal_system_get_free_heap_size();
     PR_NOTICE("cur free heap: %d", free_heap);
 }

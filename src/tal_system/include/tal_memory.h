@@ -101,7 +101,7 @@ void *tal_realloc(void *ptr, size_t size);
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-int32_t tal_system_get_free_heap_size(void);
+int tal_system_get_free_heap_size(void);
 
 #ifdef __cplusplus
 }

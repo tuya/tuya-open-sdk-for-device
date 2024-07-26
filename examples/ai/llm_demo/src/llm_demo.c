@@ -91,9 +91,9 @@ void user_log_output_cb(const char *format, ...)
  * @brief save the conversation as history
  *
  * @param conversation
- * @return int32_t
+ * @return int
  */
-int32_t __LLM_add_conversation(LLM_conversation_t *conversation)
+int __LLM_add_conversation(LLM_conversation_t *conversation)
 {
     PR_DEBUG("save conversation %p, q: %p, a%p", conversation, conversation->q, conversation->a);
     sg_llm->his_cnt += conversation->q_size + conversation->a_size;
@@ -138,7 +138,7 @@ char *__get_LLM_conversation()
     }
 
     char *hist_buffer = NULL;
-    int32_t offset = 0;
+    int offset = 0;
     size_t hist_buffer_length = DEFAULT_MAX_HISTORY_CNT;
     if (sg_llm->his_cnt != 0) {
         hist_buffer = tal_malloc(hist_buffer_length);
@@ -176,13 +176,13 @@ char *__get_LLM_conversation()
  *
  * @param q the question
  * @param a the answer
- * @return int32_t OPRT_OK: success; other: fail
+ * @return int OPRT_OK: success; other: fail
  */
-int32_t __LLM_http_request(char *q, char **a)
+int __LLM_http_request(char *q, char **a)
 {
     PR_DEBUG("sg_llm->config[%d].model %s", sg_llm->current, sg_llm->config[sg_llm->current].model);
-    // int32_t offset = 0;
-    int32_t rt = OPRT_OK;
+    // int offset = 0;
+    int rt = OPRT_OK;
     cJSON *response = NULL;
     char *result = NULL;
     char *path_buf = NULL;
@@ -302,9 +302,9 @@ err_exit:
  * @brief set current ai model type
  *
  * @param type
- * @return int32_t
+ * @return int
  */
-int32_t LLM_set_model(LLM_type_e type)
+int LLM_set_model(LLM_type_e type)
 {
     if (NULL == sg_llm) {
         PR_DEBUG("init llm");
@@ -330,11 +330,11 @@ int32_t LLM_set_model(LLM_type_e type)
  * @brief get current ai model type
  *
  * @param type
- * @return int32_t
+ * @return int
  */
-int32_t LLM_get_model(LLM_type_e *type)
+int LLM_get_model(LLM_type_e *type)
 {
-    int32_t rt = OPRT_OK;
+    int rt = OPRT_OK;
 
     if (NULL == sg_llm) {
         TUYA_CALL_ERR_RETURN(LLM_set_model(MODEL_ALI_QWEN));
@@ -351,11 +351,11 @@ int32_t LLM_get_model(LLM_type_e *type)
  * @param cur_context
  * @param his_context
  * @param result
- * @return int32_t
+ * @return int
  */
-int32_t LLM_conversation(char *q, char *a)
+int LLM_conversation(char *q, char *a)
 {
-    int32_t rt = OPRT_OK;
+    int rt = OPRT_OK;
     char *response = NULL;
 
     __LLM_http_request(q, &response);
@@ -380,9 +380,9 @@ int32_t LLM_conversation(char *q, char *a)
 /**
  * @brief
  *
- * @return int32_t
+ * @return int
  */
-int32_t LLM_reset_model()
+int LLM_reset_model()
 {
     struct tuya_list_head *p = NULL;
     struct tuya_list_head *n = NULL;

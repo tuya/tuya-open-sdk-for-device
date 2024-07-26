@@ -477,7 +477,7 @@ OPERATE_RET tal_sw_timer_release(void)
  *
  * @return the timer node count.
  */
-int32_t tal_sw_timer_get_num(void)
+int tal_sw_timer_get_num(void)
 {
     if (s_timer_mgr.last_cb) {
         PR_NOTICE("last_cb %p", s_timer_mgr.last_cb);

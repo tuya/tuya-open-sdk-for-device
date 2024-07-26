@@ -13,7 +13,7 @@ IoT products developed using the tuya-open-sdk-for-device, if utilizing the func
 Ubuntu and Debian
 
 ```sh
-$ sudo apt-get install lcov cmake-curses-gui build-essential wget git python3 libc6-i386 libsystemd-dev
+$ sudo apt-get install lcov cmake-curses-gui build-essential wget git python3 python3-pip python3-venv libc6-i386 libsystemd-dev
 ```
 
 ### Clone the repository

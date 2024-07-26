@@ -1,15 +1,17 @@
 /**
  * @file example_adc.c
  * @brief ADC driver example for SDK.
- * 
- * This file provides an example implementation of an ADC (Analog-to-Digital Converter) driver using the Tuya SDK. 
- * It demonstrates the configuration and usage of an ADC channel to read analog values and convert them to digital format. 
- * The example focuses on setting up a single ADC channel, configuring its properties such as sampling width and mode, and initializing the ADC with these settings for continuous data conversion.
- * 
- * The ADC driver example is designed to help developers understand how to integrate ADC functionality into their Tuya-based IoT projects, ensuring accurate analog signal measurement and conversion for various applications.
- * 
+ *
+ * This file provides an example implementation of an ADC (Analog-to-Digital Converter) driver using the Tuya SDK.
+ * It demonstrates the configuration and usage of an ADC channel to read analog values and convert them to digital
+ * format. The example focuses on setting up a single ADC channel, configuring its properties such as sampling width and
+ * mode, and initializing the ADC with these settings for continuous data conversion.
+ *
+ * The ADC driver example is designed to help developers understand how to integrate ADC functionality into their
+ * Tuya-based IoT projects, ensuring accurate analog signal measurement and conversion for various applications.
+ *
  * @copyright Copyright (c) 2021-2024 Tuya Inc. All Rights Reserved.
- * 
+ *
  */
 
 #include "tuya_cloud_types.h"
@@ -21,19 +23,18 @@
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-#define ADC_CHANNEL             2
+#define ADC_CHANNEL 2
 
 /***********************************************************
 ***********************typedef define***********************
 ***********************************************************/
 
-
 /***********************************************************
 ***********************variable define**********************
 ***********************************************************/
 static TUYA_ADC_BASE_CFG_T sg_adc_cfg = {
-    .ch_list.data = 1<<ADC_CHANNEL,
-    .ch_nums = 1,    //adc Number of channel lists
+    .ch_list.data = 1 << ADC_CHANNEL,
+    .ch_nums = 1, // adc Number of channel lists
     .width = 12,
     .mode = TUYA_ADC_CONTINUOUS,
     .type = TUYA_ADC_INNER_SAMPLE_VOL,
@@ -45,19 +46,19 @@ static TUYA_ADC_BASE_CFG_T sg_adc_cfg = {
 ***********************************************************/
 
 /**
-* @brief user_main
-*
-* @param[in] param:Task parameters
-* @return none
-*/
+ * @brief user_main
+ *
+ * @param[in] param:Task parameters
+ * @return none
+ */
 void user_main()
 {
     OPERATE_RET rt = OPRT_OK;
-    int32_t adc_value = 0;
+    int adc_value = 0;
 
     /* basic init */
-    tal_log_init(TAL_LOG_LEVEL_DEBUG,  1024, (TAL_LOG_OUTPUT_CB)tkl_log_output);
-    
+    tal_log_init(TAL_LOG_LEVEL_DEBUG, 1024, (TAL_LOG_OUTPUT_CB)tkl_log_output);
+
     /* ADC 0 channel 2 init */
     TUYA_CALL_ERR_GOTO(tkl_adc_init(TUYA_ADC_NUM_0, &sg_adc_cfg), __EXIT);
 
@@ -72,18 +73,17 @@ __EXIT:
 
 /**
  * @brief main
- * 
- * @param argc 
- * @param argv 
- * @return void 
+ *
+ * @param argc
+ * @param argv
+ * @return void
  */
 #if OPERATING_SYSTEM == SYSTEM_LINUX
 void main(int argc, char *argv[])
 {
     user_main();
 
-    while (1)
-    {
+    while (1) {
         tal_system_sleep(500);
     }
 }
@@ -93,15 +93,15 @@ void main(int argc, char *argv[])
 static THREAD_HANDLE ty_app_thread = NULL;
 
 /**
-* @brief  task thread
-*
-* @param[in] arg:Parameters when creating a task
-* @return none
-*/
+ * @brief  task thread
+ *
+ * @param[in] arg:Parameters when creating a task
+ * @return none
+ */
 static void tuya_app_thread(void *arg)
 {
     user_main();
-    
+
     tal_thread_delete(ty_app_thread);
     ty_app_thread = NULL;
 }

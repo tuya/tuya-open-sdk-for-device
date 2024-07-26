@@ -75,7 +75,7 @@ static THREAD_HANDLE tcp_server = NULL;
 static void __tcp_server_task(void *args)
 {
     char recv_buf[255] = {0};
-    int32_t listen_fd, sock_fd;
+    int listen_fd, sock_fd;
     TUYA_ERRNO net_errno = 0;
 
     /* wait connect network */

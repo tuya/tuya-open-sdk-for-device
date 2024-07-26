@@ -1022,7 +1022,7 @@ static int dp_obj_json_create(cJSON *root, dp_node_t *dpnode)
     }
 
     case PROP_ENUM: {
-        int32_t value = dpnode->prop.prop_enum.value;
+        int value = dpnode->prop.prop_enum.value;
         length += (10 + strlen(dpnode->prop.prop_enum.pp_enum[value]));
         cJSON_AddStringToObject(root, dpid, dpnode->prop.prop_enum.pp_enum[value]);
         break;
@@ -1393,7 +1393,7 @@ static OPERATE_RET dp_node_parse(char *schema_json, dp_node_pos_t *nodepos, uint
         } else if (!strcmp(child->valuestring, "value")) {
             dp_desc->prop_tp = PROP_VALUE;
             char *str[] = {"max", "min", "scale"};
-            int32_t i;
+            int i;
             for (i = 0; i < CNTSOF(str); i++) {
                 child = cJSON_GetObjectItem(item, str[i]);
                 if (NULL == child && (i != CNTSOF(str) - 1)) {
@@ -1441,7 +1441,7 @@ static OPERATE_RET dp_node_parse(char *schema_json, dp_node_pos_t *nodepos, uint
                 op_ret = OPRT_CJSON_GET_ERR;
                 goto __exit;
             }
-            int32_t i, num;
+            int i, num;
             num = cJSON_GetArraySize(child);
             if (num == 0) {
                 PR_ERR("get array size null");

@@ -352,7 +352,7 @@ static OPERATE_RET __dp_data_report_data(uint16_t type, uint8_t *p_data, uint32_
 klv_node_s *__make_obj_dp_klv_list(dp_rept_in_t *dpin)
 {
     klv_node_s *p_node = NULL;
-    int32_t index = 0;
+    int index = 0;
 
     for (index = 0; index < dpin->dpscnt; index++) {
         dp_obj_t *p_dp = dpin->dps + index;
@@ -431,7 +431,7 @@ static klv_node_s *__get_response_query_dp_data(const uint8_t *dpid, const uint8
 
     tal_mutex_lock(schema->mutex);
     for (i = 0; i < num; i++) {
-        int32_t id = dpid[i];
+        int id = dpid[i];
         dp_type new_type = 0;
         void *new_data = NULL;
         uint16_t new_len = 0;
@@ -580,13 +580,12 @@ static int ble_dp_req(ble_packet_t *req, void *priv_data)
         }
         case DT_BITMAP:
         case DT_VALUE: {
-            int32_t val =
-                (p_tmp->data[0] << 24) + (p_tmp->data[1] << 16) + (p_tmp->data[2] << 8) + (p_tmp->data[3] << 0);
+            int val = (p_tmp->data[0] << 24) + (p_tmp->data[1] << 16) + (p_tmp->data[2] << 8) + (p_tmp->data[3] << 0);
             cJSON_AddNumberToObject(p_dps, dp_id_str, val);
             break;
         }
         case DT_ENUM: {
-            int32_t val = p_tmp->data[0];
+            int val = p_tmp->data[0];
             dp_node_t *dpnode = dp_node_find(tuya_iot_client_get()->schema, p_tmp->id);
             if (NULL == dpnode) {
                 PR_ERR("invalid dp id[%d]", p_tmp->id);
@@ -623,7 +622,7 @@ static int ble_dp_query(ble_packet_t *req, void *priv_data)
 
     dp_schema_t *schema = dp_schema_find(tuya_iot_client_get()->activate.devid);
 
-    int32_t i;
+    int i;
     klv_node_s *p_node = NULL;
     if (schema == NULL) {
         PR_DEBUG("schema null");

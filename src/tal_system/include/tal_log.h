@@ -62,7 +62,7 @@ typedef TAL_LOG_LEVEL_E LOG_LEVEL;
 #endif
 
 PRINTF_CHECK(4, 5)
-OPERATE_RET tal_log_print(const TAL_LOG_LEVEL_E level, const char *file, const int32_t line, char *fmt, ...);
+OPERATE_RET tal_log_print(const TAL_LOG_LEVEL_E level, const char *file, const int line, char *fmt, ...);
 
 // file name maybe define from complie parameter
 #ifndef _THIS_FILE_NAME_
@@ -121,7 +121,7 @@ typedef void (*TAL_LOG_OUTPUT_CB)(const char *str);
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_log_init(const TAL_LOG_LEVEL_E level, const int32_t buf_len, const TAL_LOG_OUTPUT_CB output);
+OPERATE_RET tal_log_init(const TAL_LOG_LEVEL_E level, const int buf_len, const TAL_LOG_OUTPUT_CB output);
 
 /**
  * @brief add one output terminal.
@@ -268,8 +268,8 @@ void tal_log_release(void);
  *
  * @return NONE
  */
-void tal_log_hex_dump(const TAL_LOG_LEVEL_E level, const char *file, const int32_t line, const char *title,
-                      uint8_t width, uint8_t *buf, uint16_t size);
+void tal_log_hex_dump(const TAL_LOG_LEVEL_E level, const char *file, const int line, const char *title, uint8_t width,
+                      uint8_t *buf, uint16_t size);
 
 #ifdef __cplusplus
 }

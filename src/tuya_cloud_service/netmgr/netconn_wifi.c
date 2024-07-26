@@ -223,7 +223,7 @@ static OPERATE_RET __wifi_link_activete_cb(void *data)
     return rt;
 }
 
-OPERATE_RET __netconn_wifi_netcfg_finish(int32_t type, netcfg_info_t *info)
+OPERATE_RET __netconn_wifi_netcfg_finish(int type, netcfg_info_t *info)
 {
     netmgr_conn_wifi_t *netmgr_wifi = &s_netmgr_wifi;
 
@@ -370,7 +370,7 @@ OPERATE_RET netconn_wifi_set(netmgr_conn_config_type_e cmd, void *param)
     switch (cmd) {
     case NETCONN_CMD_PRI: // set pri will cause status change to reneg the
                           // active connection
-        netmgr_wifi->base.pri = *(int32_t *)param;
+        netmgr_wifi->base.pri = *(int *)param;
         netmgr_wifi->base.event_cb(NETCONN_WIFI, netmgr_wifi->base.status);
         break;
     case NETCONN_CMD_MAC: // set mac to the station
@@ -429,7 +429,7 @@ OPERATE_RET netconn_wifi_get(netmgr_conn_config_type_e cmd, void *param)
     switch (cmd) {
     case NETCONN_CMD_PRI: // set pri will cause status change to reneg the
                           // active connection
-        netmgr_wifi->base.pri = *(int32_t *)param;
+        netmgr_wifi->base.pri = *(int *)param;
         netmgr_wifi->base.event_cb(NETCONN_WIFI, netmgr_wifi->base.status);
         break;
     case NETCONN_CMD_MAC: // set mac to the station

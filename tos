@@ -82,7 +82,14 @@ function download_platform()
         show "${fore[yellow]}" "If you want to download it again, please remove it."
     else
         show "" "Download platform ..."
-        git clone "$PLATFORM_REPO" "$PLATFORM_PATH"
+        git clone --depth 1 "$PLATFORM_REPO" "$PLATFORM_PATH"
+        if [ ! "0" = "$?" ]; then
+            show "${fore[red]}" "Clone repo [$PLATFORM_REPO] failed, please try again."
+            if [ -d "$PLATFORM_PATH" ]; then
+                show "${fore[yellow]}" "Delete [$PLATFORM_PATH] first."
+            fi
+            exit 1
+        fi
         cd "$PLATFORM_PATH"
         git checkout -q "$PLATFORM_COMMIT"
     fi
@@ -92,7 +99,8 @@ function download_platform()
         ./platform_prepare.sh $PLATFORM_CHIP
     fi
     if [ ! -f "$PLATFORM_PATH/$DEFAULT_CONFIG_NAME" ]; then
-        show "${fore[yellow]}" "Warning: not found [$PLATFORM_PATH/$DEFAULT_CONFIG_NAME]."
+        show "${fore[red]}" "Error: not found [$PLATFORM_PATH/$DEFAULT_CONFIG_NAME]."
+        exit 1
     fi
     python3 $KCONFIG_TOOLS/set_catalog_config.py -b $PLATFORM_PATH -s $OPEN_SDK_ROOT/src -o $KCONFIG_CATALOG
 }
@@ -153,7 +161,7 @@ chip: $PLATFORM_CHIP" # end PLATFORM_STR
     show "" "$PLATFORM_STR"
 
     cp -a $OPEN_SDK_ROOT/tools/app_template $PROJECT_ROOT/$PROJ_NAME
-    sed -i "s/###PROJECT_NAME###/$PROJ_NAME/g" $PROJECT_ROOT/$PROJ_NAME/project_build.ini
+    sed -i "s/###PROJECT_NAME###/${PROJ_NAME}_${PLATFORM_NAME}/g" $PROJECT_ROOT/$PROJ_NAME/project_build.ini
     sed -i "s/###PLATFORM_NAME###/$PLATFORM_NAME/g" $PROJECT_ROOT/$PROJ_NAME/project_build.ini
     if [ -n "$PLATFORM_CHIP" ]; then
         echo "chip = $PLATFORM_CHIP" >> $PROJECT_ROOT/$PROJ_NAME/project_build.ini
@@ -172,17 +180,20 @@ function build_exec()
     if [ -z "$PROJECT_NAMES" ]; then
         PROJECT_NAMES=$(cat $PROJECT_INI | grep -oP '(?<=^\[project\:).*(?=\])')
     fi
+    RET=0
     for PROJ in $PROJECT_NAMES; do
         PROJECT_INFO=$(cat $PROJECT_INI | awk "/^\[project:$PROJ]$/{flag=1; next} /^\[project:.*$/{flag=0} flag")
         if [ -z "$PROJECT_INFO" ]; then
             NOTE="Can't found project [$PROJ]."
             show "${fore[red]}" "$NOTE"
+            RET=1
             continue
         fi
         PROJECT_PLATFORM=$(echo "$PROJECT_INFO" | grep -oP '(?<=platform = ).*(?=$)')
         if [ -z "$PROJECT_PLATFORM" ]; then
             NOTE="Can't found project [$PROJ] platform."
             show "${fore[red]}" "$NOTE"
+            RET=1
             continue
         fi
         PROJECT_CHIP=$(echo "$PROJECT_INFO" | grep -oP '(?<=chip = ).*(?=$)')
@@ -190,7 +201,7 @@ function build_exec()
         if [ ! -d "$OPEN_SDK_ROOT/platform/$PROJECT_PLATFORM" ]; then
             download_platform_by_name $PROJECT_PLATFORM $PROJECT_CHIP
             if [ "0" != "$?" ]; then
-                exit 1
+                return 1
             fi
         fi
 
@@ -198,7 +209,11 @@ function build_exec()
         cd $PROJECT_ROOT/.build/$PROJ
         cmake $OPEN_SDK_ROOT -DTOS_PROJECT_NAME=$PROJ -DTOS_PROJECT_ROOT=$PROJECT_ROOT -DTOS_PROJECT_PLATFORM=$PROJECT_PLATFORM -DTOS_PROJECT_CHIP=$PROJECT_CHIP
         make example
+        if [ ! "0" = "$?" ]; then
+            RET=1
+        fi
         cd - > /dev/null
+        return "$RET"
     done
 }
 
@@ -281,6 +296,11 @@ function _build_all()
         PROJECT_ROOT=$PROJECTS_DIR
         PROJECT_INI=$PROJECT_INI
         build_exec
+        if [ "0" = "$?" ]; then
+            BUILD_INFORMATION+="\033[32mBuild Success [${PROJECT_ROOT}].\033[0m\n"
+        else
+            BUILD_INFORMATION+="\033[31mBuild Failed  [${PROJECT_ROOT}].\033[0m\n"
+        fi
     elif [ "$MAX_DEEP" -gt "0" ]; then
         SUB_DIRS=$(ls -d $PROJECTS_DIR/*/)
         for dir in $SUB_DIRS; do
@@ -305,7 +325,9 @@ function build_all_exec()
         show "${fore[yellow]}" "$NOTE"
         exit 1
     fi
+    BUILD_INFORMATION="\n----------Build All Result----------\n"
     _build_all "$PROJECTS_DIR" "3"
+    printf "${BUILD_INFORMATION}"
 }
 
 function help_exec()

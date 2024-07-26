@@ -44,8 +44,8 @@ typedef struct {
     mbedtls_x509_crt cacert;
     mbedtls_x509_crt client_cert;
     mbedtls_pk_context client_pkey;
-    int32_t socket_fd;
-    int32_t overtime_s;
+    int socket_fd;
+    int overtime_s;
     MUTEX_HANDLE mutex;
     MUTEX_HANDLE read_mutex;
 } tuya_mbedtls_context_t;
@@ -236,7 +236,7 @@ int __tuya_tls_nv_seed_write(unsigned char *buf, size_t buf_len)
  * @return Returns an int32_t value indicating the success or failure of the
  * operation.
  */
-int32_t tuya_tls_register_x509_crt_der(void *p_ctx, uint8_t *p_der, uint32_t der_len)
+int tuya_tls_register_x509_crt_der(void *p_ctx, uint8_t *p_der, uint32_t der_len)
 {
     mbedtls_x509_crt *p_cert_ctx = (mbedtls_x509_crt *)p_ctx;
     return mbedtls_x509_crt_parse(p_cert_ctx, (const unsigned char *)p_der, der_len);
@@ -280,11 +280,11 @@ static int __tuya_tls_socket_send_cb(void *ctx, const unsigned char *buf, size_t
     return send_len;
 }
 
-static int32_t __tuya_tls_socket_recv_cb(void *ctx, unsigned char *buf, size_t len)
+static int __tuya_tls_socket_recv_cb(void *ctx, unsigned char *buf, size_t len)
 {
     tuya_mbedtls_context_t *tls_context = (tuya_mbedtls_context_t *)ctx;
 
-    int32_t non_block = tal_net_get_nonblock(tls_context->socket_fd);
+    int non_block = tal_net_get_nonblock(tls_context->socket_fd);
     if (non_block == 0) {
         tal_net_set_block(tls_context->socket_fd, FALSE);
     }
@@ -292,7 +292,7 @@ static int32_t __tuya_tls_socket_recv_cb(void *ctx, unsigned char *buf, size_t l
     TUYA_FD_SET_T readfds;
     memset(&readfds, 0, sizeof(TUYA_FD_SET_T));
     tal_net_fd_set(tls_context->socket_fd, &readfds);
-    int32_t activefds_cnt =
+    int activefds_cnt =
         tal_net_select(tls_context->socket_fd + 1, &readfds, NULL, NULL, tls_context->overtime_s * 1000);
     if (activefds_cnt <= 0) {
         tal_net_set_block(tls_context->socket_fd, 1 - non_block);
@@ -300,7 +300,7 @@ static int32_t __tuya_tls_socket_recv_cb(void *ctx, unsigned char *buf, size_t l
         return -100 + activefds_cnt;
     }
 
-    int32_t rv = tal_net_recv(tls_context->socket_fd, buf, len);
+    int rv = tal_net_recv(tls_context->socket_fd, buf, len);
     tal_net_set_block(tls_context->socket_fd, 1 - non_block);
 
     return rv;
@@ -543,8 +543,7 @@ tuya_tls_config_t *tuya_tls_config_get(tuya_tls_hander p_tls_handler)
  * @return OPERATE_RET Returns OPRT_OK if the connection is established
  * successfully, or an error code if the connection fails.
  */
-OPERATE_RET tuya_tls_connect(tuya_tls_hander p_tls_handler, char *hostname, int32_t port_num, int32_t socket_fd,
-                             int32_t overtime_s)
+OPERATE_RET tuya_tls_connect(tuya_tls_hander p_tls_handler, char *hostname, int port_num, int socket_fd, int overtime_s)
 {
     OPERATE_RET op_ret;
     tuya_mbedtls_context_t *tls_context = (tuya_mbedtls_context_t *)p_tls_handler;
@@ -706,7 +705,7 @@ tuya_tls_connect_EXIT:
  * @return The number of bytes written on success, or a negative error code on
  * failure.
  */
-int32_t tuya_tls_write(tuya_tls_hander tls_handler, uint8_t *buf, uint32_t len)
+int tuya_tls_write(tuya_tls_hander tls_handler, uint8_t *buf, uint32_t len)
 {
     if ((tls_handler == NULL) || (buf == NULL) || (len == 0)) {
         PR_ERR("Input Invalid");
@@ -766,7 +765,7 @@ int32_t tuya_tls_write(tuya_tls_hander tls_handler, uint8_t *buf, uint32_t len)
  * @return The number of bytes read on success, or a negative error code on
  * failure.
  */
-int32_t tuya_tls_read(tuya_tls_hander tls_handler, uint8_t *buf, uint32_t len)
+int tuya_tls_read(tuya_tls_hander tls_handler, uint8_t *buf, uint32_t len)
 {
     if ((tls_handler == NULL) || (buf == NULL) || (len == 0)) {
         PR_ERR("Input Invalid");
@@ -775,7 +774,7 @@ int32_t tuya_tls_read(tuya_tls_hander tls_handler, uint8_t *buf, uint32_t len)
 
     tuya_mbedtls_context_t *tls_context = (tuya_mbedtls_context_t *)tls_handler;
     tal_mutex_lock(tls_context->read_mutex);
-    int32_t value = mbedtls_ssl_read(&(tls_context->ssl_ctx), buf, len);
+    int value = mbedtls_ssl_read(&(tls_context->ssl_ctx), buf, len);
     tal_mutex_unlock(tls_context->read_mutex);
 
     return value;

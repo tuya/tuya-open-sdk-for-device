@@ -75,7 +75,7 @@ static THREAD_HANDLE tcp_client = NULL;
 static void __tcp_client_task(void *args)
 {
     // OPERATE_RET rt = OPRT_OK;
-    int32_t sock_fd;
+    int sock_fd;
     TUYA_IP_ADDR_T server_ip;
     TUYA_ERRNO net_errno = 0;
     uint8_t cnt = 0;

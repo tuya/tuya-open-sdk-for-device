@@ -338,7 +338,7 @@ static uint8_t __sw_i2c_read_byte(SW_I2C_GPIO_T i2c_pin, BOOL_T need_ack)
  *
  * @return operation result
  */
-static int32_t __sw_i2c_write_data(uint8_t port, uint8_t addr, const uint8_t *buf, uint8_t len, uint32_t flags)
+static int __sw_i2c_write_data(uint8_t port, uint8_t addr, const uint8_t *buf, uint8_t len, uint32_t flags)
 {
     if (0 == (flags & SW_I2C_FLAG_NO_START)) {
         __sw_i2c_start(sg_i2c_pin[port]);
@@ -379,7 +379,7 @@ static int32_t __sw_i2c_write_data(uint8_t port, uint8_t addr, const uint8_t *bu
  *
  * @return operation result
  */
-static int32_t __sw_i2c_read_data(uint8_t port, uint8_t addr, uint8_t *buf, uint8_t len, uint32_t flags)
+static int __sw_i2c_read_data(uint8_t port, uint8_t addr, uint8_t *buf, uint8_t len, uint32_t flags)
 {
     uint8_t i;
 

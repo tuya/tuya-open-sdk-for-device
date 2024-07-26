@@ -40,7 +40,7 @@
 #include "tal_system.h"
 typedef struct {
     THREAD_HANDLE thrdID;
-    int32_t thrdRunSta;
+    int thrdRunSta;
     THREAD_FUNC_CB pThrdFunc;
     void *pThrdFuncArg;
     uint32_t stackDepth;
@@ -200,7 +200,7 @@ OPERATE_RET tal_thread_create_and_start(THREAD_HANDLE *handle, const THREAD_ENTE
     tuya_list_add_tail(&(pMgr->node), &s_all_thrd_mag);
     tal_mutex_unlock(s_del_thrd_mag->mutex);
 
-    int32_t opRet;
+    int opRet;
     opRet = tkl_thread_create(&(pMgr->thrdID), cfg->thrdname, cfg->stackDepth, cfg->priority, __WrapRunFunc, pMgr);
     if (opRet != 0) {
         PR_ERR("Create Thrd Fail:%d", opRet);
@@ -212,7 +212,7 @@ OPERATE_RET tal_thread_create_and_start(THREAD_HANDLE *handle, const THREAD_ENTE
         return OPRT_OS_ADAPTER_THRD_CREAT_FAILED;
     }
 
-    static int32_t stack_cnt = 0;
+    static int stack_cnt = 0;
     stack_cnt += cfg->stackDepth;
     PR_INFO("thread_create name:%s,stackDepth:%d,totalstackDepth:%d,priority:%d", cfg->thrdname, cfg->stackDepth,
             stack_cnt, cfg->priority);
@@ -384,7 +384,7 @@ void tal_thread_dump_watermark(void)
     LIST_HEAD *pos = NULL;
     THRD_MANAGE *tmp_node = NULL;
     uint32_t watermark = 0;
-    int32_t op_ret;
+    int op_ret;
 
     tal_mutex_lock(s_del_thrd_mag->mutex);
     tuya_list_for_each(pos, &s_all_thrd_mag)

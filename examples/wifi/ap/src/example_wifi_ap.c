@@ -50,7 +50,7 @@
 ***********************variable define**********************
 ***********************************************************/
 TIMER_ID timer_id = NULL;
-int32_t udp_broadcast_fd = 0;
+int udp_broadcast_fd = 0;
 
 /***********************************************************
 ***********************function define**********************
@@ -132,7 +132,7 @@ void user_main()
 
     /* udp broadcast */
 #if 1
-    int32_t status = 0;
+    int status = 0;
     udp_broadcast_fd = tal_net_socket_create(PROTOCOL_UDP);
     if (udp_broadcast_fd < 0) {
         PR_ERR("create udp socket failed");

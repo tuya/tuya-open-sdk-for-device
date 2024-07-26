@@ -112,7 +112,7 @@ static uint8_t __sht3x_get_crc8(const uint8_t *data, uint16_t len)
  *
  * @return check result
  */
-static int32_t __sht3x_check_crc8(const uint8_t *data, const uint16_t len, const uint8_t crc_val)
+static int __sht3x_check_crc8(const uint8_t *data, const uint16_t len, const uint8_t crc_val)
 {
     if (__sht3x_get_crc8(data, len) != crc_val) {
         return CRC_ERR;

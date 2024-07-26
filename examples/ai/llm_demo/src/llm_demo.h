@@ -32,7 +32,7 @@
 #define DEFAULT_RESPONSE_BUFFER_LEN 4096 + 512
 #define HTTP_TIMEOUT_MS_DEFAULT     30 * 1000
 
-typedef int32_t (*LLM_REQUEST_FUNC)(char *q, char **a);
+typedef int (*LLM_REQUEST_FUNC)(char *q, char **a);
 /**
  * @brief define the large language model type
  *
@@ -61,8 +61,8 @@ typedef struct {
 typedef struct {
     char *q;
     char *a;
-    int32_t q_size;
-    int32_t a_size;
+    int q_size;
+    int a_size;
     LIST_HEAD node;
 } LLM_conversation_t;
 
@@ -74,7 +74,7 @@ typedef struct {
     LLM_type_e current;
     LLM_config_t *config;
 
-    int32_t his_cnt;
+    int his_cnt;
     LIST_HEAD history;
 } LLM_t;
 
@@ -82,17 +82,17 @@ typedef struct {
  * @brief set current ai model type
  *
  * @param type
- * @return int32_t
+ * @return int
  */
-int32_t LLM_set_model(LLM_type_e type);
+int LLM_set_model(LLM_type_e type);
 
 /**
  * @brief get current ai model type
  *
  * @param type
- * @return int32_t
+ * @return int
  */
-int32_t LLM_get_model(LLM_type_e *type);
+int LLM_get_model(LLM_type_e *type);
 
 /**
  * @brief start a conversation
@@ -101,15 +101,15 @@ int32_t LLM_get_model(LLM_type_e *type);
  * @param cur_context
  * @param his_context
  * @param result
- * @return int32_t
+ * @return int
  */
-int32_t LLM_conversation(char *q, char *a);
+int LLM_conversation(char *q, char *a);
 
 /**
  * @brief clear the ai model to default, clear the history
  *
- * @return int32_t
+ * @return int
  */
-int32_t LLM_reset_model();
+int LLM_reset_model();
 
 #endif

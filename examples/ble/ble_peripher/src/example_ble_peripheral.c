@@ -121,7 +121,7 @@ static void __ble_peripheral_event_callback(TAL_BLE_EVT_PARAMS_T *p_event)
         break;
     }
     case TAL_BLE_EVT_WRITE_REQ: {
-        int32_t i = 0;
+        int i = 0;
         PR_DEBUG("Get Device-Write Char Request");
         for (i = 0; i < p_event->ble_event.write_report.report.len; i++) {
             PR_DEBUG("devicr send  data[%d]: %d", i, p_event->ble_event.write_report.report.p_data[i]);

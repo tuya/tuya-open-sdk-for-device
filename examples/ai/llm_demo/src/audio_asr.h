@@ -33,8 +33,8 @@ typedef enum {
  * @param[in] data
  * @param[in] data
  * @param[in] len
- * @return int32_t
+ * @return int
  */
-int32_t asr_request_baidu(ASR_format_e format, int32_t rate, int32_t channel, void *data, int32_t len,
-                          char *output_text, int32_t *output_len);
+int asr_request_baidu(ASR_format_e format, int rate, int channel, void *data, int len, char *output_text,
+                      int *output_len);
 #endif

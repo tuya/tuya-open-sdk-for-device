@@ -137,7 +137,7 @@ void tal_system_reset(void)
  *
  * @return The free heap size in bytes.
  */
-int32_t tal_system_get_free_heap_size(void)
+int tal_system_get_free_heap_size(void)
 {
     return tkl_system_get_free_heap_size();
 }
@@ -176,7 +176,7 @@ SYS_TIME_T tal_system_get_millisecond(void)
  * @param range The range within which the random number should be generated.
  * @return The generated random number.
  */
-int32_t tal_system_get_random(uint32_t range)
+int tal_system_get_random(uint32_t range)
 {
     return tkl_system_get_random(range);
 }

@@ -170,7 +170,7 @@ typedef struct {
 
 typedef struct {
     TAL_BLE_PEER_INFO_T
-        peer; /**< For each report, we will tell the host peer information. this info can be get after being connected*/
+    peer; /**< For each report, we will tell the host peer information. this info can be get after being connected*/
     TAL_BLE_DATA_T report; /**< Report Data */
 } TAL_BLE_DATA_REPORT_T;
 
@@ -189,8 +189,8 @@ typedef struct {
     TAL_BLE_PEER_INFO_T peer; /**< Connection handle on which the event occured.*/
 
     TAL_BLE_CONN_PARAMS_T
-        conn_param; /**< [Optional] After connection is established, we will get connection parameters.*/
-    int32_t result; /**< Connection Result. */
+    conn_param; /**< [Optional] After connection is established, we will get connection parameters.*/
+    int result; /**< Connection Result. */
 } TAL_BLE_CONNECT_EVT_T;
 
 typedef struct {
@@ -203,7 +203,7 @@ typedef struct {
     uint16_t
         char_handle; /**< After ble peripheral send a notification, we will get the result and characteristic handle */
 
-    int32_t result; /**< Notification Result */
+    int result; /**< Notification Result */
 } TAL_BLE_NOTIFY_TX_EVT_T;
 
 typedef struct {

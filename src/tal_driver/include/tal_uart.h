@@ -63,7 +63,7 @@ OPERATE_RET tal_uart_init(TUYA_UART_NUM_E port_id, TAL_UART_CFG_T *cfg);
  *
  * @return >=0, the read size; < 0, read error
  */
-int32_t tal_uart_read(TUYA_UART_NUM_E port_id, uint8_t *data, uint32_t len);
+int tal_uart_read(TUYA_UART_NUM_E port_id, uint8_t *data, uint32_t len);
 
 /**
  * @brief send data by uart
@@ -81,7 +81,7 @@ int32_t tal_uart_read(TUYA_UART_NUM_E port_id, uint8_t *data, uint32_t len);
  *
  * @return >=0, the write size; < 0, write error
  */
-int32_t tal_uart_write(TUYA_UART_NUM_E port_id, const uint8_t *data, uint32_t len);
+int tal_uart_write(TUYA_UART_NUM_E port_id, const uint8_t *data, uint32_t len);
 
 /**
  * @brief deinit uart
@@ -142,7 +142,7 @@ void tal_uart_rx_reg_irq_cb(TUYA_UART_NUM_E port_id, TAL_UART_IRQ_CB rx_cb);
  *
  * @return none
  */
-int32_t tal_uart_get_rx_data_size(TUYA_UART_NUM_E port_num);
+int tal_uart_get_rx_data_size(TUYA_UART_NUM_E port_num);
 
 #ifdef __cplusplus
 }

@@ -45,7 +45,7 @@ typedef enum {
 } netmgr_status_e;
 
 typedef enum {
-    NETCONN_CMD_PRI,           // int32_t
+    NETCONN_CMD_PRI,           // int
     NETCONN_CMD_IP,            // NW_IP_S
     NETCONN_CMD_MAC,           // NW_MAC_S
     NETCONN_CMD_STATUS,        // netmgr_type_e

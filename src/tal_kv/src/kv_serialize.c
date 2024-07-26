@@ -38,7 +38,7 @@
  */
 int kv_serialize(const kv_db_t *db, const uint32_t dbcnt, char **out, uint32_t *out_len)
 {
-    int32_t i = 0;
+    int i = 0;
     // conut need buf size
     uint32_t len = 0;
     for (i = 0; i < dbcnt; i++) {
@@ -173,7 +173,7 @@ int kv_deserialize(const char *in, kv_db_t *db, const uint32_t dbcnt)
     }
 
     int op_ret = OPRT_OK;
-    int32_t i = 0;
+    int i = 0;
     cJSON *json = NULL;
     for (i = 0; i < dbcnt; i++) {
         json = cJSON_GetObjectItem(root, db[i].key);
@@ -228,7 +228,7 @@ int kv_deserialize(const char *in, kv_db_t *db, const uint32_t dbcnt)
         } break;
 
         case KV_INT: {
-            *((int32_t *)db[i].val) = json->valueint;
+            *((int *)db[i].val) = json->valueint;
         } break;
 
         case KV_BOOL: {

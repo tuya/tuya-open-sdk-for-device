@@ -236,7 +236,7 @@ OPERATE_RET netmgr_conn_get(netmgr_type_e type, netmgr_conn_config_type_e cmd, v
  * @param argc The number of command line arguments.
  * @param argv An array of command line arguments.
  */
-void netmgr_cmd(int32_t argc, char *argv[])
+void netmgr_cmd(int argc, char *argv[])
 {
     if (!s_netmgr.inited) {
         PR_INFO("network not ready!");

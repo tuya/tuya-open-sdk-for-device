@@ -126,7 +126,7 @@ void uart_rx_chars_in_isr(TUYA_UART_NUM_E port_num)
     }
 
     uint8_t rx_char;
-    int32_t ret = 0;
+    int ret = 0;
     uint32_t rx_bytes = 0;
 
     /*
@@ -295,7 +295,7 @@ ERR_EXIT:
  *
  * @return >=0, the read size; < 0, read error
  */
-int32_t tal_uart_read(TUYA_UART_NUM_E port_num, uint8_t *data, uint32_t len)
+int tal_uart_read(TUYA_UART_NUM_E port_num, uint8_t *data, uint32_t len)
 {
     if (data == NULL) {
         return OPRT_INVALID_PARM;
@@ -393,7 +393,7 @@ return tx_bytes;
  *
  * @return >=0, the write size; < 0, write error
  */
-int32_t tal_uart_write(TUYA_UART_NUM_E port_num, const uint8_t *data, uint32_t len)
+int tal_uart_write(TUYA_UART_NUM_E port_num, const uint8_t *data, uint32_t len)
 {
     if (data == NULL) {
         return OPRT_INVALID_PARM;
@@ -404,8 +404,8 @@ int32_t tal_uart_write(TUYA_UART_NUM_E port_num, const uint8_t *data, uint32_t l
         return OPRT_INVALID_PARM;
     }
 
-    int32_t tx_bytes = 0;
-    int32_t ret;
+    int tx_bytes = 0;
+    int ret;
     if ((uart_info->open_mode & O_ASYNC_WRITE) == 0) {
         while (tx_bytes != len) {
             ret = tkl_uart_write(port_num, (void *)&data[tx_bytes], 1);
@@ -469,7 +469,7 @@ OPERATE_RET tal_uart_deinit(TUYA_UART_NUM_E port_num)
     return ret;
 }
 
-int32_t tal_uart_get_rx_data_size(TUYA_UART_NUM_E port_num)
+int tal_uart_get_rx_data_size(TUYA_UART_NUM_E port_num)
 {
     TAL_UART_DEV *uart_info = uart_list_get_one_node(port_num);
     if (uart_info == NULL) {

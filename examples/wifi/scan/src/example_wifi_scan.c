@@ -49,7 +49,7 @@ void user_main()
     OPERATE_RET rt = OPRT_OK;
     AP_IF_S *ap_info;
     uint32_t ap_info_nums;
-    int32_t i = 0;
+    int i = 0;
     char info_ssid[50];
 
     tal_log_init(TAL_LOG_LEVEL_DEBUG, 1024, (TAL_LOG_OUTPUT_CB)tkl_log_output);

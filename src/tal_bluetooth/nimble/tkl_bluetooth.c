@@ -443,7 +443,7 @@ static int tuya_ble_desc_disc_callback(uint16_t conn_handle, const struct ble_ga
 }
 #endif
 
-static void tuya_ble_stack_event_callback(TKL_BLE_GAP_EVT_TYPE_E type, int32_t result)
+static void tuya_ble_stack_event_callback(TKL_BLE_GAP_EVT_TYPE_E type, int result)
 {
     TKL_BLE_GAP_PARAMS_EVT_T init_event;
 
@@ -958,7 +958,7 @@ OPERATE_RET tkl_ble_gap_conn_param_update(uint16_t conn_handle, TKL_BLE_GAP_CONN
  * @return  SUCCESS
  *          ERROR
  * */
-OPERATE_RET tkl_ble_gap_tx_power_set(uint8_t role, int32_t tx_power)
+OPERATE_RET tkl_ble_gap_tx_power_set(uint8_t role, int tx_power)
 {
     return OPRT_NOT_SUPPORTED;
 }

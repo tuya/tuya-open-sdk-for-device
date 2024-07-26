@@ -54,7 +54,7 @@ void __chat(void *data)
     char *context = (char *)data;
     char *response = tal_malloc(8192);
     memset(response, 0, 8192);
-    int32_t rt = LLM_conversation(context, response);
+    int rt = LLM_conversation(context, response);
     if (OPRT_OK == rt) {
         PR_NOTICE("******************************************************");
         PR_NOTICE("q: %s", context);
@@ -82,8 +82,8 @@ void chat_cmd(int argc, char *argv[])
         return;
     }
 
-    int32_t index = 1;
-    int32_t offset = 0;
+    int index = 1;
+    int offset = 0;
     char *context = tal_malloc(128);
     memset(context, 0, 128);
     for (index = 1; index < argc; index++) {
@@ -122,10 +122,10 @@ void switch_cmd(int argc, char *argv[])
 
 void __asr(void *data)
 {
-    int32_t fsize = 0;
+    int fsize = 0;
     uint8_t *buffer = NULL;
     char output_text[128];
-    int32_t output_len = 128;
+    int output_len = 128;
     char *file_name = "../../../examples/llm_demo/src/localrec1.wav";
     FILE *fd = fopen(file_name, "rb");
     if (fd) {
@@ -153,7 +153,7 @@ void __asr(void *data)
  * @param[in/out] argv
  * @return void
  */
-void asr_cmd(int32_t argc, char *argv[])
+void asr_cmd(int argc, char *argv[])
 {
     netmgr_status_e status = NETMGR_LINK_DOWN;
     netmgr_conn_get(NETCONN_AUTO, NETCONN_CMD_STATUS, &status);
@@ -188,8 +188,8 @@ void tts_cmd(int argc, char *argv[])
         return;
     }
 
-    int32_t index = 1;
-    int32_t offset = 0;
+    int index = 1;
+    int offset = 0;
     char *context = tal_malloc(128);
     memset(context, 0, 128);
     if (argc < 2) {

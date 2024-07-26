@@ -488,7 +488,7 @@ OPERATE_RET tal_wifi_get_ap_mac(uint8_t *mac)
  */
 OPERATE_RET tal_wifi_set_country_code(char *country_code)
 {
-    int32_t i;
+    int i;
     COUNTRY_CODE_E index = COUNTRY_CODE_CN;
     char *map[] = {"CN", "US", "JP", "EU"};
 

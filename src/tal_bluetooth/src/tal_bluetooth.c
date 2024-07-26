@@ -226,7 +226,7 @@ static void tkl_ble_kernel_gatt_event_callback(TKL_BLE_GATT_PARAMS_EVT_T *p_even
 
     case TKL_BLE_GATT_EVT_PRIM_SEV_DISCOVERY: {
         TKL_BLE_GATT_SVC_DISC_TYPE_T *p_svc_disc = &p_event->gatt_event.svc_disc;
-        int32_t svc_result = OPRT_INVALID_PARM;
+        int svc_result = OPRT_INVALID_PARM;
 
         tal_event.type = TAL_BLE_EVT_CENTRAL_CONNECT_DISCOVERY;
         if (p_event->result == OPRT_OK) {
@@ -255,7 +255,7 @@ static void tkl_ble_kernel_gatt_event_callback(TKL_BLE_GATT_PARAMS_EVT_T *p_even
     case TKL_BLE_GATT_EVT_CHAR_DISCOVERY: {
 
         TKL_BLE_GATT_CHAR_DISC_TYPE_T *p_char_disc = &p_event->gatt_event.char_disc;
-        int32_t char_result = OPRT_INVALID_PARM;
+        int char_result = OPRT_INVALID_PARM;
 
         tal_event.type = TAL_BLE_EVT_CENTRAL_CONNECT_DISCOVERY;
         if (p_event->result == OPRT_OK) {
@@ -300,7 +300,7 @@ static void tkl_ble_kernel_gatt_event_callback(TKL_BLE_GATT_PARAMS_EVT_T *p_even
     case TKL_BLE_GATT_EVT_CHAR_DESC_DISCOVERY: {
         TKL_BLE_GATT_DESC_DISC_TYPE_T *p_desc_disc = &p_event->gatt_event.desc_disc;
         uint8_t cccd_enable[2] = {0x01, 0x00};
-        int32_t desc_result;
+        int desc_result;
 
         tal_event.type = TAL_BLE_EVT_CENTRAL_CONNECT_DISCOVERY;
         if (p_event->result == OPRT_OK) {

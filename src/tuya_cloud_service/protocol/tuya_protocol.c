@@ -175,7 +175,7 @@ static OPERATE_RET __parse_data_with_lpv35(const DP_CMD_TYPE_E cmd, const uint8_
  *         - OPRT_MALLOC_FAILED: Memory allocation failed.
  *         - OPRT_PARSE_FAILED: Parsing of the protocol data failed.
  */
-OPERATE_RET tuya_parse_protocol_data(const DP_CMD_TYPE_E cmd, uint8_t *data, const int32_t len, const char *key,
+OPERATE_RET tuya_parse_protocol_data(const DP_CMD_TYPE_E cmd, uint8_t *data, const int len, const char *key,
                                      char **out_data)
 {
     if ((NULL == data) || (len < DATA_OFFSET_22_32)) {
@@ -414,7 +414,7 @@ OPERATE_RET tuya_pack_protocol_data(const DP_CMD_TYPE_E cmd, const char *src, co
  * @param frame_obj Pointer to the LPV35 frame object.
  * @return The size of the frame buffer in bytes.
  */
-int32_t lpv35_frame_buffer_size_get(lpv35_frame_object_t *frame_obj)
+int lpv35_frame_buffer_size_get(lpv35_frame_object_t *frame_obj)
 {
     return (LPV35_FRAME_HEAD_SIZE + sizeof(lpv35_additional_data_t) + LPV35_FRAME_NONCE_SIZE + frame_obj->data_len +
             LPV35_FRAME_TAG_SIZE + LPV35_FRAME_TAIL_SIZE);
@@ -436,8 +436,8 @@ int32_t lpv35_frame_buffer_size_get(lpv35_frame_object_t *frame_obj)
  * @return OPERATE_RET Returns an OPERATE_RET value indicating the success or
  * failure of the serialization process.
  */
-OPERATE_RET lpv35_frame_serialize(const uint8_t *key, int32_t key_len, const lpv35_frame_object_t *input,
-                                  uint8_t *output, int32_t *olen)
+OPERATE_RET lpv35_frame_serialize(const uint8_t *key, int key_len, const lpv35_frame_object_t *input, uint8_t *output,
+                                  int *olen)
 {
     if (key == NULL || key_len == 0 || input == NULL || output == NULL || olen == NULL) {
         PR_ERR("PARAM ERROR");
@@ -445,7 +445,7 @@ OPERATE_RET lpv35_frame_serialize(const uint8_t *key, int32_t key_len, const lpv
     }
 
     OPERATE_RET op_ret = OPRT_OK;
-    int32_t offset = 0;
+    int offset = 0;
 
     // HEAD
     memcpy(output, LPV35_FRAME_HEAD, LPV35_FRAME_HEAD_SIZE);
@@ -522,11 +522,11 @@ OPERATE_RET lpv35_frame_serialize(const uint8_t *key, int32_t key_len, const lpv
  *         - OPRT_INVALID_PARM: Invalid parameters were provided.
  *         - OPRT_PARSE_FRAME_ERR: Error occurred while parsing the LPV35 frame.
  */
-OPERATE_RET lpv35_frame_parse(const uint8_t *key, int32_t key_len, const uint8_t *input, int32_t ilen,
+OPERATE_RET lpv35_frame_parse(const uint8_t *key, int key_len, const uint8_t *input, int ilen,
                               lpv35_frame_object_t *output)
 {
     OPERATE_RET op_ret = OPRT_OK;
-    int32_t offset = 0;
+    int offset = 0;
 
     if (key == NULL || key_len == 0 || input == NULL || ilen == 0 || output == NULL) {
         PR_ERR("PARAM ERROR");

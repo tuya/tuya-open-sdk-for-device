@@ -30,11 +30,11 @@
  * @brief get token
  *
  * @param[in/out] token
- * @return int32_t
+ * @return int
  */
-int32_t __asr_baidu_get_token(char *token)
+int __asr_baidu_get_token(char *token)
 {
-    int32_t rt = OPRT_OK;
+    int rt = OPRT_OK;
     cJSON *response = NULL;
     uint16_t cacert_len = 0;
     uint8_t *cacert = NULL;
@@ -109,21 +109,21 @@ err_exit:
  * @param len the length of the audio data
  * @param output_text the output text
  * @param output_len the length of the output text
- * @return int32_t OPRT_OK match success, other match failed
+ * @return int OPRT_OK match success, other match failed
  */
-int32_t asr_request_baidu(ASR_format_e format, int32_t rate, int32_t channel, void *data, int32_t len,
-                          char *output_text, int32_t *output_len)
+int asr_request_baidu(ASR_format_e format, int rate, int channel, void *data, int len, char *output_text,
+                      int *output_len)
 {
-    int32_t rt = OPRT_OK;
+    int rt = OPRT_OK;
     uint16_t cacert_len = 0;
     uint8_t *cacert = NULL;
     char *path_buf = NULL;
     char *base64_data = NULL;
     char *body_buf = NULL;
     size_t path_buf_length = 128;
-    int32_t array_size = 0;
-    int32_t index = 0;
-    int32_t offset = 0;
+    int array_size = 0;
+    int index = 0;
+    int offset = 0;
     cJSON *response = NULL;
 
     /* HTTP Response */

@@ -301,7 +301,7 @@ typedef struct {
 
 typedef struct {
     TAL_MESH_EVT_TYPE_E type; /**< Receive Mesh Event Type */
-    int32_t state;            /**< Receive Mesh Event State */
+    int state;                /**< Receive Mesh Event State */
 
     union {
         TAL_MESH_UNPROV_BEACON_T unprov_report; /**< Receive Mesh Adv report */

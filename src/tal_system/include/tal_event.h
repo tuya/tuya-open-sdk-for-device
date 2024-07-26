@@ -66,8 +66,8 @@ typedef uint8_t SUBSCRIBE_TYPE_E;
  *
  */
 typedef struct {
-    int32_t type;  // the data type
-    int32_t len;   // the data length
+    int type;      // the data type
+    int len;       // the data length
     char value[0]; // the data content
 } EVENT_RAW_DATA_T;
 
@@ -75,7 +75,7 @@ typedef struct {
  * @brief event subscribe callback function type
  *
  */
-typedef int32_t (*EVENT_SUBSCRIBE_CB)(void *data);
+typedef int (*EVENT_SUBSCRIBE_CB)(void *data);
 
 /**
  * @brief the subscirbe node
@@ -106,9 +106,9 @@ typedef struct {
  *
  */
 typedef struct {
-    int32_t inited;
+    int inited;
     MUTEX_HANDLE mutex;                        // mutex, used to protection event manage node
-    int32_t event_cnt;                         // current event number
+    int event_cnt;                             // current event number
     struct tuya_list_head event_root;          // event root, used to manage the event
     struct tuya_list_head free_subscribe_root; // free subscriber list, used to manage the
                                                // subscribe which not found the event

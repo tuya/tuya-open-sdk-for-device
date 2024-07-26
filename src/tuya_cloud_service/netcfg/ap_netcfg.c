@@ -178,7 +178,7 @@ static void ap_broadcast_timeout(TIMER_ID timerID, void *pTimerArg)
         tal_free(plaintext_data);
         return;
     }
-    op_ret = lpv35_frame_serialize(ap->app_key, APP_KEY_LEN, &frame, send_buf, (int32_t *)&olen);
+    op_ret = lpv35_frame_serialize(ap->app_key, APP_KEY_LEN, &frame, send_buf, (int *)&olen);
     tal_free(plaintext_data);
     if (op_ret != OPRT_OK) {
         PR_ERR("lpv35_frame_serialize fail:%d", op_ret);

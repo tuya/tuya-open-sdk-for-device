@@ -55,7 +55,7 @@ static const TIME_T SEC_PER_MT[2][12] = {
 static MUTEX_HANDLE s_time_mutex = NULL;
 static SYS_TIME_T s_time_last_ms = 0;
 static BOOL_T s_time_tz_sync = FALSE;
-static int32_t s_time_tz = 0;
+static int s_time_tz = 0;
 static SUM_ZONE_TBL_S s_time_sz_tbl = {0};
 static BOOL_T s_time_cloud_sync = FALSE;
 static TIME_T s_time_cloud_posix = 0;
@@ -112,7 +112,7 @@ static BOOL_T __is_in_sum_zone(void)
 /**
  * Returns 1 if current year id a leap year
  */
-static int32_t __is_leap(int32_t yr)
+static int __is_leap(int yr)
 {
     if (!(yr % 100)) {
         return (yr % 400 == 0) ? 1 : 0;
@@ -132,7 +132,7 @@ static int32_t __is_leap(int32_t yr)
  * @return Returns 0 if the date and time are valid, or -1 if any of the values
  * are out of range.
  */
-static int32_t __is_valid_date_time(const POSIX_TM_S *tm)
+static int __is_valid_date_time(const POSIX_TM_S *tm)
 {
     if (tm->tm_sec > 59) {
         return -1;
@@ -181,15 +181,15 @@ static uint8_t __get_day_of_week(uint8_t month, uint8_t day, uint16_t year)
 {
     /* Month should be a number 0 to 11, Day should be a number 1 to 31 */
 
-    static int32_t t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+    static int t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
     year -= month < 3;
     return (year + year / 4 - year / 100 + year / 400 + t[month - 1] + day) % 7;
 }
 
-static OPERATE_RET __get_time_zone(const char *time_zone, int32_t *posix)
+static OPERATE_RET __get_time_zone(const char *time_zone, int *posix)
 {
     char *p = NULL;
-    int32_t offset = 1, plus = 1;
+    int offset = 1, plus = 1;
 
     p = strstr(time_zone, "+");
     if (p == NULL) {
@@ -201,7 +201,7 @@ static OPERATE_RET __get_time_zone(const char *time_zone, int32_t *posix)
         }
     }
 
-    int32_t num = 0, buf[2] = {0};
+    int num = 0, buf[2] = {0};
     num = sscanf(time_zone + offset, "%d:%d", &buf[0], &buf[1]);
     if (num < 2) {
         return OPRT_INVALID_PARM;
@@ -378,7 +378,7 @@ OPERATE_RET tal_time_get(POSIX_TM_S *tm)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_set_posix(const TIME_T time, const int32_t update_source)
+OPERATE_RET tal_time_set_posix(const TIME_T time, const int update_source)
 {
     if (!s_time_disable_update) { // for aging test
         tal_mutex_lock(s_time_mutex);
@@ -534,7 +534,7 @@ OPERATE_RET tal_time_set_time_zone(const char *time_zone)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_get_time_zone_seconds(int32_t *time_zone)
+OPERATE_RET tal_time_get_time_zone_seconds(int *time_zone)
 {
     *time_zone = s_time_tz;
     return OPRT_OK;
@@ -547,7 +547,7 @@ OPERATE_RET tal_time_get_time_zone_seconds(int32_t *time_zone)
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tal_time_set_time_zone_seconds(int32_t time_zone_sec)
+OPERATE_RET tal_time_set_time_zone_seconds(int time_zone_sec)
 {
     s_time_tz = time_zone_sec;
     s_time_tz_sync = TRUE;

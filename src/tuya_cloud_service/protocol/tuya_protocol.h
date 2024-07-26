@@ -109,7 +109,7 @@ typedef dp_cmd_type_t DP_CMD_TYPE_E;
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET tuya_parse_protocol_data(const DP_CMD_TYPE_E cmd, uint8_t *data, const int32_t len, const char *key,
+OPERATE_RET tuya_parse_protocol_data(const DP_CMD_TYPE_E cmd, uint8_t *data, const int len, const char *key,
                                      char **out_data);
 
 /**
@@ -141,8 +141,8 @@ OPERATE_RET tuya_pack_protocol_data(const DP_CMD_TYPE_E cmd, const char *src, co
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET lpv35_frame_serialize(const uint8_t *key, int32_t key_len, const lpv35_frame_object_t *input,
-                                  uint8_t *output, int32_t *olen);
+OPERATE_RET lpv35_frame_serialize(const uint8_t *key, int key_len, const lpv35_frame_object_t *input, uint8_t *output,
+                                  int *olen);
 
 /**
  * @brief lpv35 frame parse
@@ -156,7 +156,7 @@ OPERATE_RET lpv35_frame_serialize(const uint8_t *key, int32_t key_len, const lpv
  * @return OPRT_OK on success. Others on error, please refer to
  * tuya_error_code.h
  */
-OPERATE_RET lpv35_frame_parse(const uint8_t *key, int32_t key_len, const uint8_t *input, int32_t ilen,
+OPERATE_RET lpv35_frame_parse(const uint8_t *key, int key_len, const uint8_t *input, int ilen,
                               lpv35_frame_object_t *output);
 
 /**
@@ -166,7 +166,7 @@ OPERATE_RET lpv35_frame_parse(const uint8_t *key, int32_t key_len, const uint8_t
  *
  * @return lpv35 frame buffer size
  */
-int32_t lpv35_frame_buffer_size_get(lpv35_frame_object_t *frame_obj);
+int lpv35_frame_buffer_size_get(lpv35_frame_object_t *frame_obj);
 
 #ifdef __cplusplus
 }

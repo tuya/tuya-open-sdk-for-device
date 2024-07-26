@@ -47,7 +47,7 @@ static THREAD_HANDLE mutex1_thrd_hdl = NULL;
 static THREAD_HANDLE mutex2_thrd_hdl = NULL;
 static MUTEX_HANDLE mutex_hdl = NULL;
 
-static int32_t temp_value = 0;
+static int temp_value = 0;
 
 /***********************************************************
 ***********************function define**********************

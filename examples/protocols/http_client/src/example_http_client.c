@@ -63,7 +63,7 @@
  */
 OPERATE_RET __link_status_cb(void *data)
 {
-    int32_t rt = OPRT_OK;
+    int rt = OPRT_OK;
     netmgr_status_e status = (netmgr_status_e)data;
     if (NETMGR_LINK_DOWN == status)
         return OPRT_OK;
