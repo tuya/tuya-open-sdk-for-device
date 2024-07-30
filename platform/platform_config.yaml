@@ -1,4 +1,8 @@
 platforms:
 - name: t2
-  repo: https://github.com/tuya/tuya-open-sdk-for-device-board-t2
+  repo: https://github.com/tuya/tuya-open-sdk-for-device-platform-t2
+  commit: master
+platforms:
+- name: t3
+  repo: https://github.com/tuya/tuya-open-sdk-for-device-platform-t3
   commit: master
