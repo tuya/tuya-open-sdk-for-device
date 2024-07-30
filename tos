@@ -201,7 +201,8 @@ function build_exec()
         if [ ! -d "$OPEN_SDK_ROOT/platform/$PROJECT_PLATFORM" ]; then
             download_platform_by_name $PROJECT_PLATFORM $PROJECT_CHIP
             if [ "0" != "$?" ]; then
-                return 1
+                RET=1
+                continue
             fi
         fi
 
@@ -213,8 +214,8 @@ function build_exec()
             RET=1
         fi
         cd - > /dev/null
-        return "$RET"
     done
+        return "$RET"
 }
 
 function clean_exec()
