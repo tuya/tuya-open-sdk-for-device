@@ -67,9 +67,10 @@ $ tos build
 ![qrencode](docs/images/zh/qrencode.png)
 
 ## License
-
 本项目的分发遵循 Apache License 版本 2.0。有关更多信息，请参见 LICENSE 文件。
 
+## 贡献代码
+如果您对 tuya-open-sdk-for-device 感兴趣，并希望参与 tuya-open-sdk-for-device 的开发并成为代码贡献者，请先参阅 [贡献指南](./docs/zh/contribute_guide.md)。
 
 ## 免责与责任条款
 

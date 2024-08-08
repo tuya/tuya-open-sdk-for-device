@@ -70,6 +70,8 @@ In the file `apps/tuya_cloud/switch_demo/src/tuya_config.h`, the macros `TUYA_PR
 ## License
 Distributed under the Apache License Version 2.0. For more information, see `LICENSE`.
 
+## Contribute Code
+If you are interested in the tuya-open-sdk-for-device and wish to contribute to its development and become a code contributor, please first read the [Contribution Guide](./docs/en/contribute_guide.md).
 
 ## Disclaimer and Liability Clause
 
