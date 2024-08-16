@@ -15,13 +15,22 @@ import argparse
 KCONFIG = "Kconfig"
 
 
-def set_config(board, src_dir, output_config):
-    context = "# CatalogKconfig\n"
+def set_config(board, src_dir, app_dir, output_config):
+    context = '''# CatalogKconfig
+config PROJECT_VERSION
+    string "PROJECT_VERSION"
+    default "1.0.0"
+
+'''
     config_path = os.path.join(src_dir, KCONFIG)
     if os.path.exists(config_path):
         context += f'source \"{config_path}\"\n'
     if board:
         config_path = os.path.join(board, KCONFIG)
+        if os.path.exists(config_path):
+            context += f'source \"{config_path}\"\n'
+    if app_dir:
+        config_path = os.path.join(app_dir, KCONFIG)
         if os.path.exists(config_path):
             context += f'source \"{config_path}\"\n'
 
@@ -38,6 +47,8 @@ def main():
                        help="Board name. [None]", metavar="")
     parse.add_argument('-s', '--src', type=str, default="src",
                        help="Src directory. [src]", metavar="")
+    parse.add_argument('-a', '--app', type=str, default=None,
+                       help="Application directory. [None]", metavar="")
     parse.add_argument('-o', '--output', type=str, default="cache/Kconfig",
                        help="Output file of Kconfig. [cache/Kconfig]",
                        metavar="")
@@ -45,15 +56,17 @@ def main():
 
     board = args.board
     src_dir = args.src
+    app_dir = args.app
     output_config = args.output
     # print(f'board: {board}')
     # print(f'src_dir: {src_dir}')
+    # print(f'app_dif: {app_dif}')
     print(f'output_config: {output_config}')
     output_dir = os.path.dirname(output_config)
-    if not os.path.exists(output_dir):
+    if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    set_config(board, src_dir, output_config)
+    set_config(board, src_dir, app_dir, output_config)
     pass
 
 

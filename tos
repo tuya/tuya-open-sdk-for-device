@@ -76,13 +76,12 @@ function download_platform()
     PLATFORMS_DIR=$OPEN_SDK_ROOT/platform
     PLATFORM_PATH="${PLATFORMS_DIR}/${PLATFORM_NAME}"
     DEFAULT_CONFIG_NAME="default.config"
-    KCONFIG_CATALOG=$PLATFORM_PATH/CatalogKconfig
     if [ -d "$PLATFORM_PATH" ]; then
         show "" "Skip download, exist [$PLATFORM_PATH]."
         show "${fore[yellow]}" "If you want to download it again, please remove it."
     else
         show "" "Download platform ..."
-        git clone --depth 1 "$PLATFORM_REPO" "$PLATFORM_PATH"
+        git clone "$PLATFORM_REPO" "$PLATFORM_PATH"
         if [ ! "0" = "$?" ]; then
             show "${fore[red]}" "Clone repo [$PLATFORM_REPO] failed, please try again."
             if [ -d "$PLATFORM_PATH" ]; then
@@ -102,7 +101,6 @@ function download_platform()
         show "${fore[red]}" "Error: not found [$PLATFORM_PATH/$DEFAULT_CONFIG_NAME]."
         exit 1
     fi
-    python3 $KCONFIG_TOOLS/set_catalog_config.py -b $PLATFORM_PATH -s $OPEN_SDK_ROOT/src -o $KCONFIG_CATALOG
 }
 
 function download_platform_by_name()
@@ -264,25 +262,23 @@ function menuconfig_exec()
     fi
     PROJECT_PLATFORM=$(echo "$PROJECT_INFO" | grep -oP '(?<=platform = ).*(?=$)')
 
-    if [ ! -d ".build/$PROJ" ]; then
-        NOTE="The project does not exist yet, run [$OPEN_BUILD build $PROJ] first"
-        show "${fore[yellow]}" "$NOTE"
-        exit 1
-    fi
-
     PLATFORMS_DIR="$OPEN_SDK_ROOT/platform"
     PLATFORM_PATH="${PLATFORMS_DIR}/${PROJECT_PLATFORM}"
-    KCONFIG_CATALOG="$PLATFORM_PATH/CatalogKconfig"
     DOT_CONFIG_DIR="$PROJECT_ROOT/.build/$PROJ/cache"
+    KCONFIG_CATALOG="CatalogKconfig"
     DOT_CONFIG="using.config"
     CMAKE_CONFIG="using.cmake"
     HEADER_DIR="$PROJECT_ROOT/.build/$PROJ/include"
     HEADER_FILE="tuya_kconfig.h"
     HEADER_IN_PATH="${KCONFIG_TOOLS}/config.h.in"
 
+    mkdir -p ${DOT_CONFIG_DIR}
     cd ${DOT_CONFIG_DIR}
+    python3 $KCONFIG_TOOLS/set_catalog_config.py -b $PLATFORM_PATH -s $OPEN_SDK_ROOT/src -a $PROJECT_ROOT -o $KCONFIG_CATALOG
     bash ${KCONFIG_TOOLS}/run_menuconfig.sh "${KCONFIG_CATALOG}" "$DOT_CONFIG"
     python3 ${KCONFIG_TOOLS}/conf2cmake.py -c "${DOT_CONFIG_DIR}/${DOT_CONFIG}" -o "${CMAKE_CONFIG}"
+
+    mkdir -p ${HEADER_DIR}
     cd ${HEADER_DIR}
     python3 ${KCONFIG_TOOLS}/conf2h.py -c "${DOT_CONFIG_DIR}/${DOT_CONFIG}" -o "${HEADER_FILE}" -i "${HEADER_IN_PATH}"
     cd - > /dev/null

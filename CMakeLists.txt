@@ -97,8 +97,10 @@ add_library(${COMPONENTS_ALL_LIB} STATIC ${all_need})
 # add example
 set(EXAMPLE_NAME "${TOS_PROJECT_NAME}")
 message(STATUS "[TOP] Using example [${EXAMPLE_NAME}].")
+if(NOT DEFINED CONFIG_PROJECT_VERSION)
+    set(CONFIG_PROJECT_VERSION "1.0.0")
+endif()
 set(EXAMPLE_LIB "tuyaapp")
-set(EXAMPLE_VER "1.0.0" CACHE STRING "Example Version")
 string(REPLACE ";" " " PLATFORM_NEED_HDIR "${HEADER_DIR}")
 set(PLATFORM_NEED_LIBS "${EXAMPLE_LIB} ${COMPONENTS_ALL_LIB}")
 message(STATUS "[TOP] PLATFORM_NEED_LIBS: ${PLATFORM_NEED_LIBS}")
@@ -130,10 +132,7 @@ add_custom_command(
     show_menuconfig
 
     COMMAND
-    ${CMAKE_COMMAND} -E echo "        ${Cyan}[make menuconfig]${ColourReset}"
-
-    COMMAND
-    ${CMAKE_COMMAND} -E echo "        ${Cyan}[ccmake ..]${ColourReset}"
+    ${CMAKE_COMMAND} -E echo "        ${Cyan}[tos menuconfig]${ColourReset}"
 
     COMMAND
     ${CMAKE_COMMAND} -E echo ""
@@ -149,7 +148,7 @@ add_custom_command(
     ${PLATFORM_PATH}
 
     COMMAND
-    ./build_example.sh "${EXAMPLE_NAME}" "${EXAMPLE_VER}" "${PLATFORM_NEED_HDIR}"
+    ./build_example.sh "${EXAMPLE_NAME}" "${CONFIG_PROJECT_VERSION}" "${PLATFORM_NEED_HDIR}"
     "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" "${PLATFORM_NEED_LIBS}"
     "${EXECUTABLE_OUTPUT_PATH}" "build" "${PLATFORM_CHIP}"
 
@@ -163,7 +162,7 @@ add_custom_target(platform_clean
     ${PLATFORM_PATH}
 
     COMMAND
-    ./build_example.sh "${EXAMPLE_NAME}" "${EXAMPLE_VER}" "${PLATFORM_NEED_HDIR}"
+    ./build_example.sh "${EXAMPLE_NAME}" "${CONFIG_PROJECT_VERSION}" "${PLATFORM_NEED_HDIR}"
     "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" "${PLATFORM_NEED_LIBS}"
     "${EXECUTABLE_OUTPUT_PATH}" "clean"
 
@@ -176,7 +175,7 @@ add_custom_target(platform_menuconfig
     ${PLATFORM_PATH}
 
     COMMAND
-    ./build_example.sh "${EXAMPLE_NAME}" "${EXAMPLE_VER}" "${PLATFORM_NEED_HDIR}"
+    ./build_example.sh "${EXAMPLE_NAME}" "${CONFIG_PROJECT_VERSION}" "${PLATFORM_NEED_HDIR}"
     "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" "${PLATFORM_NEED_LIBS}"
     "${EXECUTABLE_OUTPUT_PATH}" "menuconfig"
 
@@ -198,8 +197,8 @@ add_subdirectory("${TOP_SOURCE_DIR}/tools/ut")
 
 # prompt
 message(STATUS "[TOP] If you want to build example
-        ${Cyan}[make example]${ColourReset}.
+        ${Cyan}[tos build]${ColourReset}.
 ")
 message(STATUS "[TOP] If you want to clean project
-        ${Cyan}[make clean_all]${ColourReset}.
+        ${Cyan}[tos clean]${ColourReset}.
 ")
