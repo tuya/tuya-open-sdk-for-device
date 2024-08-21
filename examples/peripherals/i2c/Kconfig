@@ -1,0 +1,15 @@
+menu "Application config"
+
+    config EXAMPLE_I2C_SCL_PIN
+        int "scl pin"
+        default 26 if (PLATFORM_T2)
+        default 36 if (PLATFORM_T3)
+        range 0 63
+
+    config EXAMPLE_I2C_SDA_PIN
+        int "sda pin"
+        default 24 if (PLATFORM_T2)
+        default 18 if (PLATFORM_T3)
+        range 0 63
+
+endmenu
