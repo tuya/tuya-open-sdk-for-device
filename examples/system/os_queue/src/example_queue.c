@@ -122,7 +122,7 @@ void example_queue()
 
     THREAD_CFG_T thread_cfg = {
         .thrdname = "queue_post",
-        .stackDepth = 1024,
+        .stackDepth = 4096,
         .priority = THREAD_PRIO_2,
     };
     if (NULL == post_thrd_hdl) {

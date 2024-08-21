@@ -134,7 +134,7 @@ OPERATE_RET __link_status_cb(void *data)
 
     THREAD_CFG_T thread_cfg = {
         .thrdname = "eg_tcp_server",
-        .stackDepth = 1024 * 3,
+        .stackDepth = 4096,
         .priority = THREAD_PRIO_2,
     };
     if (NULL == tcp_server) {

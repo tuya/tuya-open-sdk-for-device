@@ -114,7 +114,7 @@ void example_semaphore()
 
     THREAD_CFG_T thread_cfg = {
         .thrdname = "sema_post",
-        .stackDepth = 1024,
+        .stackDepth = 4096,
         .priority = THREAD_PRIO_2,
     };
     if (NULL == post_thrd_hdl) {

@@ -124,7 +124,7 @@ void example_mutex()
 
     THREAD_CFG_T thread_cfg = {
         .thrdname = "example_mutex1",
-        .stackDepth = 1024,
+        .stackDepth = 4096,
         .priority = THREAD_PRIO_2,
     };
     if (NULL == mutex1_thrd_hdl) {

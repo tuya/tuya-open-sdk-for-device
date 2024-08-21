@@ -95,7 +95,7 @@ void user_main(void)
     /* a thread will publish event */
     const THREAD_CFG_T thread_cfg = {
         .thrdname = "example_task",
-        .stackDepth = 2 * 1024,
+        .stackDepth = 4096,
         .priority = THREAD_PRIO_2,
     };
     TUYA_CALL_ERR_LOG(tal_thread_create_and_start(&example_thrd_hdl, thread_start_cb, thread_finish_cb, example_task,
