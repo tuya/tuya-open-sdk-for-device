@@ -26,12 +26,20 @@
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-#define GPIO_OUT_PIN_T2 TUYA_GPIO_NUM_5
-#define GPIO_IN_PIN_T2  TUYA_GPIO_NUM_26
-#define GPIO_IRQ_PIN_T2 TUYA_GPIO_NUM_14
+#ifndef EXAMPLE_OUTPUT_PIN
+#define EXAMPLE_OUTPUT_PIN TUYA_GPIO_NUM_26
+#endif
+
+#ifndef EXAMPLE_OUTPUT_PIN
+#define EXAMPLE_OUTPUT_PIN TUYA_GPIO_NUM_7
+#endif
+
+#ifndef EXAMPLE_IRQ_PIN
+#define EXAMPLE_IRQ_PIN TUYA_GPIO_NUM_6
+#endif
 
 #define TASK_GPIO_PRIORITY THREAD_PRIO_2
-#define TASK_GPIO_SIZE     1024
+#define TASK_GPIO_SIZE     4096
 
 /***********************************************************
 ***********************typedef define***********************
@@ -53,23 +61,8 @@ static THREAD_HANDLE sg_gpio_handle;
  */
 static void __gpio_irq_callback(void *args)
 {
-    /* TAL_PR_ , PR_ ，这两种打印里面有锁，不要在中断里使用 */
+    /* Both TAL_PR_ and PR_ have locks in these two types of printing and should not be used in interrupts. */
     tkl_log_output("\r\n------------ GPIO IRQ Callbcak ------------\r\n");
-}
-
-/**
- * @brief 根据不同芯片平台选择不同引脚
- *
- * @param[in] :
- *
- * @return none
- */
-static void __example_pin_get(TUYA_GPIO_NUM_E *out_pin, TUYA_GPIO_NUM_E *in_pin, TUYA_GPIO_NUM_E *irq_pin)
-{
-    *out_pin = GPIO_OUT_PIN_T2;
-    *in_pin = GPIO_IN_PIN_T2;
-    *irq_pin = GPIO_IRQ_PIN_T2;
-    return;
 }
 
 /**
@@ -84,46 +77,43 @@ static void __example_gpio_task(void *param)
     uint8_t i = 0;
     TUYA_GPIO_LEVEL_E read_level = 0;
 
-    TUYA_GPIO_NUM_E out_pin, in_pin, irq_pin;
-
-    __example_pin_get(&out_pin, &in_pin, &irq_pin);
-
     /*GPIO output init*/
     TUYA_GPIO_BASE_CFG_T out_pin_cfg = {
         .mode = TUYA_GPIO_PUSH_PULL, .direct = TUYA_GPIO_OUTPUT, .level = TUYA_GPIO_LEVEL_LOW};
-    TUYA_CALL_ERR_LOG(tkl_gpio_init(out_pin, &out_pin_cfg));
+    TUYA_CALL_ERR_LOG(tkl_gpio_init(EXAMPLE_OUTPUT_PIN, &out_pin_cfg));
 
     /*GPIO input init*/
     TUYA_GPIO_BASE_CFG_T in_pin_cfg = {
-        .mode = TUYA_GPIO_PUSH_PULL,
+        .mode = TUYA_GPIO_PULLUP,
         .direct = TUYA_GPIO_INPUT,
     };
-    TUYA_CALL_ERR_LOG(tkl_gpio_init(in_pin, &in_pin_cfg));
+    TUYA_CALL_ERR_LOG(tkl_gpio_init(EXAMPLE_INPUT_PIN, &in_pin_cfg));
 
     /*GPIO irq init*/
+    TUYA_CALL_ERR_LOG(tkl_gpio_init(EXAMPLE_IRQ_PIN, &in_pin_cfg));
     TUYA_GPIO_IRQ_T irq_cfg = {
         .cb = __gpio_irq_callback,
         .arg = NULL,
         .mode = TUYA_GPIO_IRQ_RISE,
     };
-    TUYA_CALL_ERR_LOG(tkl_gpio_irq_init(irq_pin, &irq_cfg));
+    TUYA_CALL_ERR_LOG(tkl_gpio_irq_init(EXAMPLE_IRQ_PIN, &irq_cfg));
 
     /*irq enable*/
-    TUYA_CALL_ERR_LOG(tkl_gpio_irq_enable(irq_pin));
+    TUYA_CALL_ERR_LOG(tkl_gpio_irq_enable(EXAMPLE_IRQ_PIN));
 
     while (1) {
         /* GPIO output */
         if (i == 0) {
-            tkl_gpio_write(out_pin, TUYA_GPIO_LEVEL_HIGH);
+            tkl_gpio_write(EXAMPLE_OUTPUT_PIN, TUYA_GPIO_LEVEL_HIGH);
             PR_DEBUG("pin output high");
         } else {
-            tkl_gpio_write(out_pin, TUYA_GPIO_LEVEL_LOW);
+            tkl_gpio_write(EXAMPLE_OUTPUT_PIN, TUYA_GPIO_LEVEL_LOW);
             PR_DEBUG("pin output low");
         }
         i = i ^ 1;
 
         /* GPIO read */
-        TUYA_CALL_ERR_LOG(tkl_gpio_read(in_pin, &read_level));
+        TUYA_CALL_ERR_LOG(tkl_gpio_read(EXAMPLE_INPUT_PIN, &read_level));
         if (read_level == 1) {
             PR_DEBUG("GPIO read high level");
         } else {

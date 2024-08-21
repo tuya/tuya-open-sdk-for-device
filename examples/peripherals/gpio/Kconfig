@@ -1,0 +1,20 @@
+menu "Application config"
+
+    config EXAMPLE_OUTPUT_PIN
+        int "output pin"
+        default 26 if (PLATFORM_T2)
+        default 1 if (PLATFORM_T3)
+        range 0 63
+
+    config EXAMPLE_INPUT_PIN
+        int "input pin"
+        default 7 if (PLATFORM_T2)
+        default 2 if (PLATFORM_T3)
+        range 0 63
+
+    config EXAMPLE_IRQ_PIN
+        int "irq pin"
+        default 6 if (PLATFORM_T2)
+        default 2 if (PLATFORM_T3)
+        range 0 63
+endmenu
