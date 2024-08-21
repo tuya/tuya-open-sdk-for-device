@@ -7,6 +7,8 @@ The sdk has robust security and compliance capabilities, including device authen
 
 IoT products developed using the tuya-open-sdk-for-device, if utilizing the functionality of the tuya_cloud_service component, can make use of the powerful ecosystem provided by the Tuya APP and cloud services, and achieve interoperability with Power By Tuya devices.
 
+At the same time, the tuya-open-sdk-for-device will continuously expand, providing more cloud platform integration features, as well as voice, video, and facial recognition capabilities.
+
 ## Getting Start
 
 ### Prerequisites
@@ -33,20 +35,48 @@ $ export PATH=$PATH:$PWD
 Or add the tuya-open-sdk-for-device path to your system environment variables.
 
 
+tuya-open-sdk-for-device can be compiled and debugged using the tos command, which will search for the tuya-open-sdk-for-device repository based on the path set in the environment variables and execute the corresponding operations.
+
+For detailed usage of the tos command, please refer to [tos command](./docs/en/tos_guide.md).
+
+
 ### Configuration 
 To configure the selected examples or apps project, run the following command in the corresponding project directory for menu-driven configuration:
 ```sh
 $ cd examples/get-started/sample_project
 $ tos menuconfig
 ```
+Configure the current project, save and exit after configuration, and then compile the project.
 
 ### Compilation
-Choose the current examples or apps project to compile.
+Select the corresponding project for the current compilation in examples or apps, and then run the following command to compile:
 ```shell
 $ cd examples/get-started/sample_project
 $ tos build
 ```
 After compilation, the target files will be located in the `examples/get-started/sample_project/.build/t2/bin/t2_1.0.0` directory.
+
+## Multi-platform Configuration
+The tos tool configures multi-platform compilation through the project_build.ini file in the project engineering directory. The configuration file format is as follows:
+```ini
+[project:switch_demo_t2]
+platform = t2
+
+[project:switch_demo_t3]
+platform = t3
+```
+
+By default, there is only 1 project in project. If you need to compile multiple projects, you need to add multiple project configurations in the project_build.ini file.
+
+When there are multiple projects in the configuration file, the tos build command will compile multiple projects in sequence.
+
+### Supported platform list
+| name |  |
+| ---- | ---- |
+| Ubuntu | Can be run directly on Linux hosts such as ubuntu. |
+| t2 | [https://developer.tuya.com/en/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq](https://developer.tuya.com/en/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq) |
+| t3 | [https://developer.tuya.com/en/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il](https://developer.tuya.com/en/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il) |
+|
 
 ## Tuya Cloud Applications Project
 `switch_demo` demonstrates a simple cross-platform, cross-system switch example that supports multiple connections. Through the Tuya App and Tuya Cloud Service, this switch can be remotely controlled.

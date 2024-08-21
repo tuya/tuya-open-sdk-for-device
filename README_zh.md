@@ -6,6 +6,7 @@ tuya-open-sdk-for-device 是一款跨芯片平台、操作系统的 IoT 开发�
 
 基于 tuya-open-sdk-for-device 开发的 IoT 产品，如果使用 tuya_cloud_service 组件的功能，就可以使用涂鸦APP、云服务提供的强大生态能力，并与 Power By Tuya 设备互联互通。
 
+同时 tuya-open-sdk-for-device 将不断拓展，提供更多云平台接入功能，及语音、视频、人脸识别等功能。
 
 ## 开始体验
 
@@ -32,21 +33,50 @@ $ export PATH=$PATH:$PWD
 ```
 或将 tuya-open-sdk-for-device 路径添加到系统环境变量中。
 
+tuya-open-sdk-for-device 通过 tos 命令进行编译、调试等操作，tos 命令会根据环境变量中设置的路径查找 tuya-open-sdk-for-device 仓库，并执行对应操作。
 
-### 配置 
-选择需配置的 examples 或 apps 对应工程，在对应工程目录下运行如下命令进行菜单化配置
+tos 命令的详细使用方法，请参考 [tos 命令](./docs/zh/tos_guide.md)。
+
+### 配置
+### menuconfig 配置 
+选择需配置的 examples 或 apps 对应工程，在对应工程目录下运行如下命令进行菜单化配置：
 ```sh
 $ cd examples/get-started/sample_project
 $ tos menuconfig
 ```
+配置当前工程，配置完成后保存退出，编译工程。
 
 ### 编译
-选择当前编译的 examples 或 apps 对应工程
+选择当前编译的 examples 或 apps 对应工程，运行如下命令编译：
 ```shell
 $ cd examples/get-started/sample_project
 $ tos build
 ```
 编译完成后目标文件位于 `examples/get-started/sample_project/.build/t2/bin/t2_1.0.0` 目录。
+
+项目版本默认为 `1.0.0`，可在 menuconfig 配置中修改。
+
+## 多平台配置
+tos 工具通过项目工程目录下的 project_build.ini 文件配置多平台编译，配置文件格式如下：
+```ini
+[project:switch_demo_t2]
+platform = t2
+
+[project:switch_demo_t3]
+platform = t3
+```
+
+默认 project 只有 1 个，如需编译多个 project，需在 project_build.ini 文件中添加多个 project 配置。
+
+当配置文件中存在多个 project 时，`tos build` 命令会依次编译多个 project。
+
+### 支持 platform 列表
+| 名称 |  |
+| ---- | ---- |
+| Ubuntu | 可在 ubuntu 等 Linux 主机上直接运行 |
+| t2 | [https://developer.tuya.com/cn/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq](https://developer.tuya.com/cn/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq) |
+| t3 | [https://developer.tuya.com/cn/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il](https://developer.tuya.com/cn/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il) |
+|
 
 ## 涂鸦云应用工程
 `switch_demo` 演示一个简单的，跨平台、跨系统、支持多种连接的开关示例，通过涂鸦 APP、涂鸦云服务，可以对这个开关进行远程控制。
