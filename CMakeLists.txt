@@ -78,11 +78,11 @@ foreach(comp ${COMPONENT_LIST})
     # message(STATUS "comp: ${comp}")
     add_subdirectory("${TOP_SOURCE_DIR}/src/${comp}")
 endforeach(comp)
-message(STATUS "[TOP] COMPONENT_LIBS: ${COMPONENT_LIBS}")
+# message(STATUS "[TOP] COMPONENT_LIBS: ${COMPONENT_LIBS}")
 # copy_public_include("${COMPONENT_PUBINC}" "${HEADER_DIR}")
 list(APPEND HEADER_DIR ${PLATFORM_PUBINC})
 list(APPEND HEADER_DIR ${COMPONENT_PUBINC})
-message(STATUS "[TOP] HEADER_DIR: ${HEADER_DIR}")
+# message(STATUS "[TOP] HEADER_DIR: ${HEADER_DIR}")
 deal_with_components("${COMPONENT_LIBS}" "${HEADER_DIR}")
 
 # build components_all lib
