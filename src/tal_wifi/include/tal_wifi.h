@@ -275,6 +275,17 @@ OPERATE_RET tal_wifi_sniffer_set(BOOL_T en, SNIFFER_CALLBACK cb);
 OPERATE_RET tal_wifi_get_ip(WF_IF_E wf, NW_IP_S *ip);
 
 /**
+ * @brief set wifi ip info set ip.when wifi works in
+ *        ap+station mode, wifi has two ips.
+ *
+ * @param[in]       wf     wifi function type
+ * @param[in]       ip     the ip addr info
+ * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
+ */
+
+OPERATE_RET tal_wifi_set_ip(WF_IF_E wf, NW_IP_S *ip);
+
+/**
  * @brief set wifi mac info.when wifi works in
  *        ap+station mode, wifi has two macs.
  *

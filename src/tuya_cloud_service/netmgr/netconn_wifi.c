@@ -373,6 +373,9 @@ OPERATE_RET netconn_wifi_set(netmgr_conn_config_type_e cmd, void *param)
         netmgr_wifi->base.pri = *(int *)param;
         netmgr_wifi->base.event_cb(NETCONN_WIFI, netmgr_wifi->base.status);
         break;
+    case NETCONN_CMD_IP:
+        TUYA_CALL_ERR_RETURN(tal_wifi_set_ip(WF_STATION, (NW_IP_S *)param));
+        break;
     case NETCONN_CMD_MAC: // set mac to the station
         TUYA_CALL_ERR_RETURN(tal_wifi_set_mac(WF_STATION, (NW_MAC_S *)param));
         break;

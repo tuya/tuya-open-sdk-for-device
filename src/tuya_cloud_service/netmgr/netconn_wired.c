@@ -99,6 +99,9 @@ OPERATE_RET netconn_wired_set(netmgr_conn_config_type_e cmd, void *param)
         netmgr_wired->base.pri = *(int *)param;
         netmgr_wired->base.event_cb(NETCONN_WIRED, netmgr_wired->base.status);
         break;
+    case NETCONN_CMD_IP:
+        TUYA_CALL_ERR_RETURN(tal_wired_set_ip((NW_IP_S *)param));
+        break;
     case NETCONN_CMD_MAC:
         TUYA_CALL_ERR_RETURN(tal_wired_set_mac((NW_MAC_S *)param));
         break;
