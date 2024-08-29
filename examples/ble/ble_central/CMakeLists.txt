@@ -15,8 +15,6 @@ aux_source_directory(${APP_PATH}/src APP_SRCS)
 
 add_definitions(-DSTATIC_IN_RELEASE=static)
 add_definitions(-DMAJOR_VERSION=4 -DMINOR_VERSION=1 -DMICRO_VERSION=1 -DVERSION=\"4.1.1\")
-add_definitions(-DEXAMPLE_VER="${EXAMPLE_VER}")
-
 
 ########################################
 # Target Configure

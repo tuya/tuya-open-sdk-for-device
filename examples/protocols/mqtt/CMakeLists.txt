@@ -3,8 +3,6 @@
 # @brief 
 #/
 
-if (CONFIG_ENABLE_ADC STREQUAL "y")
-
 # APP_PATH
 set(APP_PATH ${CMAKE_CURRENT_LIST_DIR})
 
@@ -17,6 +15,8 @@ aux_source_directory(${APP_PATH}/src APP_SRCS)
 add_definitions(-DSTATIC_IN_RELEASE=static)
 add_definitions(-DMAJOR_VERSION=4 -DMINOR_VERSION=1 -DMICRO_VERSION=1 -DVERSION=\"4.1.1\")
 
+set(LIB_PRIVATE_INC ${APP_PATH}/../../../src/libmqtt/coreMQTT/source/include)
+message(${LIB_PRIVATE_INC})
 ########################################
 # Target Configure
 ########################################
@@ -26,6 +26,8 @@ target_sources(${EXAMPLE_LIB}
     PRIVATE
         ${APP_SRCS}
     )
-else()
-message(FATAL_ERROR "adc cannot work when CONFIG_ENABLE_ADC is not set")
-endif()
+
+target_include_directories(${EXAMPLE_LIB}
+    PRIVATE
+        ${LIB_PRIVATE_INC}
+    )
