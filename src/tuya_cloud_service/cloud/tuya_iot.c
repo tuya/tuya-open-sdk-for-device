@@ -147,6 +147,12 @@ static int activated_data_read(const char *storage_key, tuya_activated_data_t *o
         return rt;
     }
 
+    // Set time zone
+    rt = tal_time_set_time_zone(out->timezone);
+    if (OPRT_OK != rt) {
+        PR_ERR("tal_time_set_time_zone fail:%d", rt);
+    }
+
     /* Dump info */
     PR_TRACE("devId: %s", out->devid);
     PR_TRACE("secKey: %s", out->seckey);
@@ -196,7 +202,7 @@ static int activate_response_parse(atop_base_response_t *response)
         BOOL_T cloud_reset_factory =
             (cJSON_GetObjectItem(result_root, "resetFactory")->type == cJSON_True) ? TRUE : FALSE;
         PR_DEBUG("cloud_reset:%d", cloud_reset_factory);
-        
+
         if (cloud_reset_factory == TRUE) {
             PR_DEBUG("remote is reset factory and local is not,reset factory "
                      "again.");
