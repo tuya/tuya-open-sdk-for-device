@@ -26,7 +26,6 @@
 
 #include "tal_kv.h"
 #include "lfs_config.h"
-#include "lfs.h"
 #include "tkl_flash.h"
 #include "tal_api.h"
 #include "tal_security.h"
@@ -466,4 +465,14 @@ int tal_kv_serialize_get(const char *key, kv_db_t *db, size_t dbcnt)
     }
 
     return ret;
+}
+
+/**
+ * @brief Get the LFS handle, can be used for file system opeation
+ *
+ * @return lfs_t *
+ */
+lfs_t *tal_lfs_get()
+{
+    return &lfs;
 }
