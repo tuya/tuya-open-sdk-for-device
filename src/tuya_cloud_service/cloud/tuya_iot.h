@@ -170,6 +170,11 @@ typedef void (*event_handle_cb_t)(tuya_iot_client_t *client, tuya_event_msg_t *e
 typedef bool (*network_check_cb_t)(void);
 
 typedef struct {
+    char *uuid;
+    char *authkey;
+} tuya_iot_license_t;
+
+typedef struct {
     const char *productkey;
     const char *uuid;
     const char *pincode;
@@ -227,6 +232,14 @@ struct tuya_iot_client_handle {
     /** device manage */
     dp_schema_t *schema;
 };
+
+/**
+ * @brief Read cloud activation license from chip
+ *
+ * @param[out] license -  cloud activation license
+ * @return int - OPRT_OK successful or error code.
+ */
+int tuya_iot_license_read(tuya_iot_license_t *license);
 
 /**
  * @brief Initialize the Tuya client implementation
