@@ -203,7 +203,7 @@ int tuya_ota_start(cJSON *upgrade)
 
     ota->channel = cJSON_GetObjectItem(upgrade, "type")->valueint;
     ota->msg.file_size = atol(cJSON_GetObjectItem(upgrade, "size")->valuestring);
-    strcpy(ota->msg.fw_url, cJSON_GetObjectItem(upgrade, "url")->valuestring);
+    strcpy(ota->msg.fw_url, cJSON_GetObjectItem(upgrade, "httpsUrl")->valuestring);
     strcpy(ota->msg.fw_hmac, cJSON_GetObjectItem(upgrade, "hmac")->valuestring);
     strcpy(ota->msg.fw_md5, cJSON_GetObjectItem(upgrade, "md5")->valuestring);
 
