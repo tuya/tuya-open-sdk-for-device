@@ -367,6 +367,12 @@ int tuya_iot_dp_stat_local_dump(tuya_iot_client_t *client, dp_rept_valid_t *dpva
     return OPRT_OK;
 }
 
+static void dp_raw_async_cb(int result, void *user_data)
+{
+    PR_DEBUG("mqtt raw dp send result %d", result);
+    //! TODO: event report
+}
+
 /**
  * @brief Reports raw data points to the Tuya IoT platform.
  *
@@ -430,7 +436,7 @@ int tuya_iot_dp_raw_report(tuya_iot_client_t *client, char *devid, dp_raw_t *dp,
         ret = tuya_lan_dp_report(out);
         tal_free(out);
     } else if (tuya_iot_is_connected()) {
-        ret = tuya_iot_dp_report_json_async(client, dpout.dpsjson, NULL, NULL, NULL, 5000);
+        ret = tuya_iot_dp_report_json_async(client, dpout.dpsjson, NULL, dp_raw_async_cb, NULL, timeout);
     } else {
         PR_ERR("no channel for connect");
     }
