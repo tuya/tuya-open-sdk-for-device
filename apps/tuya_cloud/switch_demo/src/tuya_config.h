@@ -12,19 +12,19 @@
  * @brief configure the product information
  *
  * TUYA_PRODUCT_KEY: PID, create on the Tuya IoT platform
- * TUYA_DEVICE_UUID: UUID, the unique ID of the device, you can get 2 free from
- * Tuya IoT platform TUYA_DEVICE_AUTHKEY: AUTHKEY, the private key of the
- * device, you can get 2 free from Tuya IoT platform
+ * TUYA_DEVICE_UUID: UUID, create on the Tuya IoT platform
+ * TUYA_DEVICE_AUTHKEY: AUTHKEY, create on the Tuya IoT platform
  *
  * detail please refer to:
- * https://developer.tuya.com/cn/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc
+ * Create the product and get the pid:
+ * https://developer.tuya.com/cn/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc Get the open-sdk license code
+ * or module: https://platform.tuya.com/purchase/index?type=6
  *
  * warning: please replace these production information with your product key
  * and license, otherwise the demo cannot work.
  *
  */
 // clang-format off
-#error "Please replace these production information with PRODUCT_KEY && DEVICE_UUID && DEVICE_AUTHKEY, then delete this line"
 #define TUYA_PRODUCT_KEY      "qhivvyqawogv04e4"                        // Please change your product key
 #define TUYA_DEVICE_UUID      "uuidxxxxxxxxxxxxxxxx"                    // Please change the correct uuid
 #define TUYA_DEVICE_AUTHKEY   "keyxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"        // Please change the correct authkey

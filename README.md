@@ -78,19 +78,88 @@ When there are multiple projects in the configuration file, the tos build comman
 | t3 | [https://developer.tuya.com/en/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il](https://developer.tuya.com/en/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il) |
 |
 
+## Sample Projects
+The tuya-open-sdk-for-device provides a variety of sample projects to facilitate developers in quickly getting started and understanding the usage of the tuya-open-sdk-for-device.
+
+```shell
+$ tuya-open-sdk-for-device
+├── ai
+│   └── llm_demo
+├── ble
+│   ├── ble_central
+│   └── ble_peripher
+├── get-started
+│   └── sample_project
+├── peripherals
+│   ├── adc
+│   ├── gpio
+│   ├── i2c
+│   ├── pwm
+│   ├── spi
+│   ├── timer
+│   └── watchdog
+├── protocols
+│   ├── http_client
+│   ├── mqtt
+│   ├── tcp_client
+│   └── tcp_server
+├── system
+│   ├── os_event
+│   ├── os_kv
+│   ├── os_mutex
+│   ├── os_queue
+│   ├── os_semaphore
+│   ├── os_sw_timer
+│   └── os_thread
+└── wifi
+    ├── ap
+    ├── low_power
+    ├── scan
+    └── sta
+```
+
+Each sample project includes a README.md file that provides detailed instructions on configuring, compiling, and running the project.
+
 ## Tuya Cloud Applications Project
-`switch_demo` demonstrates a simple cross-platform, cross-system switch example that supports multiple connections. Through the Tuya App and Tuya Cloud Service, this switch can be remotely controlled.
 
-1. Create a product and obtain the Product ID (PID):
+The Tuya Cloud Application is an application provided by the Tuya IoT platform, which allows developers to quickly implement features such as remote control and device management.
 
-Refer to the documentation at [https://developer.tuya.com/en/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc](https://developer.tuya.com/en/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc) to create a product on [https://iot.tuya.com](https://iot.tuya.com) and obtain the PID for the created product.
+`switch_demo` demonstrates a simple, cross-platform, cross-system switch example that supports multiple connections. Through the Tuya APP and Tuya Cloud Service, this switch can be remotely controlled.
 
-2. Modify the example:
+1. Create a product and obtain the product PID:
 
-In the file `apps/tuya_cloud/switch_demo/src/tuya_config.h`, the macros `TUYA_PRODUCT_KEY`, `TUYA_DEVICE_UUID`, and `TUYA_DEVICE_AUTHKEY` correspond to the PID and uuid, authkey respectively. Please correctly modify these according to the PID and uuid, authkey obtained in steps 1 and 2, then delete the `#error` statement.
+Refer to the documentation [https://developer.tuya.com/cn/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc](https://developer.tuya.com/cn/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc) to create a product on [https://iot.tuya.com](https://iot.tuya.com) and obtain the PID of the created product. Replace the `TUYA_PRODUCT_KEY` macro in the `apps/tuya_cloud/switch_demo/src/tuya_config.h` file with the PID.
+
+2. Confirm the Tuya Cloud authorization code:
+tuya-open-sdk-for-device uses a dedicated authorization code for tuya-open-sdk-for-device. Using other authorization codes will not allow normal connection to the Tuya Cloud.
+
+```shell
+[switch_demo.c:220] Replace the TUYA_DEVICE_UUID and TUYA_DEVICE_AUTHKEY contents, otherwise the demo cannot work
+[switch_demo.c:222] uuid uuidxxxxxxxxxxxxxxxx, authkey keyxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+The dedicated authorization code for tuya-open-sdk-for-device can be obtained through the following methods:
+
+- Method 1: Purchase a module with a tuya-open-sdk-for-device authorization code pre-burned. The authorization code is already burned in the corresponding module at the factory and will not be lost. tuya-open-sdk-for-device reads the authorization code through the tuya_iot_license_read() interface at startup. Please confirm whether the current device has a tuya-open-sdk-for-device authorization code pre-burned.
+
+- Method 2: If the current module is not pre-burned with a tuya-open-sdk-for-device authorization code, you can purchase an Open SDK Authorization Code through the https://platform.tuya.com/purchase/index?type=6 page and replace TUYA_DEVICE_UUID and TUYA_DEVICE_AUTHKEY in the following code with the uuid and authkey obtained after successful purchase.
+
+![authorization_code](docs/images/en/authorization_code.png)
+
+```c
+    tuya_iot_license_t license;
+
+    if (OPRT_OK != tuya_iot_license_read(&license)) {
+        license.uuid = TUYA_DEVICE_UUID;
+        license.authkey = TUYA_DEVICE_AUTHKEY;
+        PR_WARN("Replace the TUYA_DEVICE_UUID and TUYA_DEVICE_AUTHKEY contents, otherwise the demo cannot work");
+    }
+```
+
+> If the `tuya_iot_license_read()` interface returns OPRT_OK, it indicates that the current device has a tuya-open-sdk-for-device authorization code pre-burned. Otherwise, it indicates that the current module is not pre-burned with a tuya-open-sdk-for-device authorization code.
 
 ## FAQ
-1. The supported boards for tuya-open-sdk-for-device are dynamically downloaded through subrepositories. Updating the tuya-open-sdk-for-device repository itself will not automatically update the subrepositories. If you encounter any issues with compilation, please navigate to the corresponding directory in the "board" folder and use the `git pull` command to update, or delete the corresponding directory in the "board" folder and download it again.
+1. The supported platform for tuya-open-sdk-for-device are dynamically downloaded through subrepositories. Updating the tuya-open-sdk-for-device repository itself will not automatically update the subrepositories. If you encounter any issues with compilation, please navigate to the corresponding directory in the "platform" folder and use the `git pull` command to update, or delete the corresponding directory in the "platform" folder and download it again.
 
 2. Activation through QR code scanning requires the product PID to support the "Device Direct Cloud" feature. Otherwise, activation will result in an error and prevent normal activation.
 

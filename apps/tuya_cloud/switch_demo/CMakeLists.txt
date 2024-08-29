@@ -26,7 +26,7 @@ list(APPEND APP_SRCS
 
 add_definitions(-DSTATIC_IN_RELEASE=static)
 add_definitions(-DMAJOR_VERSION=4 -DMINOR_VERSION=1 -DMICRO_VERSION=1 -DVERSION=\"4.1.1\")
-add_definitions(-DEXAMPLE_VER="${EXAMPLE_VER}")
+
 # APP_INC
 set(APP_INC ${APP_PATH}/libqrencode)
 

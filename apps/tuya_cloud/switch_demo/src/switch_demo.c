@@ -26,6 +26,10 @@
 #include "lwip_init.h"
 #endif
 
+#ifndef PROJECT_VERSION
+#define PROJECT_VERSION "1.0.0"
+#endif
+
 /* for string to QRCode translate and print */
 extern void example_qrcode_string(const char *string, void (*fputs)(const char *str), int invert);
 
@@ -208,12 +212,20 @@ void user_main()
     tal_cli_init();
     tuya_app_cli_init();
 
+    tuya_iot_license_t license;
+
+    if (OPRT_OK != tuya_iot_license_read(&license)) {
+        license.uuid = TUYA_DEVICE_UUID;
+        license.authkey = TUYA_DEVICE_AUTHKEY;
+        PR_WARN("Replace the TUYA_DEVICE_UUID and TUYA_DEVICE_AUTHKEY contents, otherwise the demo cannot work");
+    }
+    PR_DEBUG("uuid %s, authkey %s", license.uuid, license.authkey);
     /* Initialize Tuya device configuration */
     ret = tuya_iot_init(&client, &(const tuya_iot_config_t){
-                                     .software_ver = EXAMPLE_VER,
+                                     .software_ver = PROJECT_VERSION,
                                      .productkey = TUYA_PRODUCT_KEY,
-                                     .uuid = TUYA_DEVICE_UUID,
-                                     .authkey = TUYA_DEVICE_AUTHKEY,
+                                     .uuid = license.uuid,
+                                     .authkey = license.authkey,
                                      .event_handler = user_event_handler_on,
                                      .network_check = user_network_check,
                                  });
@@ -223,6 +235,7 @@ void user_main()
 #if defined(ENABLE_LIBLWIP) && (ENABLE_LIBLWIP == 1)
     TUYA_LwIP_Init();
 #endif
+
     // network init
     netmgr_type_e type = 0;
 #if defined(ENABLE_WIFI) && (ENABLE_WIFI == 1)
@@ -232,9 +245,11 @@ void user_main()
     type |= NETCONN_WIRED;
 #endif
     netmgr_init(type);
+
 #if defined(ENABLE_WIFI) && (ENABLE_WIFI == 1)
     netmgr_conn_set(NETCONN_WIFI, NETCONN_CMD_NETCFG, &(netcfg_args_t){.type = NETCFG_TUYA_BLE | NETCFG_TUYA_WIFI_AP});
 #endif
+
     PR_DEBUG("tuya_iot_init success");
     /* Start tuya iot task */
     tuya_iot_start(&client);
