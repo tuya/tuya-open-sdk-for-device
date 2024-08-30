@@ -1,11 +1,11 @@
 platforms:
 - name: t2
   repo: https://github.com/tuya/tuya-open-sdk-for-device-platform-t2
-  commit: master
+  commit: v1.0.0
 
 - name: t3
   repo: https://github.com/tuya/tuya-open-sdk-for-device-platform-t3
-  commit: master
+  commit: v1.0.0
 
 - name: ubuntu
   repo: https://github.com/tuya/tuya-open-sdk-for-device-board
