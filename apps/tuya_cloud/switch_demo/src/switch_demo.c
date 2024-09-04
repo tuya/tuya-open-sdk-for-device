@@ -213,12 +213,17 @@ void user_main()
     tuya_app_cli_init();
 
     tuya_iot_license_t license;
-
+#if OPERATING_SYSTEM == SYSTEM_LINUX
+    license.uuid = TUYA_DEVICE_UUID;
+    license.authkey = TUYA_DEVICE_AUTHKEY;
+    PR_WARN("Replace the TUYA_DEVICE_UUID and TUYA_DEVICE_AUTHKEY contents, otherwise the demo cannot work");
+#else
     if (OPRT_OK != tuya_iot_license_read(&license)) {
         license.uuid = TUYA_DEVICE_UUID;
         license.authkey = TUYA_DEVICE_AUTHKEY;
         PR_WARN("Replace the TUYA_DEVICE_UUID and TUYA_DEVICE_AUTHKEY contents, otherwise the demo cannot work");
     }
+#endif
     PR_DEBUG("uuid %s, authkey %s", license.uuid, license.authkey);
     /* Initialize Tuya device configuration */
     ret = tuya_iot_init(&client, &(const tuya_iot_config_t){
