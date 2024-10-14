@@ -16,9 +16,9 @@
  * TUYA_DEVICE_AUTHKEY: AUTHKEY, create on the Tuya IoT platform
  *
  * detail please refer to:
- * Create the product and get the pid:
- * https://developer.tuya.com/cn/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc Get the open-sdk license code
- * or module: https://platform.tuya.com/purchase/index?type=6
+ * 1. Create the product and get the pid:
+ * https://developer.tuya.com/cn/docs/iot-device-dev/application-creation?id=Kbxw7ket3aujc
+ * 2. Get the open-sdk license code or module: https://platform.tuya.com/purchase/index?type=6
  *
  * warning: please replace these production information with your product key
  * and license, otherwise the demo cannot work.
@@ -26,8 +26,8 @@
  */
 // clang-format off
 #define TUYA_PRODUCT_KEY      "qhivvyqawogv04e4"                        // Please change your product key
-#define TUYA_DEVICE_UUID      "uuidxxxxxxxxxxxxxxxx"                    // Please change the correct uuid
-#define TUYA_DEVICE_AUTHKEY   "keyxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"        // Please change the correct authkey
+#define TUYA_OPENSDK_UUID      "uuidxxxxxxxxxxxxxxxx"                    // Please change the correct uuid
+#define TUYA_OPENSDK_AUTHKEY   "keyxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"        // Please change the correct authkey
 
 /**
  * @brief PINCODE for AP provisioning

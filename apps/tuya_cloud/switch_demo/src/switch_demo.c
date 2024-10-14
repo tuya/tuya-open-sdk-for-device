@@ -89,7 +89,7 @@ void user_event_handler_on(tuya_iot_client_t *client, tuya_event_msg_t *event)
     /* Print the QRCode for Tuya APP bind */
     case TUYA_EVENT_DIRECT_MQTT_CONNECTED: {
         char buffer[255];
-        sprintf(buffer, "https://smartapp.tuya.com/s/p?p=%s&uuid=%s&v=2.0", TUYA_PRODUCT_KEY, TUYA_DEVICE_UUID);
+        sprintf(buffer, "https://smartapp.tuya.com/s/p?p=%s&uuid=%s&v=2.0", TUYA_PRODUCT_KEY, TUYA_OPENSDK_UUID);
         example_qrcode_string(buffer, user_log_output_cb, 0);
     } break;
 
@@ -215,9 +215,10 @@ void user_main()
     tuya_iot_license_t license;
 
     if (OPRT_OK != tuya_iot_license_read(&license)) {
-        license.uuid = TUYA_DEVICE_UUID;
-        license.authkey = TUYA_DEVICE_AUTHKEY;
-        PR_WARN("Replace the TUYA_DEVICE_UUID and TUYA_DEVICE_AUTHKEY contents, otherwise the demo cannot work");
+        license.uuid = TUYA_OPENSDK_UUID;
+        license.authkey = TUYA_OPENSDK_AUTHKEY;
+        PR_WARN("Replace the TUYA_OPENSDK_UUID and TUYA_OPENSDK_AUTHKEY contents, otherwise the demo cannot work.\n \
+                Visit https://platform.tuya.com/purchase/index?type=6 to get the open-sdk uuid and authkey.");
     }
     PR_DEBUG("uuid %s, authkey %s", license.uuid, license.authkey);
     /* Initialize Tuya device configuration */
