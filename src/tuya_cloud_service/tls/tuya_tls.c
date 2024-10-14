@@ -13,7 +13,11 @@
 
 #include "tuya_tls.h"
 
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "tuya_tls_config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"

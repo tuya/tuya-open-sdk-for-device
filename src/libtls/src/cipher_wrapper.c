@@ -32,13 +32,13 @@ int mbedtls_cipher_auth_encrypt_wrapper(const cipher_params_t *input, unsigned c
         goto EXIT;
     }
 
-    if (input->key_len * 8 != cipher_info->MBEDTLS_PRIVATE(key_bitlen)) {
-        PR_ERR("key_len:%d", input->key_len * 8);
+    if ((input->key_len * 8) != mbedtls_cipher_info_get_key_bitlen(cipher_info)) {
+        PR_ERR("key_len:%d mbedtls_key_bitlen:%d", input->key_len * 8, mbedtls_cipher_info_get_key_bitlen(cipher_info));
         ret = OPRT_INVALID_PARM;
         goto EXIT;
     }
 
-    if ((ret = mbedtls_cipher_setkey(&cipher_ctx, input->key, cipher_info->MBEDTLS_PRIVATE(key_bitlen),
+    if ((ret = mbedtls_cipher_setkey(&cipher_ctx, input->key, mbedtls_cipher_info_get_key_bitlen(cipher_info),
                                      MBEDTLS_ENCRYPT)) != 0) {
         PR_ERR("mbedtls_cipher_setkey() returned error\n");
         goto EXIT;
