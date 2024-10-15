@@ -110,8 +110,8 @@ int mbedtls_cipher_auth_decrypt_wrapper(const cipher_params_t *input, unsigned c
         goto EXIT;
     }
 
-    if (mbedtls_cipher_setkey(&cipher_ctx, input->key, cipher_info->MBEDTLS_PRIVATE(key_bitlen), MBEDTLS_DECRYPT) !=
-        0) {
+    if (mbedtls_cipher_setkey(&cipher_ctx, input->key, mbedtls_cipher_info_get_key_bitlen(cipher_info),
+                              MBEDTLS_DECRYPT) != 0) {
         PR_ERR("mbedtls_cipher_setkey() returned error\n");
         goto EXIT;
     }
