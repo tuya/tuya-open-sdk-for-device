@@ -196,7 +196,8 @@ function build_exec()
         fi
         PROJECT_CHIP=$(echo "$PROJECT_INFO" | grep -oP '(?<=chip = ).*(?=$)')
 
-        if [ ! -d "$OPEN_SDK_ROOT/platform/$PROJECT_PLATFORM" ]; then
+        PLATFORM_PATH=$OPEN_SDK_ROOT/platform/$PROJECT_PLATFORM
+        if [ ! -d "$PLATFORM_PATH" ]; then
             download_platform_by_name $PROJECT_PLATFORM $PROJECT_CHIP
             if [ "0" != "$?" ]; then
                 RET=1
@@ -206,10 +207,16 @@ function build_exec()
 
         mkdir -p $PROJECT_ROOT/.build/$PROJ
         cd $PROJECT_ROOT/.build/$PROJ
-        cmake $OPEN_SDK_ROOT -DTOS_PROJECT_NAME=$PROJ -DTOS_PROJECT_ROOT=$PROJECT_ROOT -DTOS_PROJECT_PLATFORM=$PROJECT_PLATFORM -DTOS_PROJECT_CHIP=$PROJECT_CHIP
+        if [ -f "$PLATFORM_PATH/build_setup.sh" ]; then
+            $PLATFORM_PATH/build_setup.sh "${PROJ}" "${PROJECT_PLATFORM}" "${PROJECT_CHIP}"
+        fi
+        cmake $OPEN_SDK_ROOT -DTOS_PROJECT_NAME=$PROJ -DTOS_PROJECT_ROOT=$PROJECT_ROOT -DTOS_PROJECT_PLATFORM=$PROJECT_PLATFORM -DTOS_FRAMEWORK=$PROJECT_FRAMEWORK -DTOS_PROJECT_CHIP=$PROJECT_CHIP
         make example
         if [ ! "0" = "$?" ]; then
             RET=1
+        fi
+        if [ -f "$PLATFORM_PATH/build_hock.sh" ]; then
+            $PLATFORM_PATH/build_hock.sh "${PROJ}" "${PROJECT_PLATFORM}" "${PROJECT_CHIP}"
         fi
         cd - > /dev/null
     done

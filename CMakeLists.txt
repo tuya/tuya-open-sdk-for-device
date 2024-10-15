@@ -54,13 +54,14 @@ set(DOT_CONFIG_DIR "${TOP_BINARY_DIR}/cache")
 set(DOT_CONFIG "using.config")
 set(CMAKE_CONFIG "using.cmake")
 set(HEADER_DIR "${TOP_BINARY_DIR}/include")
+set(PLATFORM_NEED_HDIR "${TOP_BINARY_DIR}/include")
 set(HEADER_FILE "tuya_kconfig.h")
 set(HEADER_IN_PATH "${TOP_SOURCE_DIR}/tools/kconfiglib/config.h.in")
 add_subdirectory("${TOP_SOURCE_DIR}/tools/kconfiglib")
 
 
 # toolchain cmake
-set(CMAKE_TOOLCHAIN_FILE "${PLATFORM_PATH}/toolchain_file.cmake")
+include("${PLATFORM_PATH}/toolchain_file.cmake")
 message(STATUS "[TOP] Using toolchain file [${CMAKE_TOOLCHAIN_FILE}].")
 
 
@@ -101,7 +102,8 @@ if(NOT DEFINED CONFIG_PROJECT_VERSION)
     set(CONFIG_PROJECT_VERSION "1.0.0")
 endif()
 set(EXAMPLE_LIB "tuyaapp")
-string(REPLACE ";" " " PLATFORM_NEED_HDIR "${HEADER_DIR}")
+list(APPEND PLATFORM_NEED_HDIR ${COMPONENT_PUBINC})
+string(REPLACE ";" " " PLATFORM_NEED_HDIR "${PLATFORM_NEED_HDIR}")
 set(PLATFORM_NEED_LIBS "${EXAMPLE_LIB} ${COMPONENTS_ALL_LIB}")
 message(STATUS "[TOP] PLATFORM_NEED_LIBS: ${PLATFORM_NEED_LIBS}")
 include(${TOS_PROJECT_ROOT}/CMakeLists.txt)
