@@ -47,6 +47,30 @@ function check_submodules()
     cd - > /dev/null
 }
 
+function check_arduino()
+{
+    ARDUINO_REPO="https://github.com/tuya/arduino-tuyaopen.git"
+    ARDUINO_PATH=$OPEN_SDK_ROOT/arduino-tuyaopen
+    cd $OPEN_SDK_ROOT
+    if [ -d $ARDUINO_PATH ]; then
+        show "" "Skip download, exist [$ARDUINO_PATH]."
+        show "${fore[yellow]}" "If you want to download it again, please remove it."
+        return 0
+    fi
+    git clone $ARDUINO_REPO
+    if [ ! "0" = "$?" ]; then
+        show "${fore[red]}" "Clone repo [$ARDUINO_REPO] failed, please try again."
+        if [ -d "$ARDUINO_PATH" ]; then
+            show "${fore[yellow]}" "Delete [$ARDUINO_PATH] first."
+        fi
+        exit 1
+    fi
+    cd $ARDUINO_PATH
+    TAG=`git describe --tags --abbrev=0`
+    git checkout $TAG
+    git submodule update --init
+}
+
 function version_exec()
 {
     show "" "1.0.0"
@@ -124,6 +148,17 @@ function download_platform_by_name()
 
 function new_exec()
 {
+    TEMPLATE_NAME=$1
+    if [ -z "$TEMPLATE_NAME" ]; then
+        TEMPLATE_NAME="base"
+    fi
+    TEMPLATE_PATH=$OPEN_SDK_ROOT/tools/app_template/$TEMPLATE_NAME
+    if [ ! -d $TEMPLATE_PATH ]; then
+        NOTE="No template named [$TEMPLATE_NAME] exists."
+        show "${fore[red]}" "$NOTE"
+        exit 1
+    fi
+
     read -p "Input project name: " PROJ_NAME
     if [ -z "$PROJ_NAME" ]; then
         NOTE="Project name is empty."
@@ -158,7 +193,7 @@ commit: $PLATFORM_COMMIT
 chip: $PLATFORM_CHIP" # end PLATFORM_STR
     show "" "$PLATFORM_STR"
 
-    cp -a $OPEN_SDK_ROOT/tools/app_template $PROJECT_ROOT/$PROJ_NAME
+    cp -a $TEMPLATE_PATH $PROJECT_ROOT/$PROJ_NAME
     sed -i "s/###PROJECT_NAME###/${PROJ_NAME}_${PLATFORM_NAME}/g" $PROJECT_ROOT/$PROJ_NAME/project_build.ini
     sed -i "s/###PLATFORM_NAME###/$PLATFORM_NAME/g" $PROJECT_ROOT/$PROJ_NAME/project_build.ini
     if [ -n "$PLATFORM_CHIP" ]; then
@@ -194,6 +229,13 @@ function build_exec()
             RET=1
             continue
         fi
+        PROJECT_FRAMEWORK=$(echo "$PROJECT_INFO" | grep -oP '(?<=framework = ).*(?=$)')
+        if [ -z "$PROJECT_FRAMEWORK" ]; then
+            PROJECT_FRAMEWORK="base"
+        fi
+        if [ "$PROJECT_FRAMEWORK" = "arduino" ]; then
+            check_arduino
+        fi
         PROJECT_CHIP=$(echo "$PROJECT_INFO" | grep -oP '(?<=chip = ).*(?=$)')
 
         PLATFORM_PATH=$OPEN_SDK_ROOT/platform/$PROJECT_PLATFORM
@@ -208,7 +250,7 @@ function build_exec()
         mkdir -p $PROJECT_ROOT/.build/$PROJ
         cd $PROJECT_ROOT/.build/$PROJ
         if [ -f "$PLATFORM_PATH/build_setup.sh" ]; then
-            $PLATFORM_PATH/build_setup.sh "${PROJ}" "${PROJECT_PLATFORM}" "${PROJECT_CHIP}"
+            $PLATFORM_PATH/build_setup.sh "${PROJ}" "${PROJECT_PLATFORM}" "${PROJECT_CHIP}" "${PROJECT_FRAMEWORK}"
         fi
         cmake $OPEN_SDK_ROOT -DTOS_PROJECT_NAME=$PROJ -DTOS_PROJECT_ROOT=$PROJECT_ROOT -DTOS_PROJECT_PLATFORM=$PROJECT_PLATFORM -DTOS_FRAMEWORK=$PROJECT_FRAMEWORK -DTOS_PROJECT_CHIP=$PROJECT_CHIP
         make example
@@ -216,7 +258,7 @@ function build_exec()
             RET=1
         fi
         if [ -f "$PLATFORM_PATH/build_hock.sh" ]; then
-            $PLATFORM_PATH/build_hock.sh "${PROJ}" "${PROJECT_PLATFORM}" "${PROJECT_CHIP}"
+            $PLATFORM_PATH/build_hock.sh "${PROJ}" "${PROJECT_PLATFORM}" "${PROJECT_CHIP}" "${PROJECT_FRAMEWORK}"
         fi
         cd - > /dev/null
     done
@@ -271,6 +313,10 @@ function menuconfig_exec()
 
     PLATFORMS_DIR="$OPEN_SDK_ROOT/platform"
     PLATFORM_PATH="${PLATFORMS_DIR}/${PROJECT_PLATFORM}"
+    if [ ! -d "$PLATFORM_PATH" ]; then
+        download_platform_by_name $PROJECT_PLATFORM $PROJECT_CHIP
+    fi
+
     DOT_CONFIG_DIR="$PROJECT_ROOT/.build/$PROJ/cache"
     KCONFIG_CATALOG="CatalogKconfig"
     DOT_CONFIG="using.config"
@@ -281,6 +327,9 @@ function menuconfig_exec()
 
     mkdir -p ${DOT_CONFIG_DIR}
     cd ${DOT_CONFIG_DIR}
+    if [ ! -f $DOT_CONFIG ]; then
+        cp $PLATFORM_PATH/default.config $DOT_CONFIG
+    fi
     python3 $KCONFIG_TOOLS/set_catalog_config.py -b $PLATFORM_PATH -s $OPEN_SDK_ROOT/src -a $PROJECT_ROOT -o $KCONFIG_CATALOG
     bash ${KCONFIG_TOOLS}/run_menuconfig.sh "${KCONFIG_CATALOG}" "$DOT_CONFIG"
     python3 ${KCONFIG_TOOLS}/conf2cmake.py -c "${DOT_CONFIG_DIR}/${DOT_CONFIG}" -o "${CMAKE_CONFIG}"
@@ -342,7 +391,7 @@ Usage: $OPEN_BUILD COMMAND [ARGS]...
 Commands:
     version    - Show TOS verson
     check      - Check command and version
-    new        - New project
+    new        - New project [base(default) / auduino]
     build      - Build specific project or all projects
                  [name] (default build all project by project_build.ini)
     clean      - Clean specific project or all projects
@@ -366,7 +415,7 @@ case $1 in
         check_exec
         ;;
     new)
-        new_exec
+        new_exec $2
         ;;
     build)
         build_exec $2
@@ -375,7 +424,7 @@ case $1 in
         clean_exec $2
         ;;
     menuconfig)
-        menuconfig_exec
+        menuconfig_exec $2
         ;;
     build_all)
         build_all_exec $2

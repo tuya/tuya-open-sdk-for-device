@@ -39,6 +39,10 @@ ENDIF ()
 
 include(${TOP_SOURCE_DIR}/tools/cmake/colors.cmake)
 include(${TOP_SOURCE_DIR}/tools/cmake/util.cmake)
+if(NOT DEFINED TOS_FRAMEWORK)
+    set(TOS_FRAMEWORK "base")
+endif()
+message(STATUS "[TOP] Using framework [${TOS_FRAMEWORK}].")
 if(DEFINED TOS_PROJECT_PLATFORM)
     set(PLATFORM_NAME ${TOS_PROJECT_PLATFORM})
     set(PLATFORM_CHIP ${TOS_PROJECT_CHIP})
@@ -79,6 +83,13 @@ foreach(comp ${COMPONENT_LIST})
     # message(STATUS "comp: ${comp}")
     add_subdirectory("${TOP_SOURCE_DIR}/src/${comp}")
 endforeach(comp)
+
+# add arduino src
+if(TOS_FRAMEWORK STREQUAL "arduino")
+    include(${TOP_SOURCE_DIR}/arduino-tuyaopen/CMakeLists.txt)
+    message(STATUS "[TOP] LD_FILE: ${LD_FILE}")
+endif()
+
 # message(STATUS "[TOP] COMPONENT_LIBS: ${COMPONENT_LIBS}")
 # copy_public_include("${COMPONENT_PUBINC}" "${HEADER_DIR}")
 list(APPEND HEADER_DIR ${PLATFORM_PUBINC})
@@ -105,6 +116,11 @@ set(EXAMPLE_LIB "tuyaapp")
 list(APPEND PLATFORM_NEED_HDIR ${COMPONENT_PUBINC})
 string(REPLACE ";" " " PLATFORM_NEED_HDIR "${PLATFORM_NEED_HDIR}")
 set(PLATFORM_NEED_LIBS "${EXAMPLE_LIB} ${COMPONENTS_ALL_LIB}")
+if(TOS_FRAMEWORK STREQUAL "arduino")
+    if(PLATFORM_NAME STREQUAL "t2")
+        set(PLATFORM_NEED_LIBS "${EXAMPLE_LIB} ${COMPONENTS_ALL_LIB} stdc++")
+    endif()
+endif()
 message(STATUS "[TOP] PLATFORM_NEED_LIBS: ${PLATFORM_NEED_LIBS}")
 include(${TOS_PROJECT_ROOT}/CMakeLists.txt)
 target_include_directories(${EXAMPLE_LIB}
@@ -150,6 +166,7 @@ add_custom_command(
     ${PLATFORM_PATH}
 
     COMMAND
+    export OPEN_LD_FILE="${LD_FILE}" &&
     ./build_example.sh "${EXAMPLE_NAME}" "${CONFIG_PROJECT_VERSION}" "${PLATFORM_NEED_HDIR}"
     "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" "${PLATFORM_NEED_LIBS}"
     "${EXECUTABLE_OUTPUT_PATH}" "build" "${PLATFORM_CHIP}"
@@ -164,6 +181,9 @@ add_custom_target(platform_clean
     ${PLATFORM_PATH}
 
     COMMAND
+
+    COMMAND
+    export OPEN_LD_FILE="${LD_FILE}" &&
     ./build_example.sh "${EXAMPLE_NAME}" "${CONFIG_PROJECT_VERSION}" "${PLATFORM_NEED_HDIR}"
     "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}" "${PLATFORM_NEED_LIBS}"
     "${EXECUTABLE_OUTPUT_PATH}" "clean"
