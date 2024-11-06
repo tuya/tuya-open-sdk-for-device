@@ -71,13 +71,14 @@ By default, there is only 1 project in project. If you need to compile multiple 
 When there are multiple projects in the configuration file, the tos build command will compile multiple projects in sequence.
 
 ### Supported platform list
-| Name  | Support Status | Introduction | 
-| ---- | ---- | ---- |
-| Ubuntu | Supported  | Can be run directly on Linux hosts such as ubuntu. |
-| t2 |  Supported  | [https://developer.tuya.com/en/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq](https://developer.tuya.com/en/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq) |
-| t3 |  Supported  | [https://developer.tuya.com/en/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il](https://developer.tuya.com/en/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il) |
-| t5 | In Development, to be released in Oct 2024 | [https://developer.tuya.com/en/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi](https://developer.tuya.com/en/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi) |
-| raspberry pico-w | In Development, to be released in Nov 2024 | |
+| Name  | Support Status | Introduction | Debug log serial port |
+| ---- | ---- | ---- | ---- |
+| Ubuntu | Supported  | Can be run directly on Linux hosts such as ubuntu. | |
+| T2 |  Supported  | [https://developer.tuya.com/en/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq](https://developer.tuya.com/en/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq) | Uart2/115200 |
+| T3 |  Supported  | [https://developer.tuya.com/en/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il](https://developer.tuya.com/en/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il) | Uart1/468000 |
+| T5 | Supported | [https://developer.tuya.com/en/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi](https://developer.tuya.com/en/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi) | Uart1/468000 |
+| ESP32/ESP32C3 | Supported | | Uart0/115200 |
+| raspberry pico-w | In Development, to be released in Nov 2024 | | |
 
 ## Sample Projects
 The tuya-open-sdk-for-device provides a variety of sample projects to facilitate developers in quickly getting started and understanding the usage of the tuya-open-sdk-for-device.

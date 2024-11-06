@@ -71,13 +71,14 @@ platform = t3
 当配置文件中存在多个 project 时，`tos build` 命令会依次编译多个 project。
 
 ### 支持 platform 列表
-| 名称 | 支持状态 | 介绍 | 
-| ---- | ---- | ---- |
-| Ubuntu | 支持 | 可在 ubuntu 等 Linux 主机上直接运行 |
-| t2 |  支持 | [https://developer.tuya.com/cn/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq](https://developer.tuya.com/cn/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq) |
-| t3 |  支持 | [https://developer.tuya.com/cn/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il](https://developer.tuya.com/cn/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il) |
-| t5 |  开发中，将在 2024-10 发布 | [https://developer.tuya.com/cn/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi](https://developer.tuya.com/cn/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi) |
-| raspberry pico-w | 开发中，将在 2024-11 发布 | |
+| 名称 | 支持状态 | 介绍 | 调试日志串口 |
+| ---- | ---- | ---- | ---- |
+| Ubuntu | 支持 | 可在 ubuntu 等 Linux 主机上直接运行 | |
+| T2 |  支持 | [https://developer.tuya.com/cn/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq](https://developer.tuya.com/cn/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq) | Uart2/115200 |
+| T3 |  支持 | [https://developer.tuya.com/cn/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il](https://developer.tuya.com/cn/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il) | Uart1/468000 |
+| T5 |  支持 | [https://developer.tuya.com/cn/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi](https://developer.tuya.com/cn/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi) | Uart1/468000 |
+| ESP32/ESP32C3 | 支持 | | Uart0/115200 |
+| raspberry pico-w | 开发中，将在 2024-11 发布 | | |
 
 
 ## 示例工程
