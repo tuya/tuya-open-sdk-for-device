@@ -135,7 +135,7 @@ dp_node_t *dp_node_find(dp_schema_t *schema, int id)
  * @param devid The device ID to search for.
  * @return A pointer to the data point schema if found, or NULL if not found.
  */
-dp_schema_t *dp_schema_find(char *devid)
+dp_schema_t *dp_schema_find(const char *devid)
 {
     int i = 0;
 

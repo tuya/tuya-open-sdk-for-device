@@ -413,7 +413,7 @@ dp_node_t *dp_node_find_by_devid(char *devid, int id);
  * @return A pointer to the `dp_schema_t` structure representing the data point
  * schema, or `NULL` if not found.
  */
-dp_schema_t *dp_schema_find(char *devid);
+dp_schema_t *dp_schema_find(const char *devid);
 
 /**
  * @brief Sets the PV (Property Value) status for a specific ID in the given

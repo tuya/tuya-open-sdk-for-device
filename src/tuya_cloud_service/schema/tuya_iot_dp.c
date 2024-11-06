@@ -213,7 +213,7 @@ int tuya_iot_dp_parse(tuya_iot_client_t *client, dp_cmd_type_t cmd_tp, cJSON *cm
  * @return The result of the operation. Returns 0 on success, or a negative
  * error code on failure.
  */
-int tuya_iot_dp_obj_report(tuya_iot_client_t *client, char *devid, dp_obj_t *dps, uint16_t dpscnt, int flags)
+int tuya_iot_dp_obj_report(tuya_iot_client_t *client, const char *devid, dp_obj_t *dps, uint16_t dpscnt, int flags)
 {
     int ret = OPRT_OK;
 
@@ -387,7 +387,7 @@ static void dp_raw_async_cb(int result, void *user_data)
  *         - 0: Success.
  *         - Other values: Error codes.
  */
-int tuya_iot_dp_raw_report(tuya_iot_client_t *client, char *devid, dp_raw_t *dp, uint32_t timeout)
+int tuya_iot_dp_raw_report(tuya_iot_client_t *client, const char *devid, dp_raw_t *dp, uint32_t timeout)
 {
     int ret = OPRT_OK;
 
