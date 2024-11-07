@@ -1,12 +1,12 @@
-# tuya-open-sdk-for-device
-[English](https://github.com/tuya/tuya-open-sdk-for-device/blob/master/README.md) | 简体中文
+# tuyaopen
+[English](https://github.com/tuya/tuyaopen/blob/master/README.md) | 简体中文
 
 ## 简介
-tuya-open-sdk-for-device 是一款跨芯片平台、操作系统的 IoT 开发框架。它基于通用南向接口设计，支持 Bluetooth、Wi-Fi、Ethernet 等通信协议，提供了物联网开发的核心功能，包括配网，激活，控制，升级等；它具备强大的安全合规能力，包括设备认证、数据加密、通信加密等，满足全球各个国家和地区的数据合规需求。
+tuyaopen 是一款跨芯片平台、操作系统的 IoT 开发框架。它基于通用南向接口设计，支持 Bluetooth、Wi-Fi、Ethernet 等通信协议，提供了物联网开发的核心功能，包括配网，激活，控制，升级等；它具备强大的安全合规能力，包括设备认证、数据加密、通信加密等，满足全球各个国家和地区的数据合规需求。
 
-基于 tuya-open-sdk-for-device 开发的 IoT 产品，如果使用 tuya_cloud_service 组件的功能，就可以使用涂鸦APP、云服务提供的强大生态能力，并与 Power By Tuya 设备互联互通。
+基于 tuyaopen 开发的 IoT 产品，如果使用 tuya_cloud_service 组件的功能，就可以使用涂鸦APP、云服务提供的强大生态能力，并与 Power By Tuya 设备互联互通。
 
-同时 tuya-open-sdk-for-device 将不断拓展，提供更多云平台接入功能，及语音、视频、人脸识别等功能。
+同时 tuyaopen 将不断拓展，提供更多云平台接入功能，及语音、视频、人脸识别等功能。
 
 ## 开始体验
 
@@ -20,7 +20,7 @@ $ sudo apt-get install lcov cmake-curses-gui build-essential wget git python3 py
 ### 克隆仓库
 
 ```sh
-$ git clone https://github.com/tuya/tuya-open-sdk-for-device.git
+$ git clone https://github.com/tuya/tuyaopen.git
 $ git submodule update --init
 ```
 
@@ -28,12 +28,12 @@ $ git submodule update --init
 
 ### 设置环境变量
 ```sh
-$ cd tuya-open-sdk-for-device
+$ cd tuyaopen
 $ export PATH=$PATH:$PWD
 ```
-或将 tuya-open-sdk-for-device 路径添加到系统环境变量中。
+或将 tuyaopen 路径添加到系统环境变量中。
 
-tuya-open-sdk-for-device 通过 tos 命令进行编译、调试等操作，tos 命令会根据环境变量中设置的路径查找 tuya-open-sdk-for-device 仓库，并执行对应操作。
+tuyaopen 通过 tos 命令进行编译、调试等操作，tos 命令会根据环境变量中设置的路径查找 tuyaopen 仓库，并执行对应操作。
 
 tos 命令的详细使用方法，请参考 [tos 命令](./docs/zh/tos_guide.md)。
 
@@ -64,6 +64,16 @@ platform = t2
 
 [project:switch_demo_t3]
 platform = t3
+
+[project:switch_demo_ubuntu]
+platform = ubuntu
+
+[project:switch_demo_t5]
+platform = t5
+
+[project:switch_demo_esp32]
+platform = esp32
+chip = esp32c3      # esp32/esp32c3 可选
 ```
 
 默认 project 只有 1 个，如需编译多个 project，需在 project_build.ini 文件中添加多个 project 配置。
@@ -82,10 +92,10 @@ platform = t3
 
 
 ## 示例工程
-tuya-open-sdk-for-device 提供了丰富的示例工程，方便开发者快速上手，了解 tuya-open-sdk-for-device 的使用。
+tuyaopen 提供了丰富的示例工程，方便开发者快速上手，了解 tuyaopen 的使用。
 
 ```shell
-$ tuya-open-sdk-for-device
+$ tuyaopen
 ├── ai
 │   └── llm_demo
 ├── ble
@@ -124,14 +134,14 @@ $ tuya-open-sdk-for-device
 每个示例工程下对应有 README.md 文件，详细介绍了示例工程的配置、编译、运行等操作。
 
 ## FAQ
-1. tuya-open-sdk-for-device 支持的 platform 通过子仓库动态下载，更新 tuya-open-sdk-for-device 仓库不会主动更新子仓库，如遇到问题无法正常编译，请至 platform 文件夹下对应的目录下使用 `git pull` 命令更新，或删除 platform 文件夹下对应目录后再次下载。
+1. tuyaopen 支持的 platform 通过子仓库动态下载，更新 tuyaopen 仓库不会主动更新子仓库，如遇到问题无法正常编译，请至 platform 文件夹下对应的目录下使用 `git pull` 命令更新，或删除 platform 文件夹下对应目录后再次下载。
 
 
 ## License
 本项目的分发遵循 Apache License 版本 2.0。有关更多信息，请参见 LICENSE 文件。
 
 ## 贡献代码
-如果您对 tuya-open-sdk-for-device 感兴趣，并希望参与 tuya-open-sdk-for-device 的开发并成为代码贡献者，请先参阅 [贡献指南](./docs/zh/contribute_guide.md)。
+如果您对 tuyaopen 感兴趣，并希望参与 tuyaopen 的开发并成为代码贡献者，请先参阅 [贡献指南](./docs/zh/contribute_guide.md)。
 
 ## 免责与责任条款
 
