@@ -383,6 +383,18 @@ function build_all_exec()
     printf "${BUILD_INFORMATION}"
 }
 
+function new_platform_exec()
+{
+    PLATFORM_NAME=$1
+    if [ -z "$PLATFORM_NAME" ]; then
+        NOTE="new_platform command need an argument [PLATFORM_NAME]"
+        show "${fore[yellow]}" "$NOTE"
+        exit 1
+    fi
+
+    ${OPEN_SDK_ROOT}/tools/kernel_porting.sh ${PLATFORM_NAME}
+}
+
 function help_exec()
 {
     NOTE="
@@ -399,6 +411,7 @@ Commands:
     menuconfig - Configuration project features
     build_all  - Build all projects in the directory
                  [*path]
+    new_platform - New platform [platform_name]
     help       - Help information
     "
     show "" "$NOTE"
@@ -428,6 +441,9 @@ case $1 in
         ;;
     build_all)
         build_all_exec $2
+        ;;
+    new_platform)
+        new_platform_exec $2
         ;;
     help)
         help_exec
