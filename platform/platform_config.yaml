@@ -1,23 +1,23 @@
 platforms:
 - name: t2
-  repo: https://github.com/tuya/tuya-open-sdk-for-device-platform-t2
+  repo: https://github.com/tuya/tuyaopen-platform-t2
   commit: master
 
 - name: t3
-  repo: https://github.com/tuya/tuya-open-sdk-for-device-platform-t3
+  repo: https://github.com/tuya/tuyaopen-platform-t3
   commit: master
 
 - name: ubuntu
-  repo: https://github.com/tuya/tuya-open-sdk-for-device-board
+  repo: https://github.com/tuya/tuyaopen-platform-ubuntu
   commit: platform_ubuntu
 
 - name: t5
-  repo: https://github.com/tuya/tuya-open-sdk-for-device-platform-t5
+  repo: https://github.com/tuya/tuyaopen-platform-t5
   commit: master
 
 - name: esp32
   locater: esp32
-  repo: https://github.com/tuya/tuya-open-sdk-for-device-platform-esp32
+  repo: https://github.com/tuya/tuyaopen-platform-esp32
   commit: master
   chip:
     - esp32
