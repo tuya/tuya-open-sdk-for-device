@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # ==============================================================================
-# This script is used to generate the tuya-open-sdk-for-device platform template
+# This script is used to generate the tuyaopen platform template
 # ------------------------------------------------------------------------------
 # example:
 # ./kernel_porting.sh <your-platform-name>

@@ -132,6 +132,10 @@ $ tuyaopen
 
 Each sample project includes a README.md file that provides detailed instructions on configuring, compiling, and running the project.
 
+## Adding and Adapting New Platforms
+
+tuyaopen supports adding and adapting new platforms. For specific operations, please refer to [Adding and Adapting New Platforms](./docs/en/new_platform.md).
+
 ## FAQ
 1. The supported platform for tuyaopen are dynamically downloaded through subrepositories. Updating the tuyaopen repository itself will not automatically update the subrepositories. If you encounter any issues with compilation, please navigate to the corresponding directory in the "platform" folder and use the `git pull` command to update, or delete the corresponding directory in the "platform" folder and download it again.
 
@@ -150,3 +154,4 @@ If users decide to use this project for commercial purposes, they should fully r
 
 ## Related Links
 - Arduino for tuyaopen: [https://github.com/tuya/arduino-tuyaopen](https://github.com/tuya/arduino-tuyaopen)
+- Luanode for open-sdk：[https://github.com/tuya/luanode-tuyaopen](https://github.com/tuya/luanode-tuyaopen)

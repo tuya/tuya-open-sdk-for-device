@@ -48,7 +48,7 @@ topics=(`find ./src -maxdepth 1 -type d ! -name 'src' -exec basename {} \; | sor
 topics+=(`find ./board -maxdepth 1 -type d ! -name 'board' -exec basename {} \; | sort`)
 topics+=(`find ./examples -maxdepth 1 -type d ! -name 'examples' -exec basename {} \; | sort`)
 # topics=`grep -o '/src/\(.*\)/' symbols.all | cut -d/ -f3  | sort | uniq` 
-topics+=("tuya-open-sdk-for-device")
+topics+=("tuyaopen")
 
 echo "resource statstics"
 echo "rom-----ro------ram-----data----bss------name"

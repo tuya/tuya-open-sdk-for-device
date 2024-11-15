@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # ==============================================================================
-# This script is used to update the tuya-open-sdk-for-device platform template
+# This script is used to update the tuyaopen platform template
 # ------------------------------------------------------------------------------
 # example:
 # ./kernel_update.sh 

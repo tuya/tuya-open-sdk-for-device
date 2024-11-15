@@ -109,7 +109,10 @@ platform = t2
 platform = t3
 ```
 
-默认 project 只有 1 个，如需编译多个 project，需在 project_build.ini 文件中添加多个 project 配置。
+默认 project 只有 1 个，如需编译多个 project，需在 project_build.ini 文件中添加多个 project 配置.
+- 推荐 project 名为 `当前项目名_platform名` 或 `当前项目名_chip名`。
+- platform 为项目对应的平台。
+- chip 为项目对应的芯片型号。
 
 当配置文件中存在多个 project 时，`tos build` 命令会依次编译多个 project。
 

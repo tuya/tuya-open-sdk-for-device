@@ -1,4 +1,3 @@
-```markdown
 # Coding Style Guide
 
 The purpose of this style guide is to encourage tuyaopen developers to use a consistent coding style, thereby improving the readability and maintainability of the code.
@@ -265,4 +264,3 @@ Where <file> is the file to be formatted.
 The tuyaopen directory tools/hooks/pre-commit file will be automatically copied to the .git/hooks directory during compilation.
 
 The pre-commit command will automatically call clang-format to format the files that have already been added with the `git add` command when committing code with the `git commit` command.
-```

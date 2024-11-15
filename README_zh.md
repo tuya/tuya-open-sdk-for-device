@@ -133,6 +133,10 @@ $ tuyaopen
 
 每个示例工程下对应有 README.md 文件，详细介绍了示例工程的配置、编译、运行等操作。
 
+## platform 新增与适配
+
+tuyaopen 支持新增与适配新的 platform，具体操作请参考 [platform 新增与适配](./docs/zh/new_platform.md)。
+
 ## FAQ
 1. tuyaopen 支持的 platform 通过子仓库动态下载，更新 tuyaopen 仓库不会主动更新子仓库，如遇到问题无法正常编译，请至 platform 文件夹下对应的目录下使用 `git pull` 命令更新，或删除 platform 文件夹下对应目录后再次下载。
 
@@ -150,4 +154,5 @@ $ tuyaopen
 若用户决定将本项目用于商业目的，应充分认识到其中可能涉及的功能性和安全性风险。在此情况下，用户应对产品的所有功能性和安全性问题承担全部责任，应进行全面的功能和安全测试，以确保其满足特定的商业需求。本公司不对因用户使用本项目或其子模块而造成的任何直接、间接、特殊、偶然或惩罚性损害承担责任。
 
 ## 相关链接
-- arduino 版 open-sdk：[https://github.com/tuya/arduino-tuyaopen](https://github.com/tuya/arduino-tuyaopen)
+- Arduino 版 open-sdk：[https://github.com/tuya/arduino-tuyaopen](https://github.com/tuya/arduino-tuyaopen)
+- Luanode 版 open-sdk：[https://github.com/tuya/luanode-tuyaopen](https://github.com/tuya/luanode-tuyaopen)

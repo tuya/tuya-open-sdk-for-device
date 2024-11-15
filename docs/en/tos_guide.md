@@ -1,5 +1,5 @@
 # tos Guide
-```markdown
+
 The tos command is a build tool for tuyaopen, supporting various functions such as creating, compiling, and configuring.
 
 The tos command is located in the root directory of [tuyaopen](https://github.com/tuya/tuyaopen.git) and is implemented using shell scripts. Before using it, you need to add the path of tuyaopen to the system environment variable.
@@ -119,4 +119,3 @@ When there are multiple projects in the configuration file, the `tos build` comm
 $ tos build_all .
 ```
 Tos will compile all projects in the specified directory according to the project configuration files under the project engineering directory.
-```
