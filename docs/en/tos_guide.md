@@ -1,8 +1,8 @@
 # tos Guide
 ```markdown
-The tos command is a build tool for tuya-open-sdk-for-device, supporting various functions such as creating, compiling, and configuring.
+The tos command is a build tool for tuyaopen, supporting various functions such as creating, compiling, and configuring.
 
-The tos command is located in the root directory of [tuya-open-sdk-for-device](https://github.com/tuya/tuya-open-sdk-for-device.git) and is implemented using shell scripts. Before using it, you need to add the path of tuya-open-sdk-for-device to the system environment variable.
+The tos command is located in the root directory of [tuyaopen](https://github.com/tuya/tuyaopen.git) and is implemented using shell scripts. Before using it, you need to add the path of tuyaopen to the system environment variable.
 
 ## Command List
 You can view the command list by running `tos help`.

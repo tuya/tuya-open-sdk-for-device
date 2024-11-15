@@ -1,9 +1,9 @@
 ```markdown
 # Coding Style Guide
 
-The purpose of this style guide is to encourage tuya-open-sdk-for-device developers to use a consistent coding style, thereby improving the readability and maintainability of the code.
+The purpose of this style guide is to encourage tuyaopen developers to use a consistent coding style, thereby improving the readability and maintainability of the code.
 
-The tuya-open-sdk-for-device coding style is based on the `Linux kernel coding style` [https://www.kernel.org/doc/html/latest/process/coding-style.html](https://www.kernel.org/doc/html/latest/process/coding-style.html), with some adjustments or deletions to specific guidelines.
+The tuyaopen coding style is based on the `Linux kernel coding style` [https://www.kernel.org/doc/html/latest/process/coding-style.html](https://www.kernel.org/doc/html/latest/process/coding-style.html), with some adjustments or deletions to specific guidelines.
 
 ## 1. Directories and Files
 Both directories and files should be named in lowercase, with names reflecting the content they represent. For commands combining multiple meanings, use an underscore "_" to connect them. It is recommended that directory and file names do not exceed three combined components.
@@ -252,7 +252,7 @@ typedef enum {
 ```
 
 ## 5. Code Formatting
-tuya-open-sdk-for-device supports code formatting with clang-format. Please install clang-format 14 or above, and manually or automatically format the code currently modified.
+tuyaopen supports code formatting with clang-format. Please install clang-format 14 or above, and manually or automatically format the code currently modified.
 
 - Manual formatting:
 ```shell
@@ -262,7 +262,7 @@ Where <file> is the file to be formatted.
 
 - Automatic formatting:
 
-The tuya-open-sdk-for-device directory tools/hooks/pre-commit file will be automatically copied to the .git/hooks directory during compilation.
+The tuyaopen directory tools/hooks/pre-commit file will be automatically copied to the .git/hooks directory during compilation.
 
 The pre-commit command will automatically call clang-format to format the files that have already been added with the `git add` command when committing code with the `git commit` command.
 ```
