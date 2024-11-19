@@ -85,8 +85,8 @@ chip = esp32c3      # esp32/esp32c3 可选
 | ---- | ---- | ---- | ---- |
 | Ubuntu | 支持 | 可在 ubuntu 等 Linux 主机上直接运行 | |
 | T2 |  支持 | [https://developer.tuya.com/cn/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq](https://developer.tuya.com/cn/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq) | Uart2/115200 |
-| T3 |  支持 | [https://developer.tuya.com/cn/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il](https://developer.tuya.com/cn/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il) | Uart1/468000 |
-| T5 |  支持 | [https://developer.tuya.com/cn/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi](https://developer.tuya.com/cn/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi) | Uart1/468000 |
+| T3 |  支持 | [https://developer.tuya.com/cn/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il](https://developer.tuya.com/cn/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il) | Uart1/460800 |
+| T5 |  支持 | [https://developer.tuya.com/cn/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi](https://developer.tuya.com/cn/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi) | Uart1/460800 |
 | ESP32/ESP32C3 | 支持 | | Uart0/115200 |
 | raspberry pico-w | 开发中，将在 2024-11 发布 | | |
 

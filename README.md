@@ -85,8 +85,8 @@ When there are multiple projects in the configuration file, the tos build comman
 | ---- | ---- | ---- | ---- |
 | Ubuntu | Supported  | Can be run directly on Linux hosts such as ubuntu. | |
 | T2 |  Supported  | [https://developer.tuya.com/en/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq](https://developer.tuya.com/en/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq) | Uart2/115200 |
-| T3 |  Supported  | [https://developer.tuya.com/en/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il](https://developer.tuya.com/en/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il) | Uart1/468000 |
-| T5 | Supported | [https://developer.tuya.com/en/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi](https://developer.tuya.com/en/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi) | Uart1/468000 |
+| T3 |  Supported  | [https://developer.tuya.com/en/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il](https://developer.tuya.com/en/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il) | Uart1/460800 |
+| T5 | Supported | [https://developer.tuya.com/en/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi](https://developer.tuya.com/en/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi) | Uart1/460800 |
 | ESP32/ESP32C3 | Supported | | Uart0/115200 |
 | raspberry pico-w | In Development, to be released in Nov 2024 | | |
 
