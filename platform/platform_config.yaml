@@ -22,3 +22,8 @@ platforms:
   chip:
     - esp32
     - esp32c3
+
+- name: ln882h
+  locater: ln882h
+  repo: https://github.com/tuya/tuyaopen-platform-ln882h
+  commit: master
