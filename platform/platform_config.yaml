@@ -27,3 +27,10 @@ platforms:
   locater: ln882h
   repo: https://github.com/tuya/tuyaopen-platform-ln882h
   commit: master
+
+- name: bk7231x
+  locater: bk7231x
+  repo: https://github.com/tuya/tuyaopen-platform-bk7231x
+  commit: master
+  chip:
+    - bk7231n
