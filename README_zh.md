@@ -21,12 +21,13 @@ $ sudo apt-get install lcov cmake-curses-gui build-essential wget git python3 py
 
 ```sh
 $ git clone https://github.com/tuya/tuyaopen.git
-$ git submodule update --init
 ```
+
+tuyeopen 仓库中包含多个子模块，tos 工具会在编译前检查并自动下载子模块，也可以使用 `git submodule update --init` 命令手工下载。
 
 ## 设置与编译
 
-### 设置环境变量
+### step1. 设置环境变量
 ```sh
 $ cd tuyaopen
 $ export PATH=$PATH:$PWD
@@ -37,8 +38,39 @@ tuyaopen 通过 tos 命令进行编译、调试等操作，tos 命令会根据�
 
 tos 命令的详细使用方法，请参考 [tos 命令](./docs/zh/tos_guide.md)。
 
-### 配置
-### menuconfig 配置 
+### step2. 设置 platform
+tos 工具通过项目工程目录下的 `project_build.ini` 文件配置编译 platform，`project_build.ini` 包括以下字段：
+- project: 项目名称，可自定义，建议工程目录名_<platform/chip name>。
+- platform: 编译目标平台，可选值：ubuntu、t2、t3、t5、esp32、ln882h、bk7231x。该名称与 `platform/platform_config.yaml` 中定义的 name 名称一致。
+- chip: 可选值，当 platform 中支持多 chip 时，需指定 chip 名称。
+    - platform 为 esp32 时可选值：esp32、esp32c3。
+    - platform 为 bk7231x 时可选值：bk7231n。
+
+示例如下：
+```bash
+[project:sample_project_bk7231x]
+platform = bk7231x
+chip = bk7231n
+```
+
+同时 tos 工具可通过 `project_build.ini` 文件配置项目多平台同时编译，可参考[多平台配置](#多平台配置)。
+
+### step3. 编译
+选择当前编译的 examples 或 apps 对应工程，运行如下命令编译：
+```shell
+$ cd examples/get-started/sample_project
+$ tos build
+```
+编译完成后目标文件位于当前编译项目 `.build/<project>/bin` 目录下，如 `examples/get-started/sample_project/.build/sample_project_t2/bin` 目录。
+编译后的目标文件包括：
+- sample_project_t2_QIO_1.0.0.bin：包括 boot 在内的完整固件，用于烧录。
+- sample_project_t2_UA_1.0.0.bin：未包括 boot 的应用固件，使用该文件需根据不同的 platform/chip 烧录该 bin 至对应的地址，否则可能无法正常运行。
+- sample_project_t2_UG_1.0.0.bin：用于 OTA 升级的 bin 文件，无法直接烧录后运行。
+
+
+项目版本默认为 `1.0.0`，可在 menuconfig 配置中修改。
+
+### step4. menuconfig 配置 
 选择需配置的 examples 或 apps 对应工程，在对应工程目录下运行如下命令进行菜单化配置：
 ```sh
 $ cd examples/get-started/sample_project
@@ -46,37 +78,28 @@ $ tos menuconfig
 ```
 配置当前工程，配置完成后保存退出，编译工程。
 
-### 编译
-选择当前编译的 examples 或 apps 对应工程，运行如下命令编译：
-```shell
-$ cd examples/get-started/sample_project
-$ tos build
-```
-编译完成后目标文件位于 `examples/get-started/sample_project/.build/t2/bin/t2_1.0.0` 目录。
-
-项目版本默认为 `1.0.0`，可在 menuconfig 配置中修改。
 
 ## 多平台配置
-tos 工具通过项目工程目录下的 project_build.ini 文件配置多平台编译，配置文件格式如下：
+tos 工具通过项目工程目录下的 `project_build.ini` 文件配置多平台编译，[多平台配置文件](examples/get-started/sample_project/project_build.ini) 格式如下：
 ```ini
-[project:switch_demo_t2]
+[project:sample_project_t2]
 platform = t2
 
-[project:switch_demo_t3]
+[project:sample_project_t3]
 platform = t3
 
-[project:switch_demo_ubuntu]
+[project:sample_project_ubuntu]
 platform = ubuntu
 
-[project:switch_demo_t5]
+[project:sample_project_t5]
 platform = t5
 
-[project:switch_demo_esp32]
+[project:sample_project_esp32]
 platform = esp32
-chip = esp32c3      # esp32/esp32c3 可选
+chip = esp32c3                  # esp32/esp32c3 可选
 ```
 
-默认 project 只有 1 个，如需编译多个 project，需在 project_build.ini 文件中添加多个 project 配置。
+默认 project 只有 1 个，如需编译多个 project，需在 `project_build.ini` 文件中添加多个 project 配置。
 
 当配置文件中存在多个 project 时，`tos build` 命令会依次编译多个 project。
 
@@ -84,10 +107,12 @@ chip = esp32c3      # esp32/esp32c3 可选
 | 名称 | 支持状态 | 介绍 | 调试日志串口 |
 | ---- | ---- | ---- | ---- |
 | Ubuntu | 支持 | 可在 ubuntu 等 Linux 主机上直接运行 | |
-| T2 |  支持 | [https://developer.tuya.com/cn/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq](https://developer.tuya.com/cn/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq) | Uart2/115200 |
-| T3 |  支持 | [https://developer.tuya.com/cn/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il](https://developer.tuya.com/cn/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il) | Uart1/460800 |
-| T5 |  支持 | [https://developer.tuya.com/cn/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi](https://developer.tuya.com/cn/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi) | Uart1/460800 |
+| T2 |  支持 | 支持模组列表:  [T2-U](https://developer.tuya.com/cn/docs/iot/T2-U-module-datasheet?id=Kce1tncb80ldq) | Uart2/115200 |
+| T3 |  支持 | 支持模组列表:  [T3-U](https://developer.tuya.com/cn/docs/iot/T3-U-Module-Datasheet?id=Kdd4pzscwf0il) [T3-U-IPEX](https://developer.tuya.com/cn/docs/iot/T3-U-IPEX-Module-Datasheet?id=Kdn8r7wgc24pt) [T3-2S](https://developer.tuya.com/cn/docs/iot/T3-2S-Module-Datasheet?id=Ke4h1uh9ect1s) [T3-3S](https://developer.tuya.com/cn/docs/iot/T3-3S-Module-Datasheet?id=Kdhkyow9fuplc) [T3-E2](https://developer.tuya.com/cn/docs/iot/T3-E2-Module-Datasheet?id=Kdirs4kx3uotg) 等 | Uart1/460800 |
+| T5 |  支持 | 支持模组列表: [T5-E1](https://developer.tuya.com/cn/docs/iot/T5-E1-Module-Datasheet?id=Kdar6hf0kzmfi) [T5-E1-IPEX](https://developer.tuya.com/cn/docs/iot/T5-E1-IPEX-Module-Datasheet?id=Kdskxvxe835tq) 等 | Uart1/460800 |
 | ESP32/ESP32C3 | 支持 | | Uart0/115200 |
+| LN882H | 支持 |  | Uart1/921600 |
+| BK7231N | 支持 | 支持模组列表:  [CBU](https://developer.tuya.com/cn/docs/iot/cbu-module-datasheet?id=Ka07pykl5dk4u)  [CB3S](https://developer.tuya.com/cn/docs/iot/cb3s?id=Kai94mec0s076) [CB3L](https://developer.tuya.com/cn/docs/iot/cb3l-module-datasheet?id=Kai51ngmrh3qm) [CB3SE](https://developer.tuya.com/cn/docs/iot/CB3SE-Module-Datasheet?id=Kanoiluul7nl2) [CB2S](https://developer.tuya.com/cn/docs/iot/cb2s-module-datasheet?id=Kafgfsa2aaypq) [CB2L](https://developer.tuya.com/cn/docs/iot/cb2l-module-datasheet?id=Kai2eku1m3pyl) [CB1S](https://developer.tuya.com/cn/docs/iot/cb1s-module-datasheet?id=Kaij1abmwyjq2) [CBLC5](https://developer.tuya.com/cn/docs/iot/cblc5-module-datasheet?id=Ka07iqyusq1wm) [CBLC9](https://developer.tuya.com/cn/docs/iot/cblc9-module-datasheet?id=Ka42cqnj9r0i5) [CB8P](https://developer.tuya.com/cn/docs/iot/cb8p-module-datasheet?id=Kahvig14r1yk9) 等 | Uart2/115200 |
 | raspberry pico-w | 开发中，将在 2024-11 发布 | | |
 
 
@@ -154,5 +179,5 @@ tuyaopen 支持新增与适配新的 platform，具体操作请参考 [platform 
 若用户决定将本项目用于商业目的，应充分认识到其中可能涉及的功能性和安全性风险。在此情况下，用户应对产品的所有功能性和安全性问题承担全部责任，应进行全面的功能和安全测试，以确保其满足特定的商业需求。本公司不对因用户使用本项目或其子模块而造成的任何直接、间接、特殊、偶然或惩罚性损害承担责任。
 
 ## 相关链接
-- Arduino 版 open-sdk：[https://github.com/tuya/arduino-tuyaopen](https://github.com/tuya/arduino-tuyaopen)
-- Luanode 版 open-sdk：[https://github.com/tuya/luanode-tuyaopen](https://github.com/tuya/luanode-tuyaopen)
+- Arduino 版 tuyaopen：[https://github.com/tuya/arduino-tuyaopen](https://github.com/tuya/arduino-tuyaopen)
+- Luanode 版 tuyaopen：[https://github.com/tuya/luanode-tuyaopen](https://github.com/tuya/luanode-tuyaopen)
