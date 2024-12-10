@@ -125,8 +125,8 @@ typedef struct {
     OPERATE_RET (*fwrite)(void *buf, int bytes, TUYA_FILE file);
     char *(*fgets)(char *buf, int len, TUYA_FILE file);
     OPERATE_RET (*feof)(TUYA_FILE file);
-    OPERATE_RET (*fseek)(TUYA_FILE file, INT64_T offs, int whence);
-    INT64_T (*ftell)(TUYA_FILE file);
+    OPERATE_RET (*fseek)(TUYA_FILE file, int64_t offs, int whence);
+    int64_t (*ftell)(TUYA_FILE file);
     int (*fflush)(TUYA_FILE file);
     int (*fileno)(TUYA_FILE file);
     int (*fsync)(int fd);

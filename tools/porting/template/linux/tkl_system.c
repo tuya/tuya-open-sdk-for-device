@@ -46,7 +46,7 @@ SYS_TICK_T tkl_system_get_tick_count(void)
     // --- BEGIN: user implements ---
     struct timespec time1 = {0, 0};
     clock_gettime(CLOCK_MONOTONIC, &time1);
-    return 1000 * ((ULONG_T)time1.tv_sec) + ((ULONG_T)time1.tv_nsec) / 1000000;
+    return 1000 * ((uint32_t)time1.tv_sec) + ((uint32_t)time1.tv_nsec) / 1000000;
     // --- END: user implements ---
 }
 
@@ -62,7 +62,7 @@ SYS_TIME_T tkl_system_get_millisecond(void)
     // --- BEGIN: user implements ---
     struct timespec time1 = {0, 0};
     clock_gettime(CLOCK_MONOTONIC, &time1);
-    return 1000 * ((ULONG_T)time1.tv_sec) + ((ULONG_T)time1.tv_nsec) / 1000000;
+    return 1000 * ((uint32_t)time1.tv_sec) + ((uint32_t)time1.tv_nsec) / 1000000;
     // --- END: user implements ---
 }
 

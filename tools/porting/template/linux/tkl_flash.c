@@ -248,14 +248,14 @@ OPERATE_RET tkl_flash_unlock(uint32_t addr, uint32_t size)
 }
 
 /**
-* @brief tuya_iot_license_read
-*
-* @param[in] license: iot license struct pointer
-*
-* @note This API is used for read license .
-*
-* @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
-*/
+ * @brief tuya_iot_license_read
+ *
+ * @param[in] license: iot license struct pointer
+ *
+ * @note This API is used for read license .
+ *
+ * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
+ */
 int tuya_iot_license_read(tuya_iot_license_t *license)
 {
     return OPRT_NOT_SUPPORTED;

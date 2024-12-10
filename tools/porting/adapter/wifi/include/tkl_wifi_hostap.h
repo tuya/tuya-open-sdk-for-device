@@ -24,7 +24,7 @@ extern "C" {
  * @param[in]       arg         ioctl parameters pointer
  * @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
  */
-OPERATE_RET tkl_hostap_ioctl_inet(int dev, int vif_index, uint32_t cmd, ULONG_T arg);
+OPERATE_RET tkl_hostap_ioctl_inet(int dev, int vif_index, uint32_t cmd, uint32_t arg);
 
 #ifdef __cplusplus
 } // extern "C"

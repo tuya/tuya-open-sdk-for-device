@@ -12,7 +12,8 @@
  * 4. Need to support querying and setting the format/resolution/refresh rate of external devices such as HDMI/VGA/DP.
  * 5. Need to support frame synchronization interfaces to avoid tearing during image refresh.
  * 6. Need to support multiple layers.
- * 7. Need to provide a memory management interface similar to gralloc, for directly mapping the kernel framebuffer or dma-buf to applications, reducing copy operations.
+ * 7. Need to provide a memory management interface similar to gralloc, for directly mapping the kernel framebuffer or
+ * dma-buf to applications, reducing copy operations.
  */
 
 #ifndef __TKL_DISPLAY_H__
@@ -79,7 +80,7 @@ typedef struct {
     int priority;
 } TKL_DISP_FRAMEBUFFER_S;
 
-typedef void (*TKL_DISP_VSYNC_CB)(TKL_DISP_PORT_E port, INT64_T timestamp);
+typedef void (*TKL_DISP_VSYNC_CB)(TKL_DISP_PORT_E port, int64_t timestamp);
 typedef void (*TKL_DISP_HOTPLUG_CB)(TKL_DISP_PORT_E port, BOOL_T connected);
 typedef struct {
     TKL_DISP_VSYNC_CB vsync_cb;

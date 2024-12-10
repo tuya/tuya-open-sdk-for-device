@@ -245,7 +245,7 @@ int tkl_feof(TUYA_FILE file);
  *
  * @return 0 on success, others on failed
  */
-int tkl_fseek(TUYA_FILE file, INT64_T offs, int whence);
+int tkl_fseek(TUYA_FILE file, int64_t offs, int whence);
 
 /**
  * @brief Get current position of file
@@ -256,7 +256,7 @@ int tkl_fseek(TUYA_FILE file, INT64_T offs, int whence);
  *
  * @return the current offset of the file
  */
-INT64_T tkl_ftell(TUYA_FILE file);
+int64_t tkl_ftell(TUYA_FILE file);
 
 /**
  * @brief Get file size

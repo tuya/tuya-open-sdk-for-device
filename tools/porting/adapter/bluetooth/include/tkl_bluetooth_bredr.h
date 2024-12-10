@@ -20,14 +20,19 @@ extern "C" {
 
 /*
  * Unified Bluetooth BREDR Interface, primarily used in the following scenarios:
- * 1. As a Bluetooth speaker device (Sink), playing audio from the mobile phone (Source) on the device. Examples: Tuya Smart Speaker, Tuya WiFi Voice Speaker, etc.
- * 2. As a Bluetooth headset (Sink), playing audio from the mobile phone or mobile terminal (Sink) on the device. Example: Tuya Bluetooth Headset
+ * 1. As a Bluetooth speaker device (Sink), playing audio from the mobile phone (Source) on the device. Examples: Tuya
+ * Smart Speaker, Tuya WiFi Voice Speaker, etc.
+ * 2. As a Bluetooth headset (Sink), playing audio from the mobile phone or mobile terminal (Sink) on the device.
+ * Example: Tuya Bluetooth Headset
  *
- * Note: The main application scenario for this interface is the Sink side, as there are currently no Source requirements. We will focus on the Sink side interface specifications and do not need to consider the audio data stream.
- * For example, sending speaker data to the next audio playback device is not within our consideration, as the protocol does not support point-to-multipoint connections, so this is not considered for the time being.
+ * Note: The main application scenario for this interface is the Sink side, as there are currently no Source
+ * requirements. We will focus on the Sink side interface specifications and do not need to consider the audio data
+ * stream. For example, sending speaker data to the next audio playback device is not within our consideration, as the
+ * protocol does not support point-to-multipoint connections, so this is not considered for the time being.
  *
  * Purpose of standardizing the Bluetooth BREDR interface:
- * 1. Separate business logic from the driver interface to maximize the standardization of upper and lower layer behavior.
+ * 1. Separate business logic from the driver interface to maximize the standardization of upper and lower layer
+ * behavior.
  * 2. Better expand business and driver needs as required, avoiding unnecessary interface imports and applications.
  * 3. Better meet the needs of TuyaOS in Bluetooth business.
  * 4. Lightweight interface for easier understanding.

@@ -65,7 +65,7 @@ typedef struct _hashmap_map {
 /*                                                                        */
 /*  --------------------------------------------------------------------  */
 
-static ULONG_T crc32_tab[] = {
+static uint32_t crc32_tab[] = {
     0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL, 0x076dc419L, 0x706af48fL, 0xe963a535L, 0x9e6495a3L, 0x0edb8832L,
     0x79dcb8a4L, 0xe0d5e91eL, 0x97d2d988L, 0x09b64c2bL, 0x7eb17cbdL, 0xe7b82d07L, 0x90bf1d91L, 0x1db71064L, 0x6ab020f2L,
     0xf3b97148L, 0x84be41deL, 0x1adad47dL, 0x6ddde4ebL, 0xf4d4b551L, 0x83d385c7L, 0x136c9856L, 0x646ba8c0L, 0xfd62f97aL,
@@ -97,10 +97,10 @@ static ULONG_T crc32_tab[] = {
     0xb40bbe37L, 0xc30c8ea1L, 0x5a05df1bL, 0x2d02ef8dL};
 
 /* Return a 32-bit CRC of the contents of the buffer. */
-static ULONG_T __crc32_hashmap(const uint8_t *s, uint32_t len)
+static uint32_t __crc32_hashmap(const uint8_t *s, uint32_t len)
 {
     uint32_t i;
-    ULONG_T crc32val;
+    uint32_t crc32val;
 
     crc32val = 0;
     for (i = 0; i < len; i++) {
@@ -115,7 +115,7 @@ static ULONG_T __crc32_hashmap(const uint8_t *s, uint32_t len)
  */
 uint32_t __hashmap_hash_int(HASHMAP_T *m, char *keystring)
 {
-    ULONG_T key = __crc32_hashmap((uint8_t *)(keystring), strlen(keystring));
+    uint32_t key = __crc32_hashmap((uint8_t *)(keystring), strlen(keystring));
 
     /* Robert Jenkins' 32 bit Mix Function */
     key += (key << 12);

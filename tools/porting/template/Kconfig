@@ -1,4 +1,4 @@
-menu "configure board <your-board-name>"
+menu "configure platfomr <your-platform-name>"
 
     choice
         prompt "OPERATING_SYSTEM"
@@ -17,9 +17,9 @@ menu "configure board <your-board-name>"
 
     choice
         prompt "ENDIAN"
-        default LITTLE_ENDIAN
+        default TUYA_LITTLE_ENDIAN
 
-        config LITTLE_ENDIAN
+        config TUYA_LITTLE_ENDIAN
             bool "LITTLE_ENDIAN"
         config BIG_ENDIAN
             bool "BIG_ENDIAN"
@@ -27,8 +27,8 @@ menu "configure board <your-board-name>"
 
     config LITTLE_END
         int
-        default 1 if LITTLE_ENDIAN
-        default 0 if BIG_ENDIAN
+        default 1 if TUYA_LITTLE_ENDIAN
+        default 0 if TUYA_BIG_ENDIAN
 
     config ENABLE_FILE_SYSTEM
         bool "ENABLE_FILE_SYSTEM --- support filesystem"

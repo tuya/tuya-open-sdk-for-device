@@ -68,7 +68,7 @@ TKL_WIFI_DESC_T *tkl_wifi_desc_get(void);
  *
  */
 typedef struct {
-    OPERATE_RET (*ioctl)(int dev, int vif_index, uint32_t cmd, ULONG_T arg);
+    OPERATE_RET (*ioctl)(int dev, int vif_index, uint32_t cmd, uint32_t arg);
 } TKL_WIFI_HOSTAP_DESC_T;
 
 /**

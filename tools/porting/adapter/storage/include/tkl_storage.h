@@ -94,7 +94,7 @@ typedef void (*TKL_STORAGE_PROGRESS_CB)(int progress, void *user_ctx);
 typedef void (*TKL_STORAGE_EVENT_CB)(TKL_STORAGE_EVENT_MSG *msg, void *user_ctx);
 
 /* return badblock index in blk_idx  */
-typedef void (*TKL_STORAGE_BADBLK_CB)(ULONG_T blk_idx, void *user_ctx);
+typedef void (*TKL_STORAGE_BADBLK_CB)(uint32_t blk_idx, void *user_ctx);
 
 /**
  * @brief get internal r/w dir
@@ -177,7 +177,7 @@ OPERATE_RET tkl_storage_mkfs(char *fs_type, char *fs_dev, char *parm, TKL_STORAG
  * @param data filesystem-specific params, optional
  * @return OPERATE_RET 0 on success. A negative error code on error.
  */
-OPERATE_RET tkl_storage_mount(char *source, char *target, char *fs_type, ULONG_T flags, void *data);
+OPERATE_RET tkl_storage_mount(char *source, char *target, char *fs_type, uint32_t flags, void *data);
 
 /**
  * @brief umount a filesystem partition. refer to umount system call
@@ -220,7 +220,7 @@ OPERATE_RET tkl_storage_fsck(char *blk_dev, char *fs_type, char *parm, int flags
  * @param args args
  * @return OPERATE_RET 0 on success. A negative error code on error.
  */
-OPERATE_RET tkl_storage_ioctl(char *dev_name, ULONG_T request, void *args);
+OPERATE_RET tkl_storage_ioctl(char *dev_name, uint32_t request, void *args);
 
 /* medium-specific interfaces */
 
