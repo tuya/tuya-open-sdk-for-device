@@ -220,7 +220,7 @@ void user_main()
         PR_WARN("Replace the TUYA_OPENSDK_UUID and TUYA_OPENSDK_AUTHKEY contents, otherwise the demo cannot work.\n \
                 Visit https://platform.tuya.com/purchase/index?type=6 to get the open-sdk uuid and authkey.");
     }
-    PR_DEBUG("uuid %s, authkey %s", license.uuid, license.authkey);
+    // PR_DEBUG("uuid %s, authkey %s", license.uuid, license.authkey);
     /* Initialize Tuya device configuration */
     ret = tuya_iot_init(&client, &(const tuya_iot_config_t){
                                      .software_ver = PROJECT_VERSION,
@@ -232,7 +232,6 @@ void user_main()
                                  });
     assert(ret == OPRT_OK);
 
-    // 初始化LWIP
 #if defined(ENABLE_LIBLWIP) && (ENABLE_LIBLWIP == 1)
     TUYA_LwIP_Init();
 #endif
