@@ -150,6 +150,11 @@ $ tuyaopen
 
 Each sample project includes a README.md file that provides detailed instructions on configuring, compiling, and running the project.
 
+## Cloud Connectivity Applications
+
+tuyaopen provides a wealth of cloud connectivity application examples, which can be found in the apps directory. You can click [Cloud Connectivity Applications](apps/tuya_cloud/README.md) for more information.
+
+
 ## Adding and Adapting New Platforms
 
 tuyaopen supports adding and adapting new platforms. For specific operations, please refer to [Adding and Adapting New Platforms](./docs/en/new_platform.md).
@@ -157,6 +162,8 @@ tuyaopen supports adding and adapting new platforms. For specific operations, pl
 ## FAQ
 1. The supported platform for tuyaopen are dynamically downloaded through subrepositories. Updating the tuyaopen repository itself will not automatically update the subrepositories. If you encounter any issues with compilation, please navigate to the corresponding directory in the "platform" folder and use the `git pull` command to update, or delete the corresponding directory in the "platform" folder and download it again.
 
+
+2. tuyaopen provides a wealth of cloud connectivity application examples. If you encounter issues such as being unable to connect or activate devices properly, please refer to [Cloud Connectivity Applications](apps/tuya_cloud/README.md).
 
 ## License
 Distributed under the Apache License Version 2.0. For more information, see `LICENSE`.
